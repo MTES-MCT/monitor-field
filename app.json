@@ -38,6 +38,12 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser $(PRODUCT_NAME) à utiliser votre position."
+        }
+      ],
+      [
         "expo-font",
         {
           "fonts": [

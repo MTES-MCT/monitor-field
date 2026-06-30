@@ -3,6 +3,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 
 import { AppModeProvider } from "@/contexts/AppModeContext";
+import { RegulatoryAreasProvider } from "@/contexts/RegulatoryAreasContext";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { getDatabase } from "@/lib/db";
 import { syncFishRegulatoryAreas } from "@/lib/fish/fishRegulatoryAreasSync";
@@ -30,9 +31,13 @@ export default function TabLayout() {
 
   return (
     <AppModeProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <App />
-      </ThemeProvider>
+      <RegulatoryAreasProvider>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <App />
+        </ThemeProvider>
+      </RegulatoryAreasProvider>
     </AppModeProvider>
   );
 }

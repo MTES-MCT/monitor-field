@@ -3,6 +3,7 @@ import { useAppMode } from "@/contexts/AppModeContext";
 import { useTheme } from "@/hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
+import { useFishRegulatoryAreasLayer } from "./Layers/fish";
 
 function getVisualState(params: {
   mode: AppMode;
@@ -30,40 +31,16 @@ function getVisualState(params: {
 export function SwitchContextButton() {
   const { config, setMode } = useAppMode();
   const theme = useTheme();
+  const fish = useFishRegulatoryAreasLayer();
   const switchContext = (mode: AppMode) => () => {
     setMode(mode);
+    if (mode === "MONITORFISH") {
+      fish.fetch();
+    }
   };
 
   return (
     <View style={styles.wrapper}>
-      <Pressable
-        onPress={switchContext("MONITORFISH")}
-        accessibilityRole="button"
-        accessibilityState={{
-          selected: config.mode === "MONITORFISH",
-          disabled: false,
-        }}
-        style={() => [
-          styles.buttonBase,
-          getVisualState({
-            mode: "MONITORFISH",
-            selected: config.mode === "MONITORFISH",
-            theme,
-          }).container,
-        ]}
-      >
-        <Image
-          source={require("../../assets/icons/fish.svg")}
-          style={[
-            styles.icon,
-            getVisualState({
-              mode: "MONITORFISH",
-              selected: config.mode === "MONITORFISH",
-              theme,
-            }).icon,
-          ]}
-        />
-      </Pressable>
       <Pressable
         onPress={switchContext("MONITORENV")}
         accessibilityRole="button"
@@ -92,6 +69,34 @@ export function SwitchContextButton() {
           ]}
         />
       </Pressable>
+      <Pressable
+        onPress={switchContext("MONITORFISH")}
+        accessibilityRole="button"
+        accessibilityState={{
+          selected: config.mode === "MONITORFISH",
+          disabled: false,
+        }}
+        style={() => [
+          styles.buttonBase,
+          getVisualState({
+            mode: "MONITORFISH",
+            selected: config.mode === "MONITORFISH",
+            theme,
+          }).container,
+        ]}
+      >
+        <Image
+          source={require("../../assets/icons/fish.svg")}
+          style={[
+            styles.icon,
+            getVisualState({
+              mode: "MONITORFISH",
+              selected: config.mode === "MONITORFISH",
+              theme,
+            }).icon,
+          ]}
+        />
+      </Pressable>
     </View>
   );
 }
@@ -100,7 +105,6 @@ const styles = StyleSheet.create({
   wrapper: {
     display: "flex",
     flexDirection: "row",
-    marginTop: 10,
   },
   buttonBase: {
     alignItems: "center",

@@ -52,7 +52,6 @@ export function parseWtkToGeojson(
   }
 
   function crs(geom: ParsedGeometry | undefined): GeoJSONFeature | undefined {
-    // console.log("crs geom:", geom, "srid:", srid);
     if (geom) {
       return {
         type: "Feature",
@@ -128,7 +127,6 @@ export function parseWtkToGeojson(
     if (!$(/^(MULTIPOLYGON)/i)) return undefined;
     white();
     let coordinates = multicoords();
-    //  console.log("multipolygon coordinates:", coordinates?.[0]?.[0]?.[0]);
     if (!coordinates) return undefined;
     return {
       type: "MultiPolygon",

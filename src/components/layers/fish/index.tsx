@@ -1,21 +1,16 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useTheme } from "@/hooks/use-theme";
-import type { StyleSpecification } from "@maplibre/maplibre-react-native";
 
 import { useAppMode } from "@/contexts/AppModeContext";
-import type { BoundingBox } from "@/lib/fish/fishRegulatoryAreasQueries";
+import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
+import { GeoJSONCollection, MapLayer } from "@/types/MapTypes";
 import {
   normalizeFeatureProperty,
   resolveThemeColors,
   stringToArrayItem,
 } from "@/utils/layersStyle";
-import {
-  type GeoJSONCollection,
-  useFishRegulatoryAreasGeoJSON,
-} from "./useFishRegulatoryAreasGeoJSON";
-
-type MapLayer = NonNullable<StyleSpecification["layers"]>[number];
+import { fetchFishRegulatoryAreasGeoJSON } from "./useFishRegulatoryAreasGeoJSON";
 
 export const fishRegulatoryAreasIds = {
   source: "fish-regulatory-areas-source",
@@ -26,7 +21,7 @@ export const fishRegulatoryAreasIds = {
 const FEATURE_FILL_COLOR_PROPERTY = "__fishFillColor";
 const DEFAULT_FISH_AREA_COLOR = "#67A9CF";
 
-export type FishRegulatoryAreasStyleChunk = {
+export type FishRegulatoryAreasLayerProps = {
   isLoading: boolean;
   source:
     | {
@@ -39,14 +34,15 @@ export type FishRegulatoryAreasStyleChunk = {
     | undefined;
   layers: MapLayer[];
   ids: typeof fishRegulatoryAreasIds;
+  fetch: () => Promise<void>;
 };
 
 function buildFeatureColorKey(properties: Record<string, unknown>): string {
   const id = normalizeFeatureProperty(properties.id);
-  const zone = normalizeFeatureProperty(properties.zone);
+  const type = normalizeFeatureProperty(properties.type_de_reglementation);
   const regulatoryAreaTheme = normalizeFeatureProperty(properties.thematique);
 
-  return `${id}-${zone}-${regulatoryAreaTheme}`;
+  return `${id}-${type}-${regulatoryAreaTheme}`;
 }
 
 function withPerFeatureFillColor(
@@ -109,10 +105,38 @@ function createFishRegulatoryAreasLayers(
   ];
 }
 
-export function useFishRegulatoryAreasLayer(
-  bbox: BoundingBox | undefined,
-): FishRegulatoryAreasStyleChunk {
-  const { geoJSON, isLoading } = useFishRegulatoryAreasGeoJSON(bbox);
+export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
+  const [geoJSON, setGeoJSON] = useState<GeoJSONCollection | undefined>(
+    undefined,
+  );
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { searchBbox, zoom } = useRegulatoryAreas();
+
+  const fetch = useCallback(async () => {
+    console.log(
+      "Fetching fish regulatory areas for bbox",
+      searchBbox,
+      "zoom",
+      zoom,
+    );
+    if (!searchBbox || !zoom) {
+      setGeoJSON(undefined);
+      return;
+    }
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const result = await fetchFishRegulatoryAreasGeoJSON(searchBbox, zoom);
+      setGeoJSON(result);
+    } catch (error) {
+      console.warn("Failed to load regulatory areas", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchBbox, zoom, isLoading]);
 
   const theme = useTheme();
   const { config } = useAppMode();
@@ -120,6 +144,7 @@ export function useFishRegulatoryAreasLayer(
     () => resolveThemeColors(theme, config?.colors),
     [theme, config?.colors],
   );
+
   const geoJSONWithPerFeatureColor = useMemo(() => {
     if (!geoJSON) {
       return undefined;
@@ -134,10 +159,11 @@ export function useFishRegulatoryAreasLayer(
       source: undefined,
       layers: [],
       ids: fishRegulatoryAreasIds,
+      fetch,
     };
   }
 
-  const layerChunk: FishRegulatoryAreasStyleChunk = {
+  return {
     isLoading,
     source: {
       id: fishRegulatoryAreasIds.source,
@@ -151,7 +177,6 @@ export function useFishRegulatoryAreasLayer(
       palette,
     ),
     ids: fishRegulatoryAreasIds,
+    fetch,
   };
-
-  return layerChunk;
 }

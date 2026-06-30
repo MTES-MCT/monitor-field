@@ -1,21 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
+import { useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAppMode } from "@/contexts/AppModeContext";
-import type { BoundingBox } from "@/lib/fish/fishRegulatoryAreasQueries";
 
-import { useFishRegulatoryAreasLayer } from "@/components/layers/fish";
+import { BottomBar } from "@/components/BottomBar";
+import { useFishRegulatoryAreasLayer } from "@/components/Layers/fish";
+import { useSearchByZoneLayer } from "@/components/Layers/useSearchByZoneLayer";
+import { LocationButton } from "@/components/LocationButton";
 import { SwitchContextButton } from "@/components/SwitchContextButton";
+import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
 import {
   Camera,
   Map,
+  UserLocation,
   type MapRef,
   type StyleSpecification,
-  type ViewStateChangeEvent,
 } from "@maplibre/maplibre-react-native";
-import type { NativeSyntheticEvent } from "react-native";
 
 const baseMapStyle: StyleSpecification = {
   version: 8,
@@ -39,71 +41,54 @@ const baseMapStyle: StyleSpecification = {
 export default function HomeScreen() {
   const { config } = useAppMode();
   const mapRef = useRef<MapRef>(null);
-  const [visibleBbox, setVisibleBbox] = useState<BoundingBox | undefined>(
-    undefined,
-  );
+
+  const {
+    isSearchZoneActive,
+    setHasSearchZoneChanged,
+    setZoom,
+    setSearchBbox,
+  } = useRegulatoryAreas();
+
+  const [isLocationVisible, setIsLocationVisible] = useState(true);
   const isMonitorFish = config.mode === "MONITORFISH";
-  const fish = useFishRegulatoryAreasLayer(
-    isMonitorFish ? visibleBbox : undefined,
-  );
-
-  const setVisibleBboxFromBounds = useCallback(
-    (bounds: [number, number, number, number]) => {
-      const [minLon, minLat, maxLon, maxLat] = bounds;
-
-      setVisibleBbox((current: BoundingBox | undefined) => {
-        if (
-          current &&
-          current.minLon === minLon &&
-          current.minLat === minLat &&
-          current.maxLon === maxLon &&
-          current.maxLat === maxLat
-        ) {
-          return current;
-        }
-
-        return {
-          minLon,
-          minLat,
-          maxLon,
-          maxLat,
-        };
-      });
-    },
-    [],
-  );
-
-  const handleRegionDidChange = useCallback(
-    (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
-      setVisibleBboxFromBounds(event.nativeEvent.bounds);
-    },
-    [setVisibleBboxFromBounds],
-  );
-
-  useEffect(() => {
-    if (!isMonitorFish) {
-      return;
-    }
-
-    void (async () => {
-      const bounds = await mapRef.current?.getBounds();
-
-      if (bounds) {
-        setVisibleBboxFromBounds(bounds);
-      }
-    })();
-  }, [isMonitorFish, setVisibleBboxFromBounds]);
+  const fish = useFishRegulatoryAreasLayer();
+  const searchByZone = useSearchByZoneLayer();
 
   const mapStyle: StyleSpecification = {
     ...baseMapStyle,
     sources: {
       ...baseMapStyle.sources,
+      ...(isSearchZoneActive &&
+        searchByZone.source && {
+          [searchByZone.source.id]: searchByZone.source.definition,
+        }),
       ...(isMonitorFish &&
         fish.source && {
           [fish.source.id]: fish.source.definition,
         }),
     },
-    layers: [...baseMapStyle.layers, ...(isMonitorFish ? fish.layers : [])],
+    layers: [
+      ...baseMapStyle.layers,
+      ...(isMonitorFish && isSearchZoneActive ? fish.layers : []),
+      ...(isSearchZoneActive && searchByZone.layer ? [searchByZone.layer] : []),
+    ],
+  };
+
+  const onRegionDidChange = async () => {
+    if (isSearchZoneActive) {
+      setHasSearchZoneChanged(true);
+    }
+    const zoom = await mapRef.current?.getZoom();
+    const bounds = await mapRef.current?.getBounds();
+    if (!bounds) return null;
+    const [lonA, latA, lonB, latB] = bounds;
+    setZoom(Math.round(zoom ?? 3));
+    setSearchBbox({
+      minLon: Math.min(lonA, lonB),
+      minLat: Math.min(latA, latB),
+      maxLon: Math.max(lonA, lonB),
+      maxLat: Math.max(latA, latB),
+    });
   };
 
   return (
@@ -117,11 +102,21 @@ export default function HomeScreen() {
         dragPan
         touchPitch
         touchRotate={false}
-        onRegionDidChange={handleRegionDidChange}
+        onRegionDidChange={onRegionDidChange}
       >
-        <Camera zoom={3} center={[2.99049, 46.82801]} />
+        {isLocationVisible && <UserLocation accuracy />}
+        <Camera zoom={6} trackUserLocation="default" />
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
+          <View style={styles.bottomWrapper}>
+            <LocationButton
+              setIsLocationVisible={setIsLocationVisible}
+              isLocationVisible={isLocationVisible}
+            />
+            <BottomBar
+              onSearch={isMonitorFish ? fish.fetch : () => Promise.resolve()}
+            />
+          </View>
         </SafeAreaView>
       </Map>
     </>
@@ -129,11 +124,15 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  bottomWrapper: {
+    gap: Spacing.five,
+  },
   safeArea: {
     flex: 1,
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
+    paddingBottom: Spacing.three,
     maxWidth: MaxContentWidth,
+    justifyContent: "space-between",
   },
 });
