@@ -13,6 +13,8 @@ const RegulatoryAreasContext = createContext<
       setIsSearchZoneActive: (active: boolean) => void;
       hasSearchZoneChanged: boolean;
       setHasSearchZoneChanged: (changed: boolean) => void;
+      totalCount: number | undefined;
+      setTotalCount: (count: number | undefined) => void;
     }
   | undefined
 >(undefined);
@@ -31,6 +33,7 @@ export function RegulatoryAreasProvider({
   >(undefined);
   const [zoom, setZoom] = useState<number | undefined>(undefined);
   const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
 
   return (
     <RegulatoryAreasContext.Provider
@@ -45,6 +48,8 @@ export function RegulatoryAreasProvider({
         setIsSearchZoneActive,
         hasSearchZoneChanged,
         setHasSearchZoneChanged,
+        totalCount,
+        setTotalCount,
       }}
     >
       {children}

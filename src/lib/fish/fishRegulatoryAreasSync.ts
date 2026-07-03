@@ -1,14 +1,21 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
+import { monitorFishConfig } from "@/config/appModes/monitorfish.config";
 import {
   FISH_REGULATORY_AREAS_API_URL,
-  FISH_REGULATORY_AREAS_RTREE_TABLE,
   FISH_REGULATORY_AREAS_TABLE,
 } from "@/lib/db.schema";
-import { parseWtkToGeojson } from "@/utils/parseWtkToGeojson";
+import { BoundingBox } from "@/types/MapTypes";
+import {
+  normalizeFeatureProperty,
+  stringToArrayItem,
+} from "@/utils/layersStyle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import dayjs from "dayjs";
+import wkt from "wkt";
 
 type ApiRow = {
-  __id: number;
+  id: number;
   type_de_reglementation: string;
   thematique: string;
   zone: string;
@@ -23,160 +30,7 @@ type ApiResponse = {
   };
 };
 
-type BboxResult = {
-  minLon: number;
-  minLat: number;
-  maxLon: number;
-  maxLat: number;
-};
-
-type Position = number[];
-type Geometry =
-  | {
-      type: "Polygon";
-      coordinates: Position[][];
-    }
-  | {
-      type: "MultiPolygon";
-      coordinates: Position[][][];
-    };
-
-async function isRtreeSupported(db: DB): Promise<boolean> {
-  try {
-    const result = await db.execute(
-      "SELECT sqlite_compileoption_used('ENABLE_RTREE') AS enabled",
-    );
-    const enabled = result.rows?.[0]?.enabled;
-
-    if (enabled === 1 || enabled === "1") {
-      return true;
-    }
-  } catch {
-    // Ignore and fallback below.
-  }
-
-  try {
-    await db.execute(
-      "CREATE VIRTUAL TABLE IF NOT EXISTS __rtree_probe USING rtree(id, min_x, max_x, min_y, max_y)",
-    );
-    await db.execute("DROP TABLE IF EXISTS __rtree_probe");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function simplifyRing(ring: Position[], step: number): Position[] {
-  if (step <= 1 || ring.length <= 4) {
-    return ring;
-  }
-
-  const isClosed =
-    ring.length > 1 &&
-    ring[0]?.[0] === ring[ring.length - 1]?.[0] &&
-    ring[0]?.[1] === ring[ring.length - 1]?.[1];
-  const ringWithoutClosure = isClosed ? ring.slice(0, -1) : [...ring];
-
-  const kept: Position[] = [];
-  for (let i = 0; i < ringWithoutClosure.length; i += step) {
-    const point = ringWithoutClosure[i];
-    if (point) {
-      kept.push(point);
-    }
-  }
-
-  const lastPoint = ringWithoutClosure[ringWithoutClosure.length - 1];
-  if (lastPoint && kept[kept.length - 1] !== lastPoint) {
-    kept.push(lastPoint);
-  }
-
-  while (kept.length < 4 && ringWithoutClosure.length > kept.length) {
-    const nextPoint = ringWithoutClosure[kept.length];
-    if (!nextPoint) {
-      break;
-    }
-    kept.push(nextPoint);
-  }
-
-  if (isClosed && kept.length > 0) {
-    const first = kept[0];
-    const end = kept[kept.length - 1];
-    if (first && end && (first[0] !== end[0] || first[1] !== end[1])) {
-      kept.push([first[0], first[1]]);
-    }
-  }
-
-  return kept;
-}
-
-function simplifyGeometry(geometry: Geometry, step: number): Geometry {
-  if (step <= 1) {
-    return geometry;
-  }
-
-  if (geometry.type === "Polygon") {
-    return {
-      type: "Polygon",
-      coordinates: geometry.coordinates.map((ring) => simplifyRing(ring, step)),
-    };
-  }
-
-  return {
-    type: "MultiPolygon",
-    coordinates: geometry.coordinates.map((polygon) =>
-      polygon.map((ring) => simplifyRing(ring, step)),
-    ),
-  };
-}
-
-function formatPosition(position: Position): string {
-  return `${position[0]} ${position[1]}`;
-}
-
-function polygonToWktCoordinates(coordinates: Position[][]): string {
-  const rings = coordinates.map(
-    (ring) => `(${ring.map(formatPosition).join(",")})`,
-  );
-  return `(${rings.join(",")})`;
-}
-
-function geometryToWkt(geometry: Geometry): string {
-  if (geometry.type === "Polygon") {
-    return `POLYGON${polygonToWktCoordinates(geometry.coordinates)}`;
-  }
-
-  const polygons = geometry.coordinates.map(
-    (polygon) => `${polygonToWktCoordinates(polygon)}`,
-  );
-  return `MULTIPOLYGON(${polygons.join(",")})`;
-}
-
-function buildSimplifiedWkts(wkt: string): {
-  wktZLt5: string | null;
-  wktZLt7: string | null;
-  wktZLt9: string | null;
-  wktZLt11: string | null;
-} {
-  const parsed = parseWtkToGeojson(wkt);
-  if (!parsed) {
-    return {
-      wktZLt5: null,
-      wktZLt7: null,
-      wktZLt9: null,
-      wktZLt11: null,
-    };
-  }
-
-  const geometry = parsed.geometry as Geometry;
-  return {
-    wktZLt5: geometryToWkt(simplifyGeometry(geometry, 16)),
-    wktZLt7: geometryToWkt(simplifyGeometry(geometry, 8)),
-    wktZLt9: geometryToWkt(simplifyGeometry(geometry, 4)),
-    wktZLt11: geometryToWkt(simplifyGeometry(geometry, 2)),
-  };
-}
-
-function calculateBboxFromWkt(wkt: string | null): BboxResult | null {
+function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
   if (!wkt) return null;
 
   try {
@@ -213,7 +67,6 @@ function calculateBboxFromWkt(wkt: string | null): BboxResult | null {
 async function fetchAllFishRegulatoryAreas() {
   const rows: ApiRow[] = [];
   let nextUrl: string | null = FISH_REGULATORY_AREAS_API_URL;
-
   while (nextUrl) {
     const response = await fetch(nextUrl);
 
@@ -231,66 +84,90 @@ async function fetchAllFishRegulatoryAreas() {
   return rows;
 }
 
+function buildFeatureColorKey(row: ApiRow): string {
+  const id = normalizeFeatureProperty(row.id);
+  const type = normalizeFeatureProperty(row.type_de_reglementation);
+  const regulatoryAreaTheme = normalizeFeatureProperty(row.thematique);
+
+  return `${id}-${type}-${regulatoryAreaTheme}`;
+}
+
 export async function syncFishRegulatoryAreas(db: DB) {
+  const palette = monitorFishConfig?.colors;
+
+  const existingCountResult = await db.execute(
+    `SELECT COUNT(*) AS count FROM ${FISH_REGULATORY_AREAS_TABLE}`,
+  );
+  const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0);
+  const lastUpdate = await AsyncStorage.getItem(
+    "fish-regulatory-areas-last-update",
+  );
+  const sevenDaysAgo = dayjs().subtract(7, "day").format("YYYY-MM-DD");
+  const shouldSkipFetch =
+    existingCount > 0 &&
+    !!lastUpdate &&
+    dayjs(lastUpdate) > dayjs(sevenDaysAgo);
+
+  if (shouldSkipFetch) {
+    return;
+  }
+
   const rows = await fetchAllFishRegulatoryAreas();
-  const rtreeEnabled = await isRtreeSupported(db);
 
-  await db.transaction(async (tx) => {
-    await tx.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE};`);
-    if (rtreeEnabled) {
-      await tx.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_RTREE_TABLE};`);
-    }
+  if (!rows || rows.length === 0) {
+    console.warn("No fish regulatory areas to sync");
+    return;
+  }
 
-    for (const row of rows) {
-      const bbox = calculateBboxFromWkt(row.wkt);
-      const simplifiedWkts = buildSimplifiedWkts(row.wkt);
-
-      await tx.execute(
-        `
+  try {
+    await db.transaction(async (tx) => {
+      await tx.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE};`);
+      for (const row of rows) {
+        const bbox = calculateBboxFromWkt(row.wkt);
+        const colorKey = buildFeatureColorKey(row);
+        const fillColor = stringToArrayItem(colorKey, palette) ?? palette[0];
+        const geojson = row.wkt ? wkt.parse(row.wkt) : null;
+        await tx.execute(
+          `
           INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
             id,
             type_de_reglementation,
             thematique,
             zone,
+            fill_color,
             reglementations,
             wkt,
-            wkt_z_lt5,
-            wkt_z_lt7,
-            wkt_z_lt9,
-            wkt_z_lt11,
+            geojson,
             bbox_min_lon,
             bbox_min_lat,
             bbox_max_lon,
             bbox_max_lat
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [
-          row.__id,
-          row.type_de_reglementation,
-          row.thematique,
-          row.zone,
-          row.reglementations,
-          row.wkt,
-          simplifiedWkts.wktZLt5,
-          simplifiedWkts.wktZLt7,
-          simplifiedWkts.wktZLt9,
-          simplifiedWkts.wktZLt11,
-          bbox?.minLon ?? null,
-          bbox?.minLat ?? null,
-          bbox?.maxLon ?? null,
-          bbox?.maxLat ?? null,
-        ],
-      );
-
-      if (rtreeEnabled && bbox) {
-        await tx.execute(
-          `
-            INSERT INTO ${FISH_REGULATORY_AREAS_RTREE_TABLE} (id, min_lon, max_lon, min_lat, max_lat)
-            VALUES (?, ?, ?, ?, ?)
-          `,
-          [row.__id, bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat],
+          [
+            row.id,
+            row.type_de_reglementation,
+            row.thematique,
+            row.zone,
+            fillColor,
+            row.reglementations,
+            row.wkt,
+            geojson ? JSON.stringify(geojson) : null,
+            bbox?.minLon ?? null,
+            bbox?.minLat ?? null,
+            bbox?.maxLon ?? null,
+            bbox?.maxLat ?? null,
+          ],
         );
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Transaction failed during fish sync:", error);
+    throw error;
+  }
+
+  await AsyncStorage.setItem(
+    "fish-regulatory-areas-last-update",
+    String(dayjs().format("YYYY-MM-DD")),
+  );
 }

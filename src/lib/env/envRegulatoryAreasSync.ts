@@ -4,6 +4,7 @@ import {
   ENV_REGULATORY_AREAS_API_URL,
   ENV_REGULATORY_AREAS_TABLE,
 } from "@/lib/db.schema";
+import { BoundingBox } from "@/types/MapTypes";
 
 type ApiRow = {
   __id: number;
@@ -21,14 +22,7 @@ type ApiResponse = {
   };
 };
 
-type BboxResult = {
-  minLon: number;
-  minLat: number;
-  maxLon: number;
-  maxLat: number;
-};
-
-function calculateBboxFromWkt(wkt: string | null): BboxResult | null {
+function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
   if (!wkt) return null;
 
   try {

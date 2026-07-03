@@ -1,6 +1,7 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
 import { ENV_REGULATORY_AREAS_TABLE } from "@/lib/db.schema";
+import { BoundingBox } from "@/types/MapTypes";
 
 export type EnvRegulatoryArea = {
   id: number;
@@ -13,13 +14,6 @@ export type EnvRegulatoryArea = {
   bbox_min_lat: number | null;
   bbox_max_lon: number | null;
   bbox_max_lat: number | null;
-};
-
-export type BoundingBox = {
-  minLon: number;
-  minLat: number;
-  maxLon: number;
-  maxLat: number;
 };
 
 export async function fetchEnvRegulatoryAreasByBbox(

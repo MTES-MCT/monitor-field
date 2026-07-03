@@ -11,15 +11,20 @@ const configs: Record<AppMode, AppModeConfig> = {
 const AppModeContext = createContext<{
   config: AppModeConfig;
   setMode: (mode: AppMode) => void;
+  isLocationEnabled: boolean;
+  setIsLocationEnabled: (enabled: boolean) => void;
 } | null>(null);
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<AppMode>("MONITORENV");
+  const [isLocationEnabled, setIsLocationEnabled] = useState<boolean>(false);
 
   const config = configs[mode];
 
   return (
-    <AppModeContext.Provider value={{ config, setMode }}>
+    <AppModeContext.Provider
+      value={{ config, setMode, isLocationEnabled, setIsLocationEnabled }}
+    >
       {children}
     </AppModeContext.Provider>
   );

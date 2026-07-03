@@ -3,7 +3,6 @@ import type { DB, Transaction } from "@op-engineering/op-sqlite";
 import {
   DATABASE_VERSION,
   ENV_REGULATORY_AREAS_TABLE,
-  FISH_REGULATORY_AREAS_RTREE_TABLE,
   FISH_REGULATORY_AREAS_TABLE,
 } from "@/lib/db.schema";
 
@@ -27,19 +26,17 @@ const migrations: Migration[] = [
       await tx.execute(`
         CREATE TABLE IF NOT EXISTS ${FISH_REGULATORY_AREAS_TABLE} (
           id INTEGER PRIMARY KEY NOT NULL,
+          fill_color TEXT,
           type_de_reglementation TEXT,
           thematique TEXT,
           zone TEXT,
           reglementations TEXT,
           wkt TEXT,
+          geojson TEXT,
           bbox_min_lon REAL,
           bbox_min_lat REAL,
           bbox_max_lon REAL,
-          bbox_max_lat REAL,
-          wkt_z_lt5 TEXT,
-          wkt_z_lt7 TEXT,
-          wkt_z_lt9 TEXT,
-          wkt_z_lt11 TEXT
+          bbox_max_lat REAL
         )
       `);
 
@@ -67,30 +64,6 @@ const migrations: Migration[] = [
           ON ${FISH_REGULATORY_AREAS_TABLE} (bbox_max_lat)
         `,
       );
-      try {
-        await tx.execute(
-          `
-              CREATE VIRTUAL TABLE IF NOT EXISTS ${FISH_REGULATORY_AREAS_RTREE_TABLE}
-              USING rtree(id, min_lon, max_lon, min_lat, max_lat)
-            `,
-        );
-        await tx.execute(
-          `
-              INSERT INTO ${FISH_REGULATORY_AREAS_RTREE_TABLE} (id, min_lon, max_lon, min_lat, max_lat)
-              SELECT id, bbox_min_lon, bbox_max_lon, bbox_min_lat, bbox_max_lat
-              FROM ${FISH_REGULATORY_AREAS_TABLE}
-              WHERE bbox_min_lon IS NOT NULL
-                AND bbox_max_lon IS NOT NULL
-                AND bbox_min_lat IS NOT NULL
-                AND bbox_max_lat IS NOT NULL
-            `,
-        );
-      } catch (error) {
-        console.warn(
-          "RTree module unavailable, using B-Tree bbox indexes only",
-          error,
-        );
-      }
     },
   },
 ];

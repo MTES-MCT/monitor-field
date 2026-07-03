@@ -1,9 +1,10 @@
 import { AppMode } from "@/config/appModes";
 import { useAppMode } from "@/contexts/AppModeContext";
+import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
 import { useTheme } from "@/hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useFishRegulatoryAreasLayer } from "./Layers/fish";
+import { useFishRegulatoryAreasLayer } from "./Layers/Fish";
 
 function getVisualState(params: {
   mode: AppMode;
@@ -32,9 +33,10 @@ export function SwitchContextButton() {
   const { config, setMode } = useAppMode();
   const theme = useTheme();
   const fish = useFishRegulatoryAreasLayer();
+  const { isSearchZoneActive } = useRegulatoryAreas();
   const switchContext = (mode: AppMode) => () => {
     setMode(mode);
-    if (mode === "MONITORFISH") {
+    if (mode === "MONITORFISH" && isSearchZoneActive) {
       fish.fetch();
     }
   };

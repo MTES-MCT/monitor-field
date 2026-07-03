@@ -4,37 +4,40 @@ import {
   BoundingBox,
   GeoJSONCollection,
   GeoJSONFeature,
+  Geometry,
 } from "@/types/MapTypes";
-import { parseWtkToGeojson } from "@/utils/parseWtkToGeojson";
-
-const DEFAULT_FEATURE_LIMIT = 6000;
 
 export async function fetchFishRegulatoryAreasGeoJSON(
   bbox: BoundingBox,
   zoom: number,
-  limit: number = DEFAULT_FEATURE_LIMIT,
+  setTotalCount: (count: number | undefined) => void,
 ): Promise<GeoJSONCollection> {
   const db = await getDatabase();
+
   const fetchedAreas = await fetchFishRegulatoryAreasByBbox(db, bbox, zoom);
 
   const features: GeoJSONFeature[] = [];
 
+  setTotalCount(fetchedAreas.length);
   for (const area of fetchedAreas) {
-    if (features.length >= limit) {
-      break;
-    }
+    const geom = JSON.parse(area.geojson ?? "") as Geometry;
 
-    const feature = parseWtkToGeojson(area.wkt);
-
-    if (!feature) {
+    if (!geom) {
       continue;
     }
+
+    const feature = {
+      type: "Feature" as const,
+      geometry: geom,
+      properties: {},
+    };
 
     feature.properties = {
       id: area.id,
       type_de_reglementation: area.type_de_reglementation,
       thematique: area.thematique,
       zone: area.zone,
+      fillColor: area.fill_color,
     };
     features.push(feature);
   }

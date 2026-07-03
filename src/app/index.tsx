@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -6,7 +6,7 @@ import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAppMode } from "@/contexts/AppModeContext";
 
 import { BottomBar } from "@/components/BottomBar";
-import { useFishRegulatoryAreasLayer } from "@/components/Layers/fish";
+import { useFishRegulatoryAreasLayer } from "@/components/Layers/Fish";
 import { useSearchByZoneLayer } from "@/components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@/components/LocationButton";
 import { SwitchContextButton } from "@/components/SwitchContextButton";
@@ -15,6 +15,7 @@ import {
   Camera,
   Map,
   UserLocation,
+  type CameraRef,
   type MapRef,
   type StyleSpecification,
 } from "@maplibre/maplibre-react-native";
@@ -38,9 +39,16 @@ const baseMapStyle: StyleSpecification = {
   ],
 };
 
-export default function HomeScreen() {
-  const { config } = useAppMode();
+const LOCATION_FOCUS_ZOOM = 14;
+
+export default function App({
+  isFirstLocationEnabled,
+}: {
+  isFirstLocationEnabled: boolean;
+}) {
+  const { config, setIsLocationEnabled, isLocationEnabled } = useAppMode();
   const mapRef = useRef<MapRef>(null);
+  const cameraRef = useRef<CameraRef>(null);
 
   const {
     isSearchZoneActive,
@@ -49,7 +57,6 @@ export default function HomeScreen() {
     setSearchBbox,
   } = useRegulatoryAreas();
 
-  const [isLocationVisible, setIsLocationVisible] = useState(true);
   const isMonitorFish = config.mode === "MONITORFISH";
   const fish = useFishRegulatoryAreasLayer();
   const searchByZone = useSearchByZoneLayer();
@@ -74,6 +81,10 @@ export default function HomeScreen() {
     ],
   };
 
+  useEffect(() => {
+    setIsLocationEnabled(isFirstLocationEnabled);
+  }, [isFirstLocationEnabled, setIsLocationEnabled]);
+
   const onRegionDidChange = async () => {
     if (isSearchZoneActive) {
       setHasSearchZoneChanged(true);
@@ -91,6 +102,18 @@ export default function HomeScreen() {
     });
   };
 
+  const handleLocate = (coordinates: {
+    longitude: number;
+    latitude: number;
+  }) => {
+    cameraRef.current?.flyTo({
+      center: [coordinates.longitude, coordinates.latitude],
+      zoom: LOCATION_FOCUS_ZOOM,
+      duration: 900,
+      easing: "ease",
+    });
+  };
+
   return (
     <>
       <Map
@@ -104,15 +127,16 @@ export default function HomeScreen() {
         touchRotate={false}
         onRegionDidChange={onRegionDidChange}
       >
-        {isLocationVisible && <UserLocation accuracy />}
-        <Camera zoom={6} trackUserLocation="default" />
+        {isLocationEnabled && <UserLocation accuracy />}
+        <Camera
+          ref={cameraRef}
+          zoom={6}
+          trackUserLocation={isLocationEnabled ? "default" : undefined}
+        />
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
           <View style={styles.bottomWrapper}>
-            <LocationButton
-              setIsLocationVisible={setIsLocationVisible}
-              isLocationVisible={isLocationVisible}
-            />
+            <LocationButton onLocate={handleLocate} />
             <BottomBar
               onSearch={isMonitorFish ? fish.fetch : () => Promise.resolve()}
             />

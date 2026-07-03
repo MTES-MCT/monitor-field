@@ -19,8 +19,8 @@ export function BottomBar({ onSearch }: BottomBarProps) {
     setCommittedSearchBbox,
     hasSearchZoneChanged,
     setHasSearchZoneChanged,
+    totalCount,
   } = useRegulatoryAreas();
-
   const theme = useTheme();
 
   const searchByZone = async () => {
@@ -105,7 +105,7 @@ export function BottomBar({ onSearch }: BottomBarProps) {
               ]}
             >
               <ThemedText type="small" themeColor="text">
-                REG (56)
+                REG ({totalCount ?? 0})
               </ThemedText>
             </Pressable>
           )}
