@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
+import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
 import { useTheme } from "@/hooks/use-theme";
 import type { BoundingBox, GeoJSONFeature, MapLayer } from "@/types/MapTypes";
 
@@ -75,7 +75,7 @@ function createSearchByZoneLayer(sourceId: string, color: string): MapLayer {
 
 export function useSearchByZoneLayer(): SearchByZoneLayerProps {
   const { searchBbox, committedSearchBbox, hasSearchZoneChanged } =
-    useRegulatoryAreas();
+    useRegulatoryAreasContext();
   const theme = useTheme();
 
   const displayedBbox = hasSearchZoneChanged ? committedSearchBbox : searchBbox;

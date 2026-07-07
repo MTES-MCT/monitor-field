@@ -5,33 +5,18 @@ import { BoundingBox } from "@/types/MapTypes";
 
 export type FishRegulatoryArea = {
   id: number;
-  type_de_reglementation: string | undefined;
-  thematique: string | undefined;
-  zone: string | undefined;
-  reglementations: string | undefined;
-  wkt: string | undefined;
-  geojson: string | undefined;
-  bbox_min_lon: number | undefined;
-  bbox_min_lat: number | undefined;
-  bbox_max_lon: number | undefined;
-  bbox_max_lat: number | undefined;
-  fill_color: string | undefined;
+  type_de_reglementation: string;
+  thematique: string;
+  zone: string;
+  reglementations: string;
+  wkt: string;
+  geojson: string;
+  bbox_min_lon: number;
+  bbox_min_lat: number;
+  bbox_max_lon: number;
+  bbox_max_lat: number;
+  fill_color: string;
 };
-
-export async function fetchFishRegulatoryAreasCount(db: DB) {
-  try {
-    return await db.execute(
-      `
-        SELECT * 
-        FROM ${FISH_REGULATORY_AREAS_TABLE}
-        LIMIT 1
-      `,
-    );
-  } catch (error) {
-    console.error("Error fetching fish regulatory areas count:", error);
-    throw error;
-  }
-}
 
 export async function fetchFishRegulatoryAreasByBbox(
   db: DB,

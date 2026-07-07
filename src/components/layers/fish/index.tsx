@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
+import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
 import { useTheme } from "@/hooks/use-theme";
 import { GeoJSONCollection, MapLayer } from "@/types/MapTypes";
 import { fetchFishRegulatoryAreasGeoJSON } from "./fetchFishRegulatoryAreasGeoJSON";
@@ -30,9 +30,9 @@ export type FishRegulatoryAreasLayerProps = {
 };
 
 function createFishRegulatoryAreasLayers(sourceId: string): MapLayer[] {
-  const metadataIsShownExpression = [
+  const isSelectedExpression = [
     "to-boolean",
-    ["coalesce", ["get", "metadataIsShowed"], false],
+    ["coalesce", ["get", "isSelected"], false],
   ];
 
   return [
@@ -55,7 +55,7 @@ function createFishRegulatoryAreasLayers(sourceId: string): MapLayer[] {
       source: sourceId,
       paint: {
         "line-color": "#05055eb3",
-        "line-width": ["case", metadataIsShownExpression, 3, 1] as any,
+        "line-width": ["case", isSelectedExpression, 3, 1] as any,
       },
     },
   ];
@@ -67,7 +67,13 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const { searchBbox, zoom, setTotalCount } = useRegulatoryAreas();
+  const {
+    searchBbox,
+    zoom,
+    setTotalCount,
+    setRegulatoryAreas,
+    regulatoryAreas,
+  } = useRegulatoryAreasContext();
   const theme = useTheme();
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
@@ -88,11 +94,14 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
           properties: {
             ...feature.properties,
             fillColor: resolvedFillColor,
+            isSelected: regulatoryAreas.some(
+              (area) => area.id === feature.properties?.id && area.isSelected,
+            ),
           },
         };
       }),
     };
-  }, [geoJSON, theme]);
+  }, [geoJSON, theme, regulatoryAreas]);
 
   const fetch = useCallback(async () => {
     if (!searchBbox || !zoom) {
@@ -108,6 +117,7 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
         searchBbox,
         zoom,
         setTotalCount,
+        setRegulatoryAreas,
       );
       setGeoJSON(result);
     } catch (error) {
@@ -115,7 +125,7 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
     } finally {
       setIsLoading(false);
     }
-  }, [searchBbox, zoom, isLoading, setTotalCount]);
+  }, [searchBbox, zoom, isLoading, setTotalCount, setRegulatoryAreas]);
 
   if (!geoJSONWithResolvedFillColor) {
     return {

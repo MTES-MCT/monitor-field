@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@expo/ui": "~56.0.18",
+    "@gorhom/bottom-sheet": "^5.2.14",
     "@maplibre/maplibre-react-native": "^11.3.4",
     "@op-engineering/op-sqlite": "^16.2.2",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -34,8 +35,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3",
-    "wkt": "^0.1.1"
+    "react-native-worklets": "0.8.3"
   },
   "devDependencies": {
     "eslint": "^9.0.0",
@@ -46,7 +46,6 @@
   },
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",

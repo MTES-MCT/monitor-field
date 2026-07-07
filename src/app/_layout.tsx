@@ -1,14 +1,17 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AppModeProvider } from "@/contexts/AppModeContext";
 import { RegulatoryAreasProvider } from "@/contexts/RegulatoryAreasContext";
 import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
 import { getDatabase } from "@/lib/db";
 import { syncFishRegulatoryAreas } from "@/lib/fish/fishRegulatoryAreasSync";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
+import { Appearance } from "react-native";
 import App from ".";
 
 void SplashScreen.preventAutoHideAsync();
@@ -17,9 +20,7 @@ const getFishLayers = async () => {
   try {
     const database = await getDatabase();
     await syncFishRegulatoryAreas(database);
-    await SplashScreen.hideAsync();
   } catch (error) {
-    await SplashScreen.hideAsync();
     console.warn("Unable to sync fish regulatory areas", error);
   }
 };
@@ -27,6 +28,9 @@ const getFishLayers = async () => {
 export default function TabLayout() {
   const colorScheme = useAppColorScheme();
   const [isLocationEnabledState, setIsLocationEnabledState] = useState(false);
+  useEffect(() => {
+    Appearance.setColorScheme("light");
+  }, []);
 
   useEffect(() => {
     async function getCurrentLocation() {
@@ -53,18 +57,24 @@ export default function TabLayout() {
   }, []);
 
   useEffect(() => {
-    getFishLayers();
+    getFishLayers().finally(() => {
+      void SplashScreen.hideAsync();
+    });
   }, []);
 
   return (
-    <AppModeProvider>
-      <RegulatoryAreasProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <App isFirstLocationEnabled={isLocationEnabledState} />
-        </ThemeProvider>
-      </RegulatoryAreasProvider>
-    </AppModeProvider>
+    <GestureHandlerRootView>
+      <AppModeProvider>
+        <RegulatoryAreasProvider>
+          <BottomSheetModalProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <App isFirstLocationEnabled={isLocationEnabledState} />
+            </ThemeProvider>
+          </BottomSheetModalProvider>
+        </RegulatoryAreasProvider>
+      </AppModeProvider>
+    </GestureHandlerRootView>
   );
 }

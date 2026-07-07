@@ -32,7 +32,5 @@ export function resolveThemeColors(
   theme: ReturnType<typeof useTheme>,
   colorKeys: string[] = [],
 ) {
-  return colorKeys
-    .map((colorKey) => theme[colorKey as ThemeColorKey])
-    .filter((color): color is string => typeof color === "string");
+  return colorKeys.map((colorKey) => theme[colorKey as ThemeColorKey]);
 }

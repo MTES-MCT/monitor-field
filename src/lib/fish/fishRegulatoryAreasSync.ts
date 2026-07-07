@@ -10,9 +10,9 @@ import {
   normalizeFeatureProperty,
   stringToArrayItem,
 } from "@/utils/layersStyle";
+import { parseWtkToGeojson } from "@/utils/parseWtkToGeojson";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import dayjs from "dayjs";
-import wkt from "wkt";
 
 type ApiRow = {
   id: number;
@@ -122,28 +122,25 @@ export async function syncFishRegulatoryAreas(db: DB) {
   try {
     await db.transaction(async (tx) => {
       await tx.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE};`);
-      for (const row of rows) {
+
+      for (let idx = 0; idx < rows.length; idx++) {
+        const row = rows[idx];
+
         const bbox = calculateBboxFromWkt(row.wkt);
+
         const colorKey = buildFeatureColorKey(row);
         const fillColor = stringToArrayItem(colorKey, palette) ?? palette[0];
-        const geojson = row.wkt ? wkt.parse(row.wkt) : null;
+
+        const geojson = row.wkt ? parseWtkToGeojson(row.wkt) : null;
+
         await tx.execute(
           `
-          INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
-            id,
-            type_de_reglementation,
-            thematique,
-            zone,
-            fill_color,
-            reglementations,
-            wkt,
-            geojson,
-            bbox_min_lon,
-            bbox_min_lat,
-            bbox_max_lon,
-            bbox_max_lat
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
+        INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
+          id, type_de_reglementation, thematique, zone, fill_color,
+          reglementations, wkt, geojson,
+          bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
           [
             row.id,
             row.type_de_reglementation,

@@ -11,6 +11,7 @@ import { useTheme } from "@/hooks/use-theme";
 export type ThemedTextProps = TextProps & {
   type?:
     | "default"
+    | "defaultBold"
     | "title"
     | "small"
     | "smallBold"
@@ -34,6 +35,7 @@ export function ThemedText({
       style={[
         { color: theme[themeColor ?? "text"] },
         type === "default" && styles.default,
+        type === "defaultBold" && styles.defaultBold,
         type === "title" && styles.title,
         type === "small" && styles.small,
         type === "smallBold" && styles.smallBold,
@@ -61,6 +63,11 @@ const styles = StyleSheet.create({
   },
   default: {
     fontFamily: Fonts.sansMedium,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  defaultBold: {
+    fontFamily: Fonts.sansBold,
     fontSize: 16,
     lineHeight: 24,
   },

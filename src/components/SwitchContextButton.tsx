@@ -1,6 +1,6 @@
 import { AppMode } from "@/config/appModes";
 import { useAppMode } from "@/contexts/AppModeContext";
-import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
+import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
 import { useTheme } from "@/hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -33,8 +33,9 @@ export function SwitchContextButton() {
   const { config, setMode } = useAppMode();
   const theme = useTheme();
   const fish = useFishRegulatoryAreasLayer();
-  const { isSearchZoneActive } = useRegulatoryAreas();
-  const switchContext = (mode: AppMode) => () => {
+  const { isSearchZoneActive } = useRegulatoryAreasContext();
+
+  const switchContext = (mode: AppMode) => {
     setMode(mode);
     if (mode === "MONITORFISH" && isSearchZoneActive) {
       fish.fetch();
@@ -44,7 +45,7 @@ export function SwitchContextButton() {
   return (
     <View style={styles.wrapper}>
       <Pressable
-        onPress={switchContext("MONITORENV")}
+        onPress={() => switchContext("MONITORENV")}
         accessibilityRole="button"
         accessibilityState={{
           selected: config.mode === "MONITORENV",
@@ -72,7 +73,7 @@ export function SwitchContextButton() {
         />
       </Pressable>
       <Pressable
-        onPress={switchContext("MONITORFISH")}
+        onPress={() => switchContext("MONITORFISH")}
         accessibilityRole="button"
         accessibilityState={{
           selected: config.mode === "MONITORFISH",

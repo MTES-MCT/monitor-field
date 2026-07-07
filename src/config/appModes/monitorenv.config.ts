@@ -2,7 +2,6 @@ import { AppModeConfig } from "./types";
 
 export const monitorEnvConfig: AppModeConfig = {
   mode: "MONITORENV",
-
   features: {
     hasRegulatoryAreasFilters: true,
   },

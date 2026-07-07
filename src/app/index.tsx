@@ -9,8 +9,11 @@ import { BottomBar } from "@/components/BottomBar";
 import { useFishRegulatoryAreasLayer } from "@/components/Layers/Fish";
 import { useSearchByZoneLayer } from "@/components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@/components/LocationButton";
+import { RegulatoryAreasList } from "@/components/RegulatoryAreasList";
 import { SwitchContextButton } from "@/components/SwitchContextButton";
-import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
+import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
+import { BoundingBox } from "@/types/MapTypes";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Camera,
   Map,
@@ -49,13 +52,14 @@ export default function App({
   const { config, setIsLocationEnabled, isLocationEnabled } = useAppMode();
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const {
     isSearchZoneActive,
     setHasSearchZoneChanged,
     setZoom,
     setSearchBbox,
-  } = useRegulatoryAreas();
+  } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
   const fish = useFishRegulatoryAreasLayer();
@@ -114,6 +118,26 @@ export default function App({
     });
   };
 
+  const handleFocusGroup = (bbox: BoundingBox) => {
+    cameraRef.current?.fitBounds(
+      [bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat],
+      {
+        padding: {
+          top: 40,
+          right: 40,
+          bottom: 40,
+          left: 40,
+        },
+        duration: 700,
+        easing: "ease",
+      },
+    );
+  };
+
+  const consultRegulatoryAreas = () => {
+    bottomSheetRef.current?.present();
+  };
+
   return (
     <>
       <Map
@@ -138,9 +162,14 @@ export default function App({
           <View style={styles.bottomWrapper}>
             <LocationButton onLocate={handleLocate} />
             <BottomBar
+              consultRegulatoryAreas={consultRegulatoryAreas}
               onSearch={isMonitorFish ? fish.fetch : () => Promise.resolve()}
             />
           </View>
+          <RegulatoryAreasList
+            onGroupFocus={handleFocusGroup}
+            ref={bottomSheetRef}
+          />
         </SafeAreaView>
       </Map>
     </>

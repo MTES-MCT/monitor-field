@@ -7,6 +7,18 @@ export type BoundingBox = {
   maxLat: number;
 };
 
+export type Position = number[];
+
+export type PolygonGeometry = {
+  type: "Polygon";
+  coordinates: Position[][];
+};
+
+export type MultiPolygonGeometry = {
+  type: "MultiPolygon";
+  coordinates: Position[][][];
+};
+
 export type Geometry =
   | {
       type: "Polygon";

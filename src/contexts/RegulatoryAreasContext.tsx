@@ -1,6 +1,16 @@
 import { BoundingBox } from "@/types/MapTypes";
 import { createContext, useContext, useState } from "react";
 
+export type RegulatoryAreaListItem = {
+  id: number;
+  type: string | undefined;
+  theme: string | undefined;
+  zone: string | undefined;
+  bbox: BoundingBox;
+  fillColor: string;
+  isSelected: boolean;
+};
+
 const RegulatoryAreasContext = createContext<
   | {
       searchBbox: BoundingBox | undefined;
@@ -15,6 +25,12 @@ const RegulatoryAreasContext = createContext<
       setHasSearchZoneChanged: (changed: boolean) => void;
       totalCount: number | undefined;
       setTotalCount: (count: number | undefined) => void;
+      regulatoryAreas: RegulatoryAreaListItem[];
+      setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void;
+      selectedRegulatoryArea: RegulatoryAreaListItem | undefined;
+      setSelectedRegulatoryArea: (
+        area: RegulatoryAreaListItem | undefined,
+      ) => void;
     }
   | undefined
 >(undefined);
@@ -34,6 +50,12 @@ export function RegulatoryAreasProvider({
   const [zoom, setZoom] = useState<number | undefined>(undefined);
   const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false);
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
+  const [regulatoryAreas, setRegulatoryAreas] = useState<
+    RegulatoryAreaListItem[]
+  >([]);
+  const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<
+    RegulatoryAreaListItem | undefined
+  >(undefined);
 
   return (
     <RegulatoryAreasContext.Provider
@@ -50,6 +72,10 @@ export function RegulatoryAreasProvider({
         setHasSearchZoneChanged,
         totalCount,
         setTotalCount,
+        regulatoryAreas,
+        setRegulatoryAreas,
+        selectedRegulatoryArea,
+        setSelectedRegulatoryArea,
       }}
     >
       {children}
@@ -57,11 +83,11 @@ export function RegulatoryAreasProvider({
   );
 }
 
-export function useRegulatoryAreas() {
+export function useRegulatoryAreasContext() {
   const ctx = useContext(RegulatoryAreasContext);
   if (!ctx)
     throw new Error(
-      "useRegulatoryAreas must be used within RegulatoryAreasProvider",
+      "useRegulatoryAreasContext must be used within RegulatoryAreasProvider",
     );
   return ctx;
 }

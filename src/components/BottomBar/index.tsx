@@ -1,6 +1,6 @@
 import { Spacing } from "@/constants/theme";
 import { useAppMode } from "@/contexts/AppModeContext";
-import { useRegulatoryAreas } from "@/contexts/RegulatoryAreasContext";
+import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
 import { useTheme } from "@/hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -8,9 +8,13 @@ import { ThemedText } from "../Text";
 
 type BottomBarProps = {
   onSearch: () => Promise<void>;
+  consultRegulatoryAreas: () => void;
 };
 
-export function BottomBar({ onSearch }: BottomBarProps) {
+export function BottomBar({
+  onSearch,
+  consultRegulatoryAreas,
+}: BottomBarProps) {
   const { config } = useAppMode();
   const {
     setIsSearchZoneActive,
@@ -20,15 +24,12 @@ export function BottomBar({ onSearch }: BottomBarProps) {
     hasSearchZoneChanged,
     setHasSearchZoneChanged,
     totalCount,
-  } = useRegulatoryAreas();
+  } = useRegulatoryAreasContext();
   const theme = useTheme();
 
   const searchByZone = async () => {
     setIsSearchZoneActive(!isSearchZoneActive);
-    setCommittedSearchBbox(searchBbox);
-    setHasSearchZoneChanged(false);
-
-    await onSearch();
+    searchByNewZone();
   };
 
   const searchByNewZone = async () => {
@@ -90,7 +91,7 @@ export function BottomBar({ onSearch }: BottomBarProps) {
           </Pressable>
           {isSearchZoneActive && (
             <Pressable
-              onPress={searchByZone}
+              onPress={consultRegulatoryAreas}
               accessibilityRole="button"
               accessibilityState={{
                 selected: isSearchZoneActive,
