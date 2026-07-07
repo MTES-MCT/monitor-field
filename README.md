@@ -1,56 +1,84 @@
-# Welcome to your Expo app 👋
+# monitor-field
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Application React Native (Expo) pour monitor-field.
 
-## Get started
+## Prerequis
 
-1. Install dependencies
+- Node.js 20+
+- npm
+- Un compte Expo/EAS (pour les builds Android de production)
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Installation et commandes locales
 
 ```bash
-npm run reset-project
+npm install
+npm run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Commandes utiles:
 
-### Other setup steps
+- `npm run lint`
+- `npm run test`
+- `npm run test:coverage`
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Build Android de production (Expo EAS)
 
-## Learn more
+Le projet utilise EAS Build avec le profil `production` défini dans `eas.json`.
 
-To learn more about developing your project with Expo, look at the following resources:
+### Build manuel
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npx eas login
+npm run build:android:production
+```
 
-## Join the community
+Ce build produit un Android App Bundle (`.aab`) prêt pour le Play Store.
 
-Join our community of developers creating universal apps.
+### Build CI GitHub Actions
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Workflow: `.github/workflows/android-production-build.yml`
+
+Déclenchement:
+
+- manuel (`workflow_dispatch`)
+- push d'un tag `v*` (ex: `v1.0.0`)
+
+Secret GitHub requis:
+
+- `EXPO_TOKEN`: token Expo avec accès au projet EAS
+
+## Couverture et CodeQL
+
+La couverture est produite par Jest en `coverage/lcov.info`.
+
+Workflow: `.github/workflows/quality.yml`
+
+Le dépôt utilise aussi un workflow CodeQL pour l'analyse de sécurité JavaScript/TypeScript:
+
+- workflow: `.github/workflows/codeql.yml`
+- déclenchement: push, pull request, planification hebdomadaire, manuel
+- aucun secret n'est requis
+
+## SonarQube (MTE)
+
+Configuration de base dans `sonar-project.properties`.
+
+Workflow: `.github/workflows/sonarqube.yml`
+
+Secrets GitHub requis:
+
+- `SONAR_HOST_URL`: URL de l'instance SonarQube
+- `SONAR_TOKEN`: token SonarQube
+- `SONAR_PROJECT_KEY`: clé du projet SonarQube
+
+Le workflow:
+
+1. installe les dépendances,
+2. génère la couverture Jest,
+3. exécute le scan SonarQube,
+4. vérifie la Quality Gate.
+
+## Notes importantes
+
+- Avant le premier build EAS, initialiser les credentials Android (keystore) via `eas credentials`.
+- Le package Android est actuellement `com.anonymous.monitorfield` (à remplacer avant publication officielle).
