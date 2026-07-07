@@ -59,24 +59,21 @@ Le dépôt utilise aussi un workflow CodeQL pour l'analyse de sécurité JavaScr
 - déclenchement: push, pull request, planification hebdomadaire, manuel
 - aucun secret n'est requis
 
-## SonarQube (MTE)
+## SonarCloud (MTE)
 
-Configuration de base dans `sonar-project.properties`.
+Le projet est prévu pour l'analyse SonarCloud via le bot de l'organisation (GitHub App), sans workflow GitHub dédié.
 
-Workflow: `.github/workflows/sonarqube.yml`
+Configuration du projet:
 
-Secrets GitHub requis:
+- `sonar-project.properties`
 
-- `SONAR_HOST_URL`: URL de l'instance SonarQube
-- `SONAR_TOKEN`: token SonarQube
-- `SONAR_PROJECT_KEY`: clé du projet SonarQube
+Fonctionnement attendu:
 
-Le workflow:
+1. le repository est importé dans SonarCloud (organisation `mtes-mct`),
+2. l'analyse automatique SonarCloud est activée,
+3. chaque push/PR déclenche l'analyse côté SonarCloud.
 
-1. installe les dépendances,
-2. génère la couverture Jest,
-3. exécute le scan SonarQube,
-4. vérifie la Quality Gate.
+Il n'y a pas de secrets Sonar à configurer dans GitHub Actions pour ce mode.
 
 ## Notes importantes
 
