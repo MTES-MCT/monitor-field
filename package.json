@@ -53,8 +53,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest --passWithNoTests",
-    "test:coverage": "jest --coverage --passWithNoTests",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "build:android:production": "eas build --platform android --profile production",
     "build:android:production:ci": "eas build --platform android --profile production --non-interactive"
   },

@@ -4,7 +4,7 @@ Application React Native (Expo) pour monitor-field.
 
 ## Prerequis
 
-- Node.js 20+
+- Node.js 24+
 - npm
 - Un compte Expo/EAS (pour les builds Android de production)
 
