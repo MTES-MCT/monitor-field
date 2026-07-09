@@ -1,15 +1,15 @@
 /// <reference types="jest" />
 
 import {
+  parseWktToGeojson,
   parseWktToGeometry,
-  parseWtkToGeojson,
-} from "@/utils/parseWtkToGeojson";
+} from "@utils/parseWktToGeojson";
 
-describe("parseWtkToGeojson", () => {
+describe("parseWktToGeojson", () => {
   it("parses a polygon into a GeoJSON Feature", () => {
     const input = "SRID=4326;POLYGON((0 0, 10 0, 10 10, 0 0))";
 
-    const feature = parseWtkToGeojson(input);
+    const feature = parseWktToGeojson(input);
 
     expect(feature).toBeDefined();
     expect(feature?.type).toBe("Feature");
@@ -19,7 +19,7 @@ describe("parseWtkToGeojson", () => {
   it("returns undefined on invalid WKT", () => {
     const input = "SRID=4326;POLYGON((0 0, 10))";
 
-    expect(parseWtkToGeojson(input)).toBeUndefined();
+    expect(parseWktToGeojson(input)).toBeUndefined();
   });
 });
 
