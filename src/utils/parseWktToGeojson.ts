@@ -6,7 +6,7 @@ import {
   MultiPolygonGeometry,
   PolygonGeometry,
   Position,
-} from "@types/MapTypes";
+} from "@/types/mapTypes";
 
 // ---- Regex de base ----
 const numberRegexp = /[-+]?([0-9]*\.[0-9]+|[0-9]+)([eE][-+]?[0-9]+)?/;

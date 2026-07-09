@@ -1,6 +1,6 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
-import { BoundingBox } from "@types/MapTypes";
+import type { BoundingBox } from "@/types/mapTypes";
 import { FISH_REGULATORY_AREAS_TABLE } from "../db.schema";
 
 export type FishRegulatoryArea = {
@@ -21,7 +21,6 @@ export type FishRegulatoryArea = {
 export async function getFishRegulatoryAreasQuery(
   db: DB,
   bbox: BoundingBox,
-  zoom: number,
 ): Promise<FishRegulatoryArea[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox;
 
@@ -52,6 +51,7 @@ export async function getFishRegulatoryAreasQuery(
 
     return result.rows as FishRegulatoryArea[];
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.warn("Error fetching areas", error);
     return [];
   }

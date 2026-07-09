@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaxContentWidth, Spacing } from "@constants/theme";
 import { useAppMode } from "@contexts/AppModeContext";
 
+import type { BoundingBox } from "@/types/mapTypes";
 import { BottomBar } from "@components/BottomBar";
 import { useSearchByZoneLayer } from "@components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@components/LocationButton";
@@ -21,7 +22,6 @@ import {
   type MapRef,
   type StyleSpecification,
 } from "@maplibre/maplibre-react-native";
-import { BoundingBox } from "@types/MapTypes";
 
 const baseMapStyle: StyleSpecification = {
   version: 8,
@@ -54,12 +54,8 @@ export default function App({
   const cameraRef = useRef<CameraRef>(null);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const {
-    isSearchZoneActive,
-    setHasSearchZoneChanged,
-    setZoom,
-    setSearchBbox,
-  } = useRegulatoryAreasContext();
+  const { isSearchZoneActive, setHasSearchZoneChanged, setSearchBbox } =
+    useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
   const fish = useFishRegulatoryAreasLayer();
@@ -93,11 +89,9 @@ export default function App({
     if (isSearchZoneActive) {
       setHasSearchZoneChanged(true);
     }
-    const zoom = await mapRef.current?.getZoom();
     const bounds = await mapRef.current?.getBounds();
     if (!bounds) return undefined;
     const [lonA, latA, lonB, latB] = bounds;
-    setZoom(Math.round(zoom ?? 3));
     setSearchBbox({
       minLon: Math.min(lonA, lonB),
       minLat: Math.min(latA, latB),

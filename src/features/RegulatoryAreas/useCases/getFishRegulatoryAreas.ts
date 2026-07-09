@@ -6,17 +6,16 @@ import {
   BoundingBox,
   GeoJSONCollection,
   GeoJSONFeature,
-} from "@types/MapTypes";
+} from "@/types/mapTypes";
 
 export async function getFishRegulatoryAreas(
   bbox: BoundingBox,
-  zoom: number,
   setTotalCount: (count: number | undefined) => void,
   setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void,
 ): Promise<GeoJSONCollection> {
   const db = await getDatabase();
 
-  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox, zoom);
+  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox);
 
   const features: GeoJSONFeature[] = [];
   const listItems: RegulatoryAreaListItem[] = [];

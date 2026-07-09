@@ -79,8 +79,8 @@ export async function syncFishRegulatoryAreas(db: DB) {
   }
 
   const rows = await fetchAllFishRegulatoryAreas();
-  console.log("rows", rows.length, rows);
   if (!rows || rows.length === 0) {
+    // oxlint-disable-next-line no-console
     console.warn("No fish regulatory areas to sync");
     return;
   }
@@ -124,6 +124,7 @@ export async function syncFishRegulatoryAreas(db: DB) {
       }
     });
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.error("Transaction failed during fish sync:", error);
     throw error;
   }

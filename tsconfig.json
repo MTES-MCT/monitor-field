@@ -4,11 +4,35 @@
     "strict": true,
     "types": ["jest"],
     "paths": {
-      "@*": [
-        "./src/*"
+      "@components/*": [
+        "./src/components/*"
       ],
       "@assets/*": [
         "./assets/*"
+      ],
+      "@features/*": [
+        "./src/features/*"
+      ],
+      "@contexts/*": [
+        "./src/contexts/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
+      ],
+      "@database/*": [
+        "./src/database/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@constants/*": [
+        "./src/constants/*"
+      ],
+      "@config/*": [
+        "./src/config/*"
       ]
     }
   },
