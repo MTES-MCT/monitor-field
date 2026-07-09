@@ -30,4 +30,11 @@ jobs:
         run: npm run lint
 
       - name: Test with coverage
-        run: npm run test:coverage
+        run: npm run test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+          working-directory: ./src
