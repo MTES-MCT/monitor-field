@@ -1,6 +1,6 @@
-import { AppMode, AppModeConfig } from "@/config/appModes";
-import { monitorEnvConfig } from "@/config/appModes/monitorenv.config";
-import { monitorFishConfig } from "@/config/appModes/monitorfish.config";
+import { AppMode, AppModeConfig } from "@config/appModes";
+import { monitorEnvConfig } from "@config/appModes/monitorenv.config";
+import { monitorFishConfig } from "@config/appModes/monitorfish.config";
 import { createContext, useContext, useState } from "react";
 
 const configs: Record<AppMode, AppModeConfig> = {
@@ -8,12 +8,15 @@ const configs: Record<AppMode, AppModeConfig> = {
   MONITORFISH: monitorFishConfig,
 };
 
-const AppModeContext = createContext<{
-  config: AppModeConfig;
-  setMode: (mode: AppMode) => void;
-  isLocationEnabled: boolean;
-  setIsLocationEnabled: (enabled: boolean) => void;
-} | null>(null);
+const AppModeContext = createContext<
+  | {
+      config: AppModeConfig;
+      setMode: (mode: AppMode) => void;
+      isLocationEnabled: boolean;
+      setIsLocationEnabled: (enabled: boolean) => void;
+    }
+  | undefined
+>(undefined);
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<AppMode>("MONITORENV");

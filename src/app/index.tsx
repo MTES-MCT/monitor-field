@@ -2,17 +2,16 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MaxContentWidth, Spacing } from "@/constants/theme";
-import { useAppMode } from "@/contexts/AppModeContext";
+import { MaxContentWidth, Spacing } from "@constants/theme";
+import { useAppMode } from "@contexts/AppModeContext";
 
-import { BottomBar } from "@/components/BottomBar";
-import { useFishRegulatoryAreasLayer } from "@/components/Layers/Fish";
-import { useSearchByZoneLayer } from "@/components/Layers/useSearchByZoneLayer";
-import { LocationButton } from "@/components/LocationButton";
-import { RegulatoryAreasList } from "@/components/RegulatoryAreasList";
-import { SwitchContextButton } from "@/components/SwitchContextButton";
-import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
-import { BoundingBox } from "@/types/MapTypes";
+import { BottomBar } from "@components/BottomBar";
+import { useSearchByZoneLayer } from "@components/Layers/useSearchByZoneLayer";
+import { LocationButton } from "@components/LocationButton";
+import { SwitchContextButton } from "@components/SwitchContextButton";
+import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
+import { useFishRegulatoryAreasLayer } from "@features/RegulatoryAreas/Layers/FishLayers";
+import { RegulatoryAreasList } from "@features/RegulatoryAreas/RegulatoryAreasList";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Camera,
@@ -22,6 +21,7 @@ import {
   type MapRef,
   type StyleSpecification,
 } from "@maplibre/maplibre-react-native";
+import { BoundingBox } from "@types/MapTypes";
 
 const baseMapStyle: StyleSpecification = {
   version: 8,
@@ -95,7 +95,7 @@ export default function App({
     }
     const zoom = await mapRef.current?.getZoom();
     const bounds = await mapRef.current?.getBounds();
-    if (!bounds) return null;
+    if (!bounds) return undefined;
     const [lonA, latA, lonB, latB] = bounds;
     setZoom(Math.round(zoom ?? 3));
     setSearchBbox({
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,
-    paddingBottom: Spacing.three,
+    paddingVertical: Spacing.three,
     maxWidth: MaxContentWidth,
     justifyContent: "space-between",
   },

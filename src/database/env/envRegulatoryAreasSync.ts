@@ -1,10 +1,10 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
+import { BoundingBox } from "@types/MapTypes";
 import {
   ENV_REGULATORY_AREAS_API_URL,
   ENV_REGULATORY_AREAS_TABLE,
-} from "@/lib/db.schema";
-import { BoundingBox } from "@/types/MapTypes";
+} from "../db.schema";
 
 type ApiRow = {
   __id: number;
@@ -18,12 +18,14 @@ type ApiRow = {
 type ApiResponse = {
   data: ApiRow[];
   links: {
-    next: string | null;
+    next: string | undefined;
   };
 };
 
-function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
-  if (!wkt) return null;
+function calculateBboxFromWkt(
+  wkt: string | undefined,
+): BoundingBox | undefined {
+  if (!wkt) return undefined;
 
   try {
     const wktTrimmed = wkt.trim();
@@ -31,7 +33,7 @@ function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
 
     // Extract all coordinates from WKT
     const coordMatches = wktTrimmed.match(/-?\d+\.?\d*\s+-?\d+\.?\d*/g);
-    if (!coordMatches) return null;
+    if (!coordMatches) return undefined;
 
     for (const match of coordMatches) {
       const [lon, lat] = match.split(" ").map(Number);
@@ -40,7 +42,7 @@ function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
       }
     }
 
-    if (coords.length === 0) return null;
+    if (coords.length === 0) return undefined;
 
     const lons = coords.map((c) => c[0]);
     const lats = coords.map((c) => c[1]);
@@ -52,13 +54,13 @@ function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
       maxLat: Math.max(...lats),
     };
   } catch {
-    return null;
+    return undefined;
   }
 }
 
 async function fetchAllEnvRegulatoryAreas() {
   const rows: ApiRow[] = [];
-  let nextUrl: string | null = ENV_REGULATORY_AREAS_API_URL;
+  let nextUrl: string | undefined = ENV_REGULATORY_AREAS_API_URL;
 
   while (nextUrl) {
     const response = await fetch(nextUrl);
@@ -90,8 +92,8 @@ export async function syncEnvRegulatoryAreas(db: DB) {
         `
           INSERT INTO ${ENV_REGULATORY_AREAS_TABLE} (
             id,
-            type_de_reglementation,
-            thematique,
+            type,
+            theme,
             zone,
             reglementations,
             wkt,

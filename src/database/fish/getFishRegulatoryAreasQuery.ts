@@ -1,12 +1,12 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
-import { FISH_REGULATORY_AREAS_TABLE } from "@/lib/db.schema";
-import { BoundingBox } from "@/types/MapTypes";
+import { BoundingBox } from "@types/MapTypes";
+import { FISH_REGULATORY_AREAS_TABLE } from "../db.schema";
 
 export type FishRegulatoryArea = {
   id: number;
-  type_de_reglementation: string;
-  thematique: string;
+  type: string;
+  theme: string;
   zone: string;
   reglementations: string;
   wkt: string;
@@ -18,7 +18,7 @@ export type FishRegulatoryArea = {
   fill_color: string;
 };
 
-export async function fetchFishRegulatoryAreasByBbox(
+export async function getFishRegulatoryAreasQuery(
   db: DB,
   bbox: BoundingBox,
   zoom: number,
@@ -30,10 +30,9 @@ export async function fetchFishRegulatoryAreasByBbox(
       `
         SELECT
           fish.id,
-          fish.type_de_reglementation,
-          fish.thematique,
+          fish.type,
+          fish.theme,
           fish.zone,
-          wkt,
           geojson,
           fish.bbox_min_lon,
           fish.bbox_min_lat,

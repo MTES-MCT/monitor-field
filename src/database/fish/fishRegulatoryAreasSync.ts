@@ -1,18 +1,18 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
-import { monitorFishConfig } from "@/config/appModes/monitorfish.config";
-import {
-  FISH_REGULATORY_AREAS_API_URL,
-  FISH_REGULATORY_AREAS_TABLE,
-} from "@/lib/db.schema";
-import { BoundingBox } from "@/types/MapTypes";
+import { monitorFishConfig } from "@config/appModes/monitorfish.config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { calculateBboxFromWkt } from "@utils/calculateBboxFromWkt";
 import {
   normalizeFeatureProperty,
   stringToArrayItem,
-} from "@/utils/layersStyle";
-import { parseWtkToGeojson } from "@/utils/parseWtkToGeojson";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+} from "@utils/layersStyle";
+import { parseWktToGeojson } from "@utils/parseWktToGeojson";
 import dayjs from "dayjs";
+import {
+  FISH_REGULATORY_AREAS_API_URL,
+  FISH_REGULATORY_AREAS_TABLE,
+} from "../db.schema";
 
 type ApiRow = {
   id: number;
@@ -26,47 +26,13 @@ type ApiRow = {
 type ApiResponse = {
   data: ApiRow[];
   links: {
-    next: string | null;
+    next: string | undefined;
   };
 };
 
-function calculateBboxFromWkt(wkt: string | null): BoundingBox | null {
-  if (!wkt) return null;
-
-  try {
-    const wktTrimmed = wkt.trim();
-    const coords: [number, number][] = [];
-
-    // Extract all coordinates from WKT
-    const coordMatches = wktTrimmed.match(/-?\d+\.?\d*\s+-?\d+\.?\d*/g);
-    if (!coordMatches) return null;
-
-    for (const match of coordMatches) {
-      const [lon, lat] = match.split(" ").map(Number);
-      if (!isNaN(lon) && !isNaN(lat)) {
-        coords.push([lon, lat]);
-      }
-    }
-
-    if (coords.length === 0) return null;
-
-    const lons = coords.map((c) => c[0]);
-    const lats = coords.map((c) => c[1]);
-
-    return {
-      minLon: Math.min(...lons),
-      maxLon: Math.max(...lons),
-      minLat: Math.min(...lats),
-      maxLat: Math.max(...lats),
-    };
-  } catch {
-    return null;
-  }
-}
-
 async function fetchAllFishRegulatoryAreas() {
   const rows: ApiRow[] = [];
-  let nextUrl: string | null = FISH_REGULATORY_AREAS_API_URL;
+  let nextUrl: string | undefined = FISH_REGULATORY_AREAS_API_URL;
   while (nextUrl) {
     const response = await fetch(nextUrl);
 
@@ -113,7 +79,7 @@ export async function syncFishRegulatoryAreas(db: DB) {
   }
 
   const rows = await fetchAllFishRegulatoryAreas();
-
+  console.log("rows", rows.length, rows);
   if (!rows || rows.length === 0) {
     console.warn("No fish regulatory areas to sync");
     return;
@@ -131,15 +97,15 @@ export async function syncFishRegulatoryAreas(db: DB) {
         const colorKey = buildFeatureColorKey(row);
         const fillColor = stringToArrayItem(colorKey, palette) ?? palette[0];
 
-        const geojson = row.wkt ? parseWtkToGeojson(row.wkt) : null;
+        const geojson = row.wkt ? parseWktToGeojson(row.wkt) : undefined;
 
         await tx.execute(
           `
         INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
-          id, type_de_reglementation, thematique, zone, fill_color,
-          reglementations, wkt, geojson,
+          id, type, theme, zone, fill_color,
+          reglementations, geojson,
           bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
           [
             row.id,
@@ -148,7 +114,6 @@ export async function syncFishRegulatoryAreas(db: DB) {
             row.zone,
             fillColor,
             row.reglementations,
-            row.wkt,
             geojson ? JSON.stringify(geojson) : null,
             bbox?.minLon ?? null,
             bbox?.minLat ?? null,

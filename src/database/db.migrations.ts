@@ -4,7 +4,7 @@ import {
   DATABASE_VERSION,
   ENV_REGULATORY_AREAS_TABLE,
   FISH_REGULATORY_AREAS_TABLE,
-} from "@/lib/db.schema";
+} from "./db.schema";
 
 type Migration = {
   version: number;
@@ -27,11 +27,10 @@ const migrations: Migration[] = [
         CREATE TABLE IF NOT EXISTS ${FISH_REGULATORY_AREAS_TABLE} (
           id INTEGER PRIMARY KEY NOT NULL,
           fill_color TEXT,
-          type_de_reglementation TEXT,
-          thematique TEXT,
+          type TEXT,
+          theme TEXT,
           zone TEXT,
           reglementations TEXT,
-          wkt TEXT,
           geojson TEXT,
           bbox_min_lon REAL,
           bbox_min_lat REAL,

@@ -1,19 +1,19 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
-import { ENV_REGULATORY_AREAS_TABLE } from "@/lib/db.schema";
-import { BoundingBox } from "@/types/MapTypes";
+import { BoundingBox } from "@types/MapTypes";
+import { ENV_REGULATORY_AREAS_TABLE } from "../db.schema";
 
 export type EnvRegulatoryArea = {
   id: number;
-  type_de_reglementation: string | null;
-  thematique: string | null;
-  zone: string | null;
-  reglementations: string | null;
-  wkt: string | null;
-  bbox_min_lon: number | null;
-  bbox_min_lat: number | null;
-  bbox_max_lon: number | null;
-  bbox_max_lat: number | null;
+  type: string | undefined;
+  theme: string | undefined;
+  zone: string | undefined;
+  reglementations: string | undefined;
+  wkt: string | undefined;
+  bbox_min_lon: number | undefined;
+  bbox_min_lat: number | undefined;
+  bbox_max_lon: number | undefined;
+  bbox_max_lat: number | undefined;
 };
 
 export async function fetchEnvRegulatoryAreasByBbox(

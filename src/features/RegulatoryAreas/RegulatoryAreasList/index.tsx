@@ -1,14 +1,15 @@
-import { Spacing } from "@/constants/theme";
+import { ThemedText } from "@components/Text";
+import { Spacing } from "@constants/theme";
 import {
   type RegulatoryAreaListItem,
   useRegulatoryAreasContext,
-} from "@/contexts/RegulatoryAreasContext";
-import { useTheme } from "@/hooks/use-theme";
-import { BoundingBox } from "@/types/MapTypes";
+} from "@contexts/RegulatoryAreasContext";
 import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTheme } from "@hooks/use-theme";
+import { BoundingBox } from "@types/MapTypes";
 import { forwardRef, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { ThemedText } from "../Text";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getRegulatoryAreasByGroup } from "./utils";
 
 function getAreaLabel(area: RegulatoryAreaListItem) {
@@ -35,9 +36,9 @@ type RegulatoryRow = GroupRow | AreaRow;
 
 function getGroupBoundingBox(
   areas: RegulatoryAreaListItem[],
-): BoundingBox | null {
+): BoundingBox | undefined {
   if (areas.length === 0) {
-    return null;
+    return undefined;
   }
 
   return areas.reduce<BoundingBox>(
@@ -55,9 +56,9 @@ export const RegulatoryAreasList = forwardRef<
   BottomSheetModal,
   RegulatoryAreasListProps
 >(({ onGroupFocus }, ref) => {
-  const { regulatoryAreas, setRegulatoryAreas, totalCount } =
-    useRegulatoryAreasContext();
+  const { regulatoryAreas, setRegulatoryAreas } = useRegulatoryAreasContext();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const snapPoints = useMemo(() => ["33%", "70%", "90%"], []);
   const groupedRegulatoryAreas = useMemo(
     () => Object.entries(getRegulatoryAreasByGroup(regulatoryAreas)),
@@ -159,6 +160,9 @@ export const RegulatoryAreasList = forwardRef<
       ref={ref}
       snapPoints={snapPoints}
       index={0}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      topInset={insets.top + Spacing.four}
       onDismiss={onDismiss}
     >
       <BottomSheetFlatList
@@ -175,7 +179,7 @@ export const RegulatoryAreasList = forwardRef<
         ListHeaderComponent={
           <View style={styles.headerRow}>
             <ThemedText type="defaultBold">
-              REG ({totalCount}) sur la zone
+              REG ({regulatoryAreas.length ?? 0}) sur la zone
             </ThemedText>
           </View>
         }

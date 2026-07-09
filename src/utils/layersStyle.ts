@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/use-theme";
+import { useTheme } from "@hooks/use-theme";
 
 export function normalizeFeatureProperty(value: unknown): string {
   return String(value ?? "")

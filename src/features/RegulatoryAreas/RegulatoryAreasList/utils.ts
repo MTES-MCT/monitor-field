@@ -1,4 +1,4 @@
-import { RegulatoryAreaListItem } from "@/contexts/RegulatoryAreasContext";
+import { RegulatoryAreaListItem } from "@contexts/RegulatoryAreasContext";
 
 export function getRegulatoryAreasByGroup(
   regulatoryAreas: RegulatoryAreaListItem[],

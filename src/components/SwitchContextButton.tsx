@@ -1,10 +1,10 @@
-import { AppMode } from "@/config/appModes";
-import { useAppMode } from "@/contexts/AppModeContext";
-import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
-import { useTheme } from "@/hooks/use-theme";
+import { AppMode } from "@config/appModes";
+import { useAppMode } from "@contexts/AppModeContext";
+import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
+import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useFishRegulatoryAreasLayer } from "./Layers/Fish";
+import { useFishRegulatoryAreasLayer } from "../features/RegulatoryAreas/Layers/FishLayers";
 
 function getVisualState(params: {
   mode: AppMode;

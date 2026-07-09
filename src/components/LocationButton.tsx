@@ -1,6 +1,6 @@
-import { Spacing } from "@/constants/theme";
-import { useAppMode } from "@/contexts/AppModeContext";
-import { useTheme } from "@/hooks/use-theme";
+import { Spacing } from "@constants/theme";
+import { useAppMode } from "@contexts/AppModeContext";
+import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";

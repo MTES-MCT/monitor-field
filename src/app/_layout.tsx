@@ -3,12 +3,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { AppModeProvider } from "@/contexts/AppModeContext";
-import { RegulatoryAreasProvider } from "@/contexts/RegulatoryAreasContext";
-import { useAppColorScheme } from "@/hooks/use-app-color-scheme";
-import { getDatabase } from "@/lib/db";
-import { syncFishRegulatoryAreas } from "@/lib/fish/fishRegulatoryAreasSync";
+import { AppModeProvider } from "@contexts/AppModeContext";
+import { RegulatoryAreasProvider } from "@contexts/RegulatoryAreasContext";
+import { syncFishRegulatoryAreasDB } from "@features/RegulatoryAreas/useCases/syncFishRegulatoryAreasDB";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { useAppColorScheme } from "@hooks/use-app-color-scheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { Appearance } from "react-native";
@@ -18,8 +17,7 @@ void SplashScreen.preventAutoHideAsync();
 
 const getFishLayers = async () => {
   try {
-    const database = await getDatabase();
-    await syncFishRegulatoryAreas(database);
+    await syncFishRegulatoryAreasDB();
   } catch (error) {
     console.warn("Unable to sync fish regulatory areas", error);
   }

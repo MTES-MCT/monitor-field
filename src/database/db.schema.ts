@@ -1,4 +1,4 @@
-export const DATABASE_NAME = "monitor-field.db";
+export const DATABASE_NAME = "monitorfield.db";
 export const DATABASE_VERSION = 1;
 
 export const ENV_REGULATORY_AREAS_TABLE = "env_regulatory_areas";

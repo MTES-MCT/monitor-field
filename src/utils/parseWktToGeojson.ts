@@ -6,7 +6,7 @@ import {
   MultiPolygonGeometry,
   PolygonGeometry,
   Position,
-} from "@/types/MapTypes";
+} from "@types/MapTypes";
 
 // ---- Regex de base ----
 const numberRegexp = /[-+]?([0-9]*\.[0-9]+|[0-9]+)([eE][-+]?[0-9]+)?/;
@@ -35,7 +35,7 @@ type Token = "(" | ")" | "," | string;
 /*
  * Parse WKT and return a GeoJSON Feature.
  */
-export function parseWtkToGeojson(
+export function parseWktToGeojson(
   input: string | undefined,
 ): GeoJSONFeature | undefined {
   if (!input) return undefined;
@@ -47,7 +47,7 @@ export function parseWtkToGeojson(
 
   function $(re: RegExp): string | undefined {
     re.lastIndex = i;
-    const match: RegExpExecArray | null = re.exec(_);
+    const match = re.exec(_);
     if (!match) return undefined;
     i += match[0].length;
     return match[0];
@@ -140,6 +140,6 @@ export function parseWtkToGeojson(
 export function parseWktToGeometry(
   input: string | undefined,
 ): Geometry | undefined {
-  const feature = parseWtkToGeojson(input);
+  const feature = parseWktToGeojson(input);
   return feature?.geometry;
 }

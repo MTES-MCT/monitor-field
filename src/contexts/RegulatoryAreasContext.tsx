@@ -1,4 +1,4 @@
-import { BoundingBox } from "@/types/MapTypes";
+import { BoundingBox } from "@types/MapTypes";
 import { createContext, useContext, useState } from "react";
 
 export type RegulatoryAreaListItem = {

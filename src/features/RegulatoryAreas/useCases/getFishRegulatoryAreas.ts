@@ -1,13 +1,14 @@
-import { RegulatoryAreaListItem } from "@/contexts/RegulatoryAreasContext";
-import { getDatabase } from "@/lib/db";
-import { fetchFishRegulatoryAreasByBbox } from "@/lib/fish/fishRegulatoryAreasQueries";
+import { RegulatoryAreaListItem } from "@contexts/RegulatoryAreasContext";
+import { getDatabase } from "@database/db";
+import { getFishRegulatoryAreasQuery } from "@database/fish/getFishRegulatoryAreasQuery";
+
 import {
   BoundingBox,
   GeoJSONCollection,
   GeoJSONFeature,
-} from "@/types/MapTypes";
+} from "@types/MapTypes";
 
-export async function fetchFishRegulatoryAreasGeoJSON(
+export async function getFishRegulatoryAreas(
   bbox: BoundingBox,
   zoom: number,
   setTotalCount: (count: number | undefined) => void,
@@ -15,7 +16,7 @@ export async function fetchFishRegulatoryAreasGeoJSON(
 ): Promise<GeoJSONCollection> {
   const db = await getDatabase();
 
-  const fetchedAreas = await fetchFishRegulatoryAreasByBbox(db, bbox, zoom);
+  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox, zoom);
 
   const features: GeoJSONFeature[] = [];
   const listItems: RegulatoryAreaListItem[] = [];
@@ -25,8 +26,8 @@ export async function fetchFishRegulatoryAreasGeoJSON(
   for (const area of fetchedAreas) {
     listItems.push({
       id: area.id,
-      type: area.type_de_reglementation,
-      theme: area.thematique,
+      type: area.type,
+      theme: area.theme,
       zone: area.zone,
       bbox: {
         minLon: area.bbox_min_lon,
@@ -45,8 +46,8 @@ export async function fetchFishRegulatoryAreasGeoJSON(
 
     feature.properties = {
       id: area.id,
-      type_de_reglementation: area.type_de_reglementation,
-      thematique: area.thematique,
+      type: area.type,
+      theme: area.theme,
       zone: area.zone,
       fillColor: area.fill_color,
       isSelected: false,

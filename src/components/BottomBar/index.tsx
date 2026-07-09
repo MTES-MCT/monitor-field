@@ -1,7 +1,7 @@
-import { Spacing } from "@/constants/theme";
-import { useAppMode } from "@/contexts/AppModeContext";
-import { useRegulatoryAreasContext } from "@/contexts/RegulatoryAreasContext";
-import { useTheme } from "@/hooks/use-theme";
+import { Spacing } from "@constants/theme";
+import { useAppMode } from "@contexts/AppModeContext";
+import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
+import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../Text";
