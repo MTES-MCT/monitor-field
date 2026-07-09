@@ -132,14 +132,3 @@ export function parseWktToGeojson(
 
   return crs(root());
 }
-
-/*
- * Parse WKT and return only the geometry (pas le Feature complet),
- * pour remplacer wkt.parse().
- */
-export function parseWktToGeometry(
-  input: string | undefined,
-): Geometry | undefined {
-  const feature = parseWktToGeojson(input);
-  return feature?.geometry;
-}

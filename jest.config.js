@@ -5,6 +5,16 @@ module.exports = {
   coverageReporters: ["lcov", "text-summary"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "^@/assets/(.*)$": "<rootDir>/assets/$1",
+    "^@assets/(.*)$": "<rootDir>/assets/$1",
+    "^@app/(.*)$": "<rootDir>/src/app/$1",
+    "^@components/(.*)$": "<rootDir>/src/components/$1",
+    "^@config/(.*)$": "<rootDir>/src/config/$1",
+    "^@constants/(.*)$": "<rootDir>/src/constants/$1",
+    "^@contexts/(.*)$": "<rootDir>/src/contexts/$1",
+    "^@database/(.*)$": "<rootDir>/src/database/$1",
+    "^@features/(.*)$": "<rootDir>/src/features/$1",
+    "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
+    "^@types/(.*)$": "<rootDir>/src/types/$1",
+    "^@utils/(.*)$": "<rootDir>/src/utils/$1",
   },
 };
