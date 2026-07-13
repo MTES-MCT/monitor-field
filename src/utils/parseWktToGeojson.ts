@@ -6,7 +6,7 @@ import {
   MultiPolygonGeometry,
   PolygonGeometry,
   Position,
-} from "@types/MapTypes";
+} from "@/types/mapTypes";
 
 // ---- Regex de base ----
 const numberRegexp = /[-+]?([0-9]*\.[0-9]+|[0-9]+)([eE][-+]?[0-9]+)?/;
@@ -131,15 +131,4 @@ export function parseWktToGeojson(
   }
 
   return crs(root());
-}
-
-/*
- * Parse WKT and return only the geometry (pas le Feature complet),
- * pour remplacer wkt.parse().
- */
-export function parseWktToGeometry(
-  input: string | undefined,
-): Geometry | undefined {
-  const feature = parseWktToGeojson(input);
-  return feature?.geometry;
 }

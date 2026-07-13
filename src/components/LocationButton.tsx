@@ -58,6 +58,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
           latitude: position.coords.latitude,
         });
       } catch (error) {
+        // oxlint-disable-next-line no-console
         console.warn("Unable to retrieve current location", error);
       }
     }

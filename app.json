@@ -66,6 +66,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d9d30fea-a1b2-4ff7-8106-9f1113cb1603"
+      }
+    },
+    "owner": "monitorfield"
   }
 }

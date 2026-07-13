@@ -6,7 +6,7 @@ import {
 } from "@contexts/RegulatoryAreasContext";
 import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useTheme } from "@hooks/use-theme";
-import { BoundingBox } from "@types/MapTypes";
+import { BoundingBox } from "@/types/mapTypes";
 import { forwardRef, useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

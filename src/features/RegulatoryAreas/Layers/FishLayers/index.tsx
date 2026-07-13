@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 
+import { GeoJSONCollection, MapLayer } from "@/types/mapTypes";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
-import { GeoJSONCollection, MapLayer } from "@types/MapTypes";
 import { getFishRegulatoryAreas } from "../../useCases/getFishRegulatoryAreas";
 
 export const fishRegulatoryAreasIds = {
@@ -71,7 +71,6 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
 
   const {
     searchBbox,
-    zoom,
     setTotalCount,
     setRegulatoryAreas,
     selectedRegulatoryArea,
@@ -104,7 +103,7 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
   }, [geoJSON, theme, selectedRegulatoryArea]);
 
   const fetch = useCallback(async () => {
-    if (!searchBbox || !zoom) {
+    if (!searchBbox) {
       setGeoJSON(undefined);
       return;
     }
@@ -115,17 +114,17 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
     try {
       const result = await getFishRegulatoryAreas(
         searchBbox,
-        zoom,
         setTotalCount,
         setRegulatoryAreas,
       );
       setGeoJSON(result);
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.warn("Failed to load regulatory areas", error);
     } finally {
       setIsLoading(false);
     }
-  }, [searchBbox, zoom, isLoading, setTotalCount, setRegulatoryAreas]);
+  }, [searchBbox, isLoading, setTotalCount, setRegulatoryAreas]);
 
   if (!geoJSONWithResolvedFillColor) {
     return {

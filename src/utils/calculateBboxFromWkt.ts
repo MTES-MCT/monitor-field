@@ -1,4 +1,4 @@
-import { BoundingBox } from "@types/MapTypes";
+import { BoundingBox } from "@/types/mapTypes";
 
 export function calculateBboxFromWkt(
   wkt: string | undefined,

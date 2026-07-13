@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
-import type { BoundingBox, GeoJSONFeature, MapLayer } from "@types/MapTypes";
+import type { BoundingBox, GeoJSONFeature, MapLayer } from "@/types/mapTypes";
 
 export const searchByZoneIds = {
   source: "search-by-zone-source",

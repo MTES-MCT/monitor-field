@@ -1,4 +1,4 @@
-import { BoundingBox } from "@types/MapTypes";
+import { BoundingBox } from "@/types/mapTypes";
 import { createContext, useContext, useState } from "react";
 
 export type RegulatoryAreaListItem = {
@@ -17,8 +17,6 @@ const RegulatoryAreasContext = createContext<
       setSearchBbox: (bbox: BoundingBox | undefined) => void;
       committedSearchBbox: BoundingBox | undefined;
       setCommittedSearchBbox: (bbox: BoundingBox | undefined) => void;
-      zoom: number | undefined;
-      setZoom: (zoom: number | undefined) => void;
       isSearchZoneActive: boolean;
       setIsSearchZoneActive: (active: boolean) => void;
       hasSearchZoneChanged: boolean;
@@ -47,7 +45,6 @@ export function RegulatoryAreasProvider({
   const [committedSearchBbox, setCommittedSearchBbox] = useState<
     BoundingBox | undefined
   >(undefined);
-  const [zoom, setZoom] = useState<number | undefined>(undefined);
   const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false);
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
   const [regulatoryAreas, setRegulatoryAreas] = useState<
@@ -64,8 +61,6 @@ export function RegulatoryAreasProvider({
         setSearchBbox,
         committedSearchBbox,
         setCommittedSearchBbox,
-        zoom,
-        setZoom,
         isSearchZoneActive,
         setIsSearchZoneActive,
         hasSearchZoneChanged,

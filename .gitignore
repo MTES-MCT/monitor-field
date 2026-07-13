@@ -32,13 +32,19 @@ yarn-error.*
 
 # local env files
 .env*.local
-.github
+.github/agents
+
 
 # typescript
 *.tsbuildinfo
 
-example
+# tests
+/coverage
 
 # generated native folders
 /ios
 /android
+
+
+# local files
+.vscode/

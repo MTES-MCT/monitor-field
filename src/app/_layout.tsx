@@ -19,6 +19,7 @@ const getFishLayers = async () => {
   try {
     await syncFishRegulatoryAreasDB();
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.warn("Unable to sync fish regulatory areas", error);
   }
 };

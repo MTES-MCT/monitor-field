@@ -1,6 +1,6 @@
 import type { DB } from "@op-engineering/op-sqlite";
 
-import { BoundingBox } from "@types/MapTypes";
+import { BoundingBox } from "@/types/mapTypes";
 import {
   ENV_REGULATORY_AREAS_API_URL,
   ENV_REGULATORY_AREAS_TABLE,
