@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "monitorfield",
+    "slug": "monitorfield",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "monitorfield",
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.monitorfield",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#208AEF",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 76
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser $(PRODUCT_NAME) à utiliser votre position.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Marianne-Bold.otf",
+            "./assets/fonts/Marianne-BoldItalic.otf",
+            "./assets/fonts/Marianne-ExtraBold.otf",
+            "./assets/fonts/Marianne-ExtraBoldItalic.otf",
+            "./assets/fonts/Marianne-Light.otf",
+            "./assets/fonts/Marianne-LightItalic.otf",
+            "./assets/fonts/Marianne-Medium.otf",
+            "./assets/fonts/Marianne-MediumItalic.otf",
+            "./assets/fonts/Marianne-Regular.otf",
+            "./assets/fonts/Marianne-RegularItalic.otf"
+          ]
+        }
+      ],
+      [
+        "@maplibre/maplibre-react-native"
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
