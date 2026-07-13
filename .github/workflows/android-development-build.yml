@@ -1,0 +1,82 @@
+
+name: Android Development Build
+
+on:
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "24"
+  JAVA_VERSION: "17"
+
+concurrency:
+  group: android-development-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-android-development:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v5.2.0
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Trigger EAS Android development build and wait
+        run: npx eas build --platform android --profile development --non-interactive --wait --json > eas-build.json
+
+      - name: Extract build metadata
+        id: eas_meta
+        run: |
+          node -e "
+          const fs = require('fs');
+          const raw = fs.readFileSync('eas-build.json', 'utf8');
+          const data = JSON.parse(raw);
+          const item = Array.isArray(data) ? data[0] : data;
+          if (!item || !item.id) {
+            console.error('Unable to find EAS build id in eas-build.json');
+            process.exit(1);
+          }
+          const buildUrl = item?.artifacts?.buildUrl || '';
+          if (!buildUrl) {
+            console.error('No buildUrl found. Ensure eas.json profile development outputs an APK.');
+            process.exit(1);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'build_id='  item.id  '\\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'build_url='  buildUrl  '\\n');
+          "
+
+      - name: Download APK
+        run: curl -L "${{ steps.eas_meta.outputs.build_url }}" -o monitor-field-dev.apk
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-field-dev-apk
+          path: monitor-field-dev.apk
+          if-no-files-found: error
+
+      - name: Add build summary
+        run: |
+          echo "### Android dev build ready" >> $GITHUB_STEP_SUMMARY
+          echo "- EAS build id: ${{ steps.eas_meta.outputs.build_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- APK artifact: monitor-field-dev-apk" >> $GITHUB_STEP_SUMMARY
