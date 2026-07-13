@@ -1,5 +1,11 @@
 import { BoundingBox } from "@/types/MapTypes";
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 
 export type RegulatoryAreaListItem = {
   id: number;
@@ -9,6 +15,13 @@ export type RegulatoryAreaListItem = {
   bbox: BoundingBox;
   fillColor: string;
   isSelected: boolean;
+};
+
+type RegulatoryModalHandlers = {
+  presentList?: () => void;
+  dismissList?: () => void;
+  presentDetails?: () => void;
+  dismissDetails?: () => void;
 };
 
 const RegulatoryAreasContext = createContext<
@@ -29,6 +42,13 @@ const RegulatoryAreasContext = createContext<
       setSelectedRegulatoryArea: (
         area: RegulatoryAreaListItem | undefined,
       ) => void;
+      registerRegulatoryModalHandlers: (
+        handlers: RegulatoryModalHandlers,
+      ) => () => void;
+      openRegulatoryList: () => void;
+      closeRegulatoryList: () => void;
+      openRegulatoryDetails: () => void;
+      closeRegulatoryDetails: () => void;
     }
   | undefined
 >(undefined);
@@ -53,6 +73,43 @@ export function RegulatoryAreasProvider({
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<
     RegulatoryAreaListItem | undefined
   >(undefined);
+  const modalHandlersRef = useRef<RegulatoryModalHandlers>({});
+
+  const registerRegulatoryModalHandlers = useCallback(
+    (handlers: RegulatoryModalHandlers) => {
+      modalHandlersRef.current = {
+        ...modalHandlersRef.current,
+        ...handlers,
+      };
+
+      return () => {
+        const nextHandlers = { ...modalHandlersRef.current };
+        (Object.keys(handlers) as (keyof RegulatoryModalHandlers)[]).forEach(
+          (key) => {
+            nextHandlers[key] = undefined;
+          },
+        );
+        modalHandlersRef.current = nextHandlers;
+      };
+    },
+    [],
+  );
+
+  const openRegulatoryList = useCallback(() => {
+    modalHandlersRef.current.presentList?.();
+  }, []);
+
+  const closeRegulatoryList = useCallback(() => {
+    modalHandlersRef.current.dismissList?.();
+  }, []);
+
+  const openRegulatoryDetails = useCallback(() => {
+    modalHandlersRef.current.presentDetails?.();
+  }, []);
+
+  const closeRegulatoryDetails = useCallback(() => {
+    modalHandlersRef.current.dismissDetails?.();
+  }, []);
 
   return (
     <RegulatoryAreasContext.Provider
@@ -71,6 +128,11 @@ export function RegulatoryAreasProvider({
         setRegulatoryAreas,
         selectedRegulatoryArea,
         setSelectedRegulatoryArea,
+        registerRegulatoryModalHandlers,
+        openRegulatoryList,
+        closeRegulatoryList,
+        openRegulatoryDetails,
+        closeRegulatoryDetails,
       }}
     >
       {children}

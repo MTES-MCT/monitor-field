@@ -15,7 +15,6 @@ import {
 } from "@contexts/RegulatoryAreasContext";
 import { useFishRegulatoryAreasLayer } from "@features/RegulatoryAreas/Layers/FishLayers";
 import { SelectedRegulatoryAreas } from "@features/RegulatoryAreas/SelectedRegulatoryAreas";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Camera,
   Map as MapLibreMap,
@@ -60,8 +59,6 @@ export default function App({
   const { config, setIsLocationEnabled, isLocationEnabled } = useAppMode();
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
-  const bottomSheetListRef = useRef<BottomSheetModal>(null);
-  const bottomSheetDetailsRef = useRef<BottomSheetModal>(null);
 
   const {
     isSearchZoneActive,
@@ -69,6 +66,9 @@ export default function App({
     setSearchBbox,
     regulatoryAreas,
     setSelectedRegulatoryArea,
+    openRegulatoryList,
+    openRegulatoryDetails,
+    closeRegulatoryDetails,
   } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
@@ -169,7 +169,7 @@ export default function App({
     );
 
     if (!clickedRegulatoryAreas.length) {
-      bottomSheetDetailsRef.current?.dismiss();
+      closeRegulatoryDetails();
 
       setClickedRegulatoryAreas([]);
       setSelectedRegulatoryArea(undefined);
@@ -181,22 +181,22 @@ export default function App({
       setClickedRegulatoryAreas([]);
       setSelectedRegulatoryArea(clickedRegulatoryAreas[0]);
       presentOnNextFrame(() => {
-        bottomSheetDetailsRef.current?.present();
+        openRegulatoryDetails();
       });
 
       return;
     }
 
-    bottomSheetDetailsRef.current?.dismiss();
+    closeRegulatoryDetails();
     setSelectedRegulatoryArea(undefined);
     setClickedRegulatoryAreas(clickedRegulatoryAreas);
     presentOnNextFrame(() => {
-      bottomSheetDetailsRef.current?.present();
+      openRegulatoryList();
     });
   };
 
   const consultRegulatoryAreas = () => {
-    bottomSheetListRef.current?.present();
+    openRegulatoryList();
   };
 
   return (
@@ -232,12 +232,8 @@ export default function App({
           <SelectedRegulatoryAreas
             clickedRegulatoryAreas={clickedRegulatoryAreas}
             setClickedRegulatoryAreas={setClickedRegulatoryAreas}
-            ref={bottomSheetDetailsRef}
           />
-          <FilteredRegulatoryAreas
-            onGroupFocus={handleFocusGroup}
-            ref={bottomSheetListRef}
-          />
+          <FilteredRegulatoryAreas onGroupFocus={handleFocusGroup} />
 
           <View style={styles.bottomWrapper}>
             <LocationButton onLocate={handleLocate} />
@@ -260,7 +256,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,
-    paddingVertical: Spacing.three,
+    paddingBottom: Spacing.three,
     maxWidth: MaxContentWidth,
     justifyContent: "space-between",
   },

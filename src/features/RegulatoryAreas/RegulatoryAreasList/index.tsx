@@ -56,7 +56,13 @@ export const RegulatoryAreasList = ({
   areas,
   onGroupFocus,
 }: RegulatoryAreasListProps) => {
-  const { regulatoryAreas, setRegulatoryAreas } = useRegulatoryAreasContext();
+  const {
+    regulatoryAreas,
+    setRegulatoryAreas,
+    setSelectedRegulatoryArea,
+    openRegulatoryDetails,
+    closeRegulatoryList,
+  } = useRegulatoryAreasContext();
   const theme = useTheme();
   const sourceRegulatoryAreas = areas ?? regulatoryAreas;
   const groupedRegulatoryAreas = useMemo(
@@ -80,7 +86,15 @@ export const RegulatoryAreasList = ({
       isSelected: currentArea.id === area.id,
     }));
 
+    setSelectedRegulatoryArea(area);
     setRegulatoryAreas(updatedAreas);
+
+    if (!areas) {
+      closeRegulatoryList();
+    }
+    requestAnimationFrame(() => {
+      openRegulatoryDetails();
+    });
   };
 
   const clickOnGroup = (group: string, areas: RegulatoryAreaListItem[]) => {
