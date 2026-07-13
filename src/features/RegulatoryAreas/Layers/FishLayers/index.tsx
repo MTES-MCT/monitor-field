@@ -87,7 +87,6 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
       features: geoJSON.features.map((feature) => {
         const resolvedFillColor =
           theme[feature.properties?.fillColor as keyof typeof theme] ??
-          feature.properties?.fillColor ??
           DEFAULT_FISH_AREA_COLOR;
 
         return {

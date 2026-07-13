@@ -1,27 +1,35 @@
-import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MaxContentWidth, Spacing } from "@constants/theme";
 import { useAppMode } from "@contexts/AppModeContext";
 
-import type { BoundingBox } from "@/types/mapTypes";
+import { type BoundingBox } from "@/types/MapTypes";
 import { BottomBar } from "@components/BottomBar";
 import { useSearchByZoneLayer } from "@components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@components/LocationButton";
 import { SwitchContextButton } from "@components/SwitchContextButton";
-import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
+import {
+  useRegulatoryAreasContext,
+  type RegulatoryAreaListItem,
+} from "@contexts/RegulatoryAreasContext";
 import { useFishRegulatoryAreasLayer } from "@features/RegulatoryAreas/Layers/FishLayers";
-import { RegulatoryAreasList } from "@features/RegulatoryAreas/RegulatoryAreasList";
+import { SelectedRegulatoryAreas } from "@features/RegulatoryAreas/SelectedRegulatoryAreas";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Camera,
-  Map,
+  Map as MapLibreMap,
   UserLocation,
   type CameraRef,
   type MapRef,
+  type PressEvent,
+  type PressEventWithFeatures,
   type StyleSpecification,
 } from "@maplibre/maplibre-react-native";
+import { useEffect, useRef, useState } from "react";
+import { FilteredRegulatoryAreas } from "@features/RegulatoryAreas/FilteredRegulatoryAreas";
+
+export const CENTERED_ON_FRANCE = [2.99049, 46.82801];
 
 const baseMapStyle: StyleSpecification = {
   version: 8,
@@ -52,14 +60,23 @@ export default function App({
   const { config, setIsLocationEnabled, isLocationEnabled } = useAppMode();
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const bottomSheetListRef = useRef<BottomSheetModal>(null);
+  const bottomSheetDetailsRef = useRef<BottomSheetModal>(null);
 
-  const { isSearchZoneActive, setHasSearchZoneChanged, setSearchBbox } =
-    useRegulatoryAreasContext();
+  const {
+    isSearchZoneActive,
+    setHasSearchZoneChanged,
+    setSearchBbox,
+    regulatoryAreas,
+    setSelectedRegulatoryArea,
+  } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
   const fish = useFishRegulatoryAreasLayer();
   const searchByZone = useSearchByZoneLayer();
+  const [clickedRegulatoryAreas, setClickedRegulatoryAreas] = useState<
+    RegulatoryAreaListItem[]
+  >([]);
 
   const mapStyle: StyleSpecification = {
     ...baseMapStyle,
@@ -128,13 +145,63 @@ export default function App({
     );
   };
 
+  const onMapPress = async (
+    event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>,
+  ) => {
+    if (!isMonitorFish || !isSearchZoneActive) {
+      return;
+    }
+
+    const presentOnNextFrame = (callback: () => void) => {
+      requestAnimationFrame(() => {
+        callback();
+      });
+    };
+
+    const mapPoint = event.nativeEvent.point;
+    const features = await mapRef.current?.queryRenderedFeatures(mapPoint, {
+      layers: [fish.ids.fillLayer],
+    });
+    const clickedFeaturesIds =
+      features?.map((feature) => feature.properties?.id) ?? [];
+    const clickedRegulatoryAreas = regulatoryAreas.filter((area) =>
+      clickedFeaturesIds.includes(area.id),
+    );
+
+    if (!clickedRegulatoryAreas.length) {
+      bottomSheetDetailsRef.current?.dismiss();
+
+      setClickedRegulatoryAreas([]);
+      setSelectedRegulatoryArea(undefined);
+
+      return;
+    }
+
+    if (clickedRegulatoryAreas.length === 1) {
+      setClickedRegulatoryAreas([]);
+      setSelectedRegulatoryArea(clickedRegulatoryAreas[0]);
+      presentOnNextFrame(() => {
+        bottomSheetDetailsRef.current?.present();
+      });
+
+      return;
+    }
+
+    bottomSheetDetailsRef.current?.dismiss();
+    setSelectedRegulatoryArea(undefined);
+    setClickedRegulatoryAreas(clickedRegulatoryAreas);
+    presentOnNextFrame(() => {
+      bottomSheetDetailsRef.current?.present();
+    });
+  };
+
   const consultRegulatoryAreas = () => {
-    bottomSheetRef.current?.present();
+    bottomSheetListRef.current?.present();
   };
 
   return (
     <>
-      <Map
+      <MapLibreMap
         ref={mapRef}
         mapStyle={mapStyle}
         touchZoom
@@ -144,15 +211,34 @@ export default function App({
         touchPitch
         touchRotate={false}
         onRegionDidChange={onRegionDidChange}
+        onPress={onMapPress}
       >
         {isLocationEnabled && <UserLocation accuracy />}
         <Camera
           ref={cameraRef}
-          zoom={6}
+          initialViewState={
+            isLocationEnabled
+              ? undefined
+              : {
+                  zoom: 4,
+                  center: [2.99049, 46.82801],
+                }
+          }
+          maxBounds={[-180, -90, 180, 90]}
           trackUserLocation={isLocationEnabled ? "default" : undefined}
         />
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
+          <SelectedRegulatoryAreas
+            clickedRegulatoryAreas={clickedRegulatoryAreas}
+            setClickedRegulatoryAreas={setClickedRegulatoryAreas}
+            ref={bottomSheetDetailsRef}
+          />
+          <FilteredRegulatoryAreas
+            onGroupFocus={handleFocusGroup}
+            ref={bottomSheetListRef}
+          />
+
           <View style={styles.bottomWrapper}>
             <LocationButton onLocate={handleLocate} />
             <BottomBar
@@ -160,12 +246,8 @@ export default function App({
               onSearch={isMonitorFish ? fish.fetch : () => Promise.resolve()}
             />
           </View>
-          <RegulatoryAreasList
-            onGroupFocus={handleFocusGroup}
-            ref={bottomSheetRef}
-          />
         </SafeAreaView>
-      </Map>
+      </MapLibreMap>
     </>
   );
 }
