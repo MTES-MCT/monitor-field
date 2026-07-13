@@ -39,6 +39,7 @@ export async function getFishRegulatoryAreas(
       isSelected: false,
     });
 
+    // TODO(13/07/2026): add schema for regulatory areas 
     const feature = JSON.parse(area.geojson ?? "");
     if (!feature) {
       continue;

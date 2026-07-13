@@ -8,7 +8,7 @@ export type FishRegulatoryArea = {
   type: string;
   theme: string;
   zone: string;
-  reglementations: string;
+  regulations: string;
   wkt: string;
   geojson: string;
   bbox_min_lon: number;
@@ -33,7 +33,8 @@ export async function getFishRegulatoryAreasQuery(
           fish.type,
           fish.theme,
           fish.zone,
-          geojson,
+          fish.regulations,
+          fish.geojson,
           fish.bbox_min_lon,
           fish.bbox_min_lat,
           fish.bbox_max_lon,

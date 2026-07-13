@@ -11,7 +11,7 @@ type ApiRow = {
   type_de_reglementation: string;
   thematique: string;
   zone: string;
-  reglementations: string;
+  regulations: string;
   wkt: string;
 };
 
@@ -95,7 +95,7 @@ export async function syncEnvRegulatoryAreas(db: DB) {
             type,
             theme,
             zone,
-            reglementations,
+            regulations,
             wkt,
             bbox_min_lon,
             bbox_min_lat,

@@ -103,7 +103,7 @@ export async function syncFishRegulatoryAreas(db: DB) {
           `
         INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
           id, type, theme, zone, fill_color,
-          reglementations, geojson,
+          regulations, geojson,
           bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,

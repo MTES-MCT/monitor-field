@@ -30,7 +30,7 @@ const migrations: Migration[] = [
           type TEXT,
           theme TEXT,
           zone TEXT,
-          reglementations TEXT,
+          regulations TEXT,
           geojson TEXT,
           bbox_min_lon REAL,
           bbox_min_lat REAL,

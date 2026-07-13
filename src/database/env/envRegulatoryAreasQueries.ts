@@ -8,7 +8,7 @@ export type EnvRegulatoryArea = {
   type: string | undefined;
   theme: string | undefined;
   zone: string | undefined;
-  reglementations: string | undefined;
+  regulations: string | undefined;
   wkt: string | undefined;
   bbox_min_lon: number | undefined;
   bbox_min_lat: number | undefined;
