@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
-import { GeoJSONCollection, MapLayer } from "@/types/mapTypes";
+import { GeoJSONCollection, MapLayer } from "@/types/MapTypes";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
 import { getFishRegulatoryAreas } from "../../useCases/getFishRegulatoryAreas";
@@ -71,11 +71,13 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
 
   const {
     searchBbox,
+    committedSearchBbox,
     setTotalCount,
     setRegulatoryAreas,
     selectedRegulatoryArea,
   } = useRegulatoryAreasContext();
   const theme = useTheme();
+  const requestIdRef = useRef(0);
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
     if (!geoJSON) {
@@ -102,28 +104,36 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
   }, [geoJSON, theme, selectedRegulatoryArea]);
 
   const fetch = useCallback(async () => {
-    if (!searchBbox) {
+    const bbox = committedSearchBbox ?? searchBbox;
+
+    if (!bbox) {
       setGeoJSON(undefined);
+      setRegulatoryAreas([]);
+      setTotalCount(0);
       return;
     }
-    if (isLoading) {
-      return;
-    }
+
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     try {
-      const result = await getFishRegulatoryAreas(
-        searchBbox,
-        setTotalCount,
-        setRegulatoryAreas,
-      );
-      setGeoJSON(result);
+      const result = await getFishRegulatoryAreas(bbox);
+
+      if (requestIdRef.current !== requestId) {
+        return;
+      }
+
+      setTotalCount(result.totalCount);
+      setRegulatoryAreas(result.listItems);
+      setGeoJSON(result.geoJSON);
     } catch (error) {
       // oxlint-disable-next-line no-console
       console.warn("Failed to load regulatory areas", error);
     } finally {
-      setIsLoading(false);
+      if (requestIdRef.current === requestId) {
+        setIsLoading(false);
+      }
     }
-  }, [searchBbox, isLoading, setTotalCount, setRegulatoryAreas]);
+  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, setTotalCount]);
 
   if (!geoJSONWithResolvedFillColor) {
     return {

@@ -1,5 +1,5 @@
 import { AppMode } from "@config/appModes";
-import { useAppMode } from "@contexts/AppModeContext";
+import { useAppContext } from "@contexts/AppContext";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
@@ -30,7 +30,7 @@ function getVisualState(params: {
 }
 
 export function SwitchContextButton() {
-  const { config, setMode } = useAppMode();
+  const { config, setMode } = useAppContext();
   const theme = useTheme();
   const fish = useFishRegulatoryAreasLayer();
   const { isSearchZoneActive } = useRegulatoryAreasContext();

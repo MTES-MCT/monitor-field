@@ -1,26 +1,28 @@
 import { RegulatoryAreaListItem } from "@contexts/RegulatoryAreasContext";
-import { getDatabase } from "@database/db";
 import { getFishRegulatoryAreasQuery } from "@database/fish/getFishRegulatoryAreasQuery";
 
 import {
   BoundingBox,
   GeoJSONCollection,
   GeoJSONFeature,
-} from "@/types/mapTypes";
+} from "@/types/MapTypes";
+import { getDatabase } from "@database/db";
+
+export type FishRegulatoryAreasResult = {
+  geoJSON: GeoJSONCollection;
+  listItems: RegulatoryAreaListItem[];
+  totalCount: number;
+};
 
 export async function getFishRegulatoryAreas(
   bbox: BoundingBox,
-  setTotalCount: (count: number | undefined) => void,
-  setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void,
-): Promise<GeoJSONCollection> {
+): Promise<FishRegulatoryAreasResult> {
   const db = await getDatabase();
 
   const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox);
 
   const features: GeoJSONFeature[] = [];
   const listItems: RegulatoryAreaListItem[] = [];
-
-  setTotalCount(fetchedAreas.length);
 
   for (const area of fetchedAreas) {
     listItems.push({
@@ -55,7 +57,9 @@ export async function getFishRegulatoryAreas(
     features.push(feature);
   }
 
-  setRegulatoryAreas(listItems);
-
-  return { type: "FeatureCollection", features };
+  return {
+    geoJSON: { type: "FeatureCollection", features },
+    listItems,
+    totalCount: listItems.length,
+  };
 }

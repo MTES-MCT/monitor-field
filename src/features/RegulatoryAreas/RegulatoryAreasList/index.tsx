@@ -1,4 +1,5 @@
 import { BoundingBox } from "@/types/MapTypes";
+import { useAppContext } from "@contexts/AppContext";
 import { ThemedText } from "@components/Text";
 import { Spacing } from "@constants/theme";
 import {
@@ -10,7 +11,10 @@ import { useTheme } from "@hooks/use-theme";
 import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { getRegulatoryAreaLabel } from "../utils/getRegulatoryAreaLabel";
-import { getRegulatoryAreasByGroup } from "./utils";
+import {
+  getRegulatoryAreasByGroup,
+  matchesRegulatoryAreaSearch,
+} from "./utils";
 
 type RegulatoryAreasListProps = {
   areas?: RegulatoryAreaListItem[];
@@ -57,17 +61,24 @@ export const RegulatoryAreasList = ({
   onGroupFocus,
 }: RegulatoryAreasListProps) => {
   const {
+    filters,
     regulatoryAreas,
     setRegulatoryAreas,
     setSelectedRegulatoryArea,
-    openRegulatoryDetails,
-    closeRegulatoryList,
   } = useRegulatoryAreasContext();
+  const { openRegulatoryModalFromMapClick } = useAppContext();
   const theme = useTheme();
   const sourceRegulatoryAreas = areas ?? regulatoryAreas;
+  const filteredRegulatoryAreas = useMemo(
+    () =>
+      sourceRegulatoryAreas.filter((area) =>
+        matchesRegulatoryAreaSearch(area, filters.searchQuery),
+      ),
+    [filters.searchQuery, sourceRegulatoryAreas],
+  );
   const groupedRegulatoryAreas = useMemo(
-    () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas)),
-    [sourceRegulatoryAreas],
+    () => Object.entries(getRegulatoryAreasByGroup(filteredRegulatoryAreas)),
+    [filteredRegulatoryAreas],
   );
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
@@ -89,11 +100,8 @@ export const RegulatoryAreasList = ({
     setSelectedRegulatoryArea(area);
     setRegulatoryAreas(updatedAreas);
 
-    if (!areas) {
-      closeRegulatoryList();
-    }
     requestAnimationFrame(() => {
-      openRegulatoryDetails();
+      openRegulatoryModalFromMapClick();
     });
   };
 
@@ -184,7 +192,8 @@ export const RegulatoryAreasList = ({
       ListHeaderComponent={
         <View style={styles.headerRow}>
           <ThemedText type="defaultBold">
-            {title ?? `REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
+            {title ??
+              `REG (${filteredRegulatoryAreas.length ?? 0}) sur la zone`}
           </ThemedText>
         </View>
       }
@@ -194,7 +203,7 @@ export const RegulatoryAreasList = ({
           themeColor="textSecondary"
           style={styles.emptyState}
         >
-          Aucune zone réglementaire dans cette zone de recherche.
+          Aucune zone réglementaire ne correspond à cette recherche.
         </ThemedText>
       }
       ItemSeparatorComponent={() => (

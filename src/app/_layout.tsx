@@ -3,7 +3,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { AppModeProvider } from "@contexts/AppModeContext";
+import { AppProvider } from "@contexts/AppContext";
 import { RegulatoryAreasProvider } from "@contexts/RegulatoryAreasContext";
 import { syncFishRegulatoryAreasDB } from "@features/RegulatoryAreas/useCases/syncFishRegulatoryAreasDB";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -63,7 +63,7 @@ export default function TabLayout() {
 
   return (
     <GestureHandlerRootView>
-      <AppModeProvider>
+      <AppProvider>
         <RegulatoryAreasProvider>
           <BottomSheetModalProvider>
             <ThemeProvider
@@ -73,7 +73,7 @@ export default function TabLayout() {
             </ThemeProvider>
           </BottomSheetModalProvider>
         </RegulatoryAreasProvider>
-      </AppModeProvider>
+      </AppProvider>
     </GestureHandlerRootView>
   );
 }

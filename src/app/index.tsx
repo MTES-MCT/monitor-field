@@ -2,7 +2,7 @@ import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MaxContentWidth, Spacing } from "@constants/theme";
-import { useAppMode } from "@contexts/AppModeContext";
+import { useAppContext } from "@contexts/AppContext";
 
 import { type BoundingBox } from "@/types/MapTypes";
 import { BottomBar } from "@components/BottomBar";
@@ -56,7 +56,14 @@ export default function App({
 }: {
   isFirstLocationEnabled: boolean;
 }) {
-  const { config, setIsLocationEnabled, isLocationEnabled } = useAppMode();
+  const {
+    config,
+    setIsLocationEnabled,
+    isLocationEnabled,
+    openRegulatoryModalFromMapClick,
+    openRegulatoryModalFromFilterButtons,
+    closeRegulatoryModalFromMapClick,
+  } = useAppContext();
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
 
@@ -66,9 +73,6 @@ export default function App({
     setSearchBbox,
     regulatoryAreas,
     setSelectedRegulatoryArea,
-    openRegulatoryList,
-    openRegulatoryDetails,
-    closeRegulatoryDetails,
   } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
@@ -169,8 +173,7 @@ export default function App({
     );
 
     if (!clickedRegulatoryAreas.length) {
-      closeRegulatoryDetails();
-
+      closeRegulatoryModalFromMapClick();
       setClickedRegulatoryAreas([]);
       setSelectedRegulatoryArea(undefined);
 
@@ -181,22 +184,23 @@ export default function App({
       setClickedRegulatoryAreas([]);
       setSelectedRegulatoryArea(clickedRegulatoryAreas[0]);
       presentOnNextFrame(() => {
-        openRegulatoryDetails();
+        openRegulatoryModalFromMapClick();
       });
 
       return;
     }
 
-    closeRegulatoryDetails();
     setSelectedRegulatoryArea(undefined);
     setClickedRegulatoryAreas(clickedRegulatoryAreas);
     presentOnNextFrame(() => {
-      openRegulatoryList();
+      openRegulatoryModalFromMapClick();
     });
   };
 
   const consultRegulatoryAreas = () => {
-    openRegulatoryList();
+    setClickedRegulatoryAreas([]);
+    setSelectedRegulatoryArea(undefined);
+    openRegulatoryModalFromFilterButtons();
   };
 
   return (
@@ -229,10 +233,12 @@ export default function App({
         />
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
+
           <SelectedRegulatoryAreas
             clickedRegulatoryAreas={clickedRegulatoryAreas}
             setClickedRegulatoryAreas={setClickedRegulatoryAreas}
           />
+
           <FilteredRegulatoryAreas onGroupFocus={handleFocusGroup} />
 
           <View style={styles.bottomWrapper}>

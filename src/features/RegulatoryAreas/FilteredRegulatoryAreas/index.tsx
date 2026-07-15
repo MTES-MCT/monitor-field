@@ -5,22 +5,22 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Spacing } from "@constants/theme";
 import { BoundingBox } from "@/types/MapTypes";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
+import { useAppContext } from "@contexts/AppContext";
 import { RegulatoryAreaDetails } from "../SelectedRegulatoryAreas/RegulatoryAreaDetails";
+import { Search } from "./Search";
 
 type FilteredRegulatoryAreasProps = {
-  onDismiss?: () => void;
   onGroupFocus?: (bbox: BoundingBox) => void;
 };
 
 export const FilteredRegulatoryAreas = ({
-  onDismiss,
   onGroupFocus,
 }: FilteredRegulatoryAreasProps) => {
   const insets = useSafeAreaInsets();
-  const snapPoints = useMemo(() => ["33%", "70%", "90%"], []);
+  const snapPoints = useMemo(() => ["33%", "70%", "99%"], []);
   const modalRef = useRef<BottomSheetModal>(null);
-  const { registerRegulatoryModalHandlers, selectedRegulatoryArea } =
-    useRegulatoryAreasContext();
+  const { selectedRegulatoryArea } = useRegulatoryAreasContext();
+  const { registerRegulatoryModalHandlers } = useAppContext();
 
   useEffect(() => {
     return registerRegulatoryModalHandlers({
@@ -29,11 +29,13 @@ export const FilteredRegulatoryAreas = ({
     });
   }, [registerRegulatoryModalHandlers]);
 
+  const onDismiss = () => undefined;
+
   return (
     <BottomSheetModal
       ref={modalRef}
       snapPoints={snapPoints}
-      index={1}
+      index={selectedRegulatoryArea ? 1 : 2}
       enableDynamicSizing={false}
       enablePanDownToClose
       topInset={insets.top + Spacing.four}
@@ -42,10 +44,13 @@ export const FilteredRegulatoryAreas = ({
       {selectedRegulatoryArea ? (
         <RegulatoryAreaDetails
           regulatoryArea={selectedRegulatoryArea}
-          onDismiss={() => modalRef.current?.dismiss()}
+          onDismiss={onDismiss}
         />
       ) : (
-        <RegulatoryAreasList onGroupFocus={onGroupFocus} />
+        <>
+          <Search />
+          <RegulatoryAreasList onGroupFocus={onGroupFocus} />
+        </>
       )}
     </BottomSheetModal>
   );

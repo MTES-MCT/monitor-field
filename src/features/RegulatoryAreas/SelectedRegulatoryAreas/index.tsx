@@ -2,6 +2,7 @@ import {
   RegulatoryAreaListItem,
   useRegulatoryAreasContext,
 } from "@contexts/RegulatoryAreasContext";
+import { useAppContext } from "@contexts/AppContext";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef } from "react";
 import { RegulatoryAreaDetails } from "./RegulatoryAreaDetails";
@@ -24,11 +25,9 @@ export const SelectedRegulatoryAreas = ({
   const snapPoints = useMemo(() => ["25%", "50%", "100%"], []);
   const modalRef = useRef<BottomSheetModal>(null);
 
-  const {
-    setSelectedRegulatoryArea,
-    selectedRegulatoryArea,
-    registerRegulatoryModalHandlers,
-  } = useRegulatoryAreasContext();
+  const { setSelectedRegulatoryArea, selectedRegulatoryArea } =
+    useRegulatoryAreasContext();
+  const { registerRegulatoryModalHandlers } = useAppContext();
 
   useEffect(() => {
     return registerRegulatoryModalHandlers({

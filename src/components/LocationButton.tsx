@@ -1,5 +1,5 @@
 import { Spacing } from "@constants/theme";
-import { useAppMode } from "@contexts/AppModeContext";
+import { useAppContext } from "@contexts/AppContext";
 import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
@@ -15,7 +15,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
     useState<boolean>(false);
 
   const theme = useTheme();
-  const { isLocationEnabled, setIsLocationEnabled } = useAppMode();
+  const { isLocationEnabled, setIsLocationEnabled } = useAppContext();
   const iconTintColor = isLocationEnabled ? theme.blueGray : theme.slateGray;
 
   useEffect(() => {
