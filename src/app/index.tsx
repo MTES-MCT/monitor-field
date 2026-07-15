@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaxContentWidth, Spacing } from "@constants/theme";
 import { useAppContext } from "@contexts/AppContext";
 
-import { type BoundingBox } from "@/types/MapTypes";
+import { type BoundingBox } from "@/types/mapTypes";
 import { BottomBar } from "@components/BottomBar";
 import { useSearchByZoneLayer } from "@components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@components/LocationButton";

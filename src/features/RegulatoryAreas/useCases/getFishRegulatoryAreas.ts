@@ -9,7 +9,7 @@ import {
   BoundingBox,
   GeoJSONCollection,
   GeoJSONFeature,
-} from "@/types/MapTypes";
+} from "@/types/mapTypes";
 import { getDatabase } from "@database/db";
 
 export type FishRegulatoryAreasResult = {

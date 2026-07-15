@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { GeoJSONCollection, MapLayer } from "@/types/MapTypes";
+import { GeoJSONCollection, MapLayer } from "@/types/mapTypes";
 import { useAppContext } from "@contexts/AppContext";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";

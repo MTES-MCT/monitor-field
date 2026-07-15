@@ -1,4 +1,4 @@
-import { BoundingBox } from "@/types/MapTypes";
+import { BoundingBox } from "@/types/mapTypes";
 import { ThemedText } from "@components/Text";
 import { Spacing } from "@constants/theme";
 import {

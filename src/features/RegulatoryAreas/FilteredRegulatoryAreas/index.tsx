@@ -2,7 +2,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef } from "react";
 import { RegulatoryAreasList } from "../RegulatoryAreasList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BoundingBox } from "@/types/MapTypes";
+import { BoundingBox } from "@/types/mapTypes";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { Search } from "./Search";
 
