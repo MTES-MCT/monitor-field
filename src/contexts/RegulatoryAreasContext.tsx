@@ -39,6 +39,12 @@ const RegulatoryAreasContext = createContext<
       ) => void;
       isSearchByQueryActive: boolean;
       setIsSearchByQueryActive: (active: boolean) => void;
+      clickedFeaturesList: RegulatoryAreaListItem[] | undefined;
+      setClickedFeaturesList: (
+        areas: RegulatoryAreaListItem[] | undefined,
+      ) => void;
+      isListVisible: boolean;
+      setIsListVisible: (visible: boolean) => void;
     }
   | undefined
 >(undefined);
@@ -69,6 +75,10 @@ export function RegulatoryAreasProvider({
   });
 
   const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false);
+  const [clickedFeaturesList, setClickedFeaturesList] = useState<
+    RegulatoryAreaListItem[] | undefined
+  >(undefined);
+  const [isListVisible, setIsListVisible] = useState(false);
 
   return (
     <RegulatoryAreasContext.Provider
@@ -91,6 +101,10 @@ export function RegulatoryAreasProvider({
         setFilters,
         isSearchByQueryActive,
         setIsSearchByQueryActive,
+        clickedFeaturesList,
+        setClickedFeaturesList,
+        isListVisible,
+        setIsListVisible,
       }}
     >
       {children}

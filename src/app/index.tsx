@@ -9,10 +9,7 @@ import { BottomBar } from "@components/BottomBar";
 import { useSearchByZoneLayer } from "@components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@components/LocationButton";
 import { SwitchContextButton } from "@components/SwitchContextButton";
-import {
-  useRegulatoryAreasContext,
-  type RegulatoryAreaListItem,
-} from "@contexts/RegulatoryAreasContext";
+import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useFishRegulatoryAreasLayer } from "@features/RegulatoryAreas/Layers/FishLayers";
 import { SelectedRegulatoryAreas } from "@features/RegulatoryAreas/SelectedRegulatoryAreas";
 import {
@@ -25,8 +22,9 @@ import {
   type PressEventWithFeatures,
   type StyleSpecification,
 } from "@maplibre/maplibre-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { FilteredRegulatoryAreas } from "@features/RegulatoryAreas/FilteredRegulatoryAreas";
+import { RegulatoryAreaDetails } from "@features/RegulatoryAreas/RegulatoryAreaDetails";
 
 export const CENTERED_ON_FRANCE = [2.99049, 46.82801];
 
@@ -56,14 +54,7 @@ export default function App({
 }: {
   isFirstLocationEnabled: boolean;
 }) {
-  const {
-    config,
-    setIsLocationEnabled,
-    isLocationEnabled,
-    openRegulatoryModalFromMapClick,
-    openRegulatoryModalFromFilterButtons,
-    closeRegulatoryModalFromMapClick,
-  } = useAppContext();
+  const { config, setIsLocationEnabled, isLocationEnabled } = useAppContext();
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
 
@@ -74,14 +65,13 @@ export default function App({
     regulatoryAreas,
     setSelectedRegulatoryArea,
     setIsSearchByQueryActive,
+    setClickedFeaturesList,
+    setIsListVisible,
   } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
   const fish = useFishRegulatoryAreasLayer();
   const searchByZone = useSearchByZoneLayer();
-  const [clickedRegulatoryAreas, setClickedRegulatoryAreas] = useState<
-    RegulatoryAreaListItem[]
-  >([]);
 
   const mapStyle: StyleSpecification = {
     ...baseMapStyle,
@@ -157,12 +147,6 @@ export default function App({
       return;
     }
 
-    const presentOnNextFrame = (callback: () => void) => {
-      requestAnimationFrame(() => {
-        callback();
-      });
-    };
-
     const mapPoint = event.nativeEvent.point;
     const features = await mapRef.current?.queryRenderedFeatures(mapPoint, {
       layers: [fish.ids.fillLayer],
@@ -174,34 +158,27 @@ export default function App({
     );
 
     if (!clickedRegulatoryAreas.length) {
-      closeRegulatoryModalFromMapClick();
-      setClickedRegulatoryAreas([]);
+      setClickedFeaturesList(undefined);
       setSelectedRegulatoryArea(undefined);
 
       return;
     }
 
     if (clickedRegulatoryAreas.length === 1) {
-      setClickedRegulatoryAreas([]);
+      setClickedFeaturesList(undefined);
       setSelectedRegulatoryArea(clickedRegulatoryAreas[0]);
-      presentOnNextFrame(() => {
-        openRegulatoryModalFromMapClick();
-      });
 
       return;
     }
 
     setSelectedRegulatoryArea(undefined);
-    setClickedRegulatoryAreas(clickedRegulatoryAreas);
-    presentOnNextFrame(() => {
-      openRegulatoryModalFromMapClick();
-    });
+    setClickedFeaturesList(clickedRegulatoryAreas);
   };
 
   const consultRegulatoryAreas = () => {
-    setClickedRegulatoryAreas([]);
+    setClickedFeaturesList(undefined);
     setSelectedRegulatoryArea(undefined);
-    openRegulatoryModalFromFilterButtons();
+    setIsListVisible(true);
     setIsSearchByQueryActive(false);
   };
 
@@ -236,12 +213,11 @@ export default function App({
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
 
-          <SelectedRegulatoryAreas
-            clickedRegulatoryAreas={clickedRegulatoryAreas}
-            setClickedRegulatoryAreas={setClickedRegulatoryAreas}
-          />
+          <SelectedRegulatoryAreas />
 
           <FilteredRegulatoryAreas onGroupFocus={handleFocusGroup} />
+
+          <RegulatoryAreaDetails />
 
           <View style={styles.bottomWrapper}>
             <LocationButton onLocate={handleLocate} />

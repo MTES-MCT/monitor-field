@@ -8,15 +8,16 @@ import {
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useTheme } from "@hooks/use-theme";
 import { useMemo, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { getRegulatoryAreaLabel } from "../utils/getRegulatoryAreaLabel";
 import { getRegulatoryAreasByGroup } from "./utils";
+import { Image } from "expo-image";
 
 type RegulatoryAreasListProps = {
   areas?: RegulatoryAreaListItem[];
   onGroupFocus?: (bbox: BoundingBox) => void;
   title?: string;
-  onSelectArea: () => void;
+  onClose: () => void;
 };
 
 type GroupRow = {
@@ -55,10 +56,11 @@ export const RegulatoryAreasList = ({
   title,
   areas,
   onGroupFocus,
-  onSelectArea,
+  onClose,
 }: RegulatoryAreasListProps) => {
   const { regulatoryAreas, setRegulatoryAreas, setSelectedRegulatoryArea } =
     useRegulatoryAreasContext();
+
   const theme = useTheme();
   const sourceRegulatoryAreas = areas ?? regulatoryAreas;
 
@@ -85,7 +87,6 @@ export const RegulatoryAreasList = ({
 
     setSelectedRegulatoryArea(area);
     setRegulatoryAreas(updatedAreas);
-    onSelectArea();
   };
 
   const clickOnGroup = (group: string, areas: RegulatoryAreaListItem[]) => {
@@ -101,6 +102,12 @@ export const RegulatoryAreasList = ({
         onGroupFocus(groupBoundingBox);
       }
     }
+  };
+
+  const closeModal = () => {
+    setExpandedGroups({});
+
+    onClose();
   };
 
   const flattenedRows = useMemo<RegulatoryRow[]>(() => {
@@ -160,6 +167,35 @@ export const RegulatoryAreasList = ({
       </TouchableOpacity>
     );
   };
+
+  const renderHeader = () => {
+    if (title) {
+      return (
+        <View
+          style={[
+            styles.headerRowWithTitle,
+            { backgroundColor: theme.lightGray },
+          ]}
+        >
+          <ThemedText type="default">{title}</ThemedText>
+          <Pressable accessibilityRole="button" onPress={closeModal}>
+            <Image
+              source={require("../../../../assets/icons/close.svg")}
+              style={styles.icon}
+            />
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.headerRow}>
+        <ThemedText type="defaultBold">
+          {`REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
+        </ThemedText>
+      </View>
+    );
+  };
   return (
     <BottomSheetFlatList
       style={{ marginBottom: Spacing.six }}
@@ -172,13 +208,7 @@ export const RegulatoryAreasList = ({
       }
       renderItem={renderRow}
       contentContainerStyle={styles.listContent}
-      ListHeaderComponent={
-        <View style={styles.headerRow}>
-          <ThemedText type="defaultBold">
-            {title ?? `REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
-          </ThemedText>
-        </View>
-      }
+      ListHeaderComponent={renderHeader()}
       ListEmptyComponent={
         <ThemedText
           type="small"
@@ -206,6 +236,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: Spacing.two,
   },
+  headerRowWithTitle: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+  },
   emptyState: {
     paddingHorizontal: Spacing.four,
   },
@@ -230,5 +267,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 20,
     width: 20,
+  },
+  icon: {
+    height: Spacing.five,
+    width: Spacing.five,
   },
 });

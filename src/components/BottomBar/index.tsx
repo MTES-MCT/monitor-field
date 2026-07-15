@@ -11,7 +11,7 @@ type BottomBarProps = {
 };
 
 export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
-  const { config, openRegulatoryModalFromFilterButtons } = useAppContext();
+  const { config } = useAppContext();
   const {
     setIsSearchZoneActive,
     isSearchZoneActive,
@@ -32,10 +32,10 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
   const searchByNewBbox = async () => {
     setCommittedSearchBbox(searchBbox);
     setHasSearchZoneChanged(false);
+    setIsSearchByQueryActive(false);
   };
 
   const searchByQuery = () => {
-    openRegulatoryModalFromFilterButtons();
     setIsSearchByQueryActive(true);
   };
 

@@ -1,5 +1,6 @@
 import { AppMode } from "@config/appModes";
 import { useAppContext } from "@contexts/AppContext";
+import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -29,10 +30,14 @@ function getVisualState(params: {
 
 export function SwitchContextButton() {
   const { config, setMode } = useAppContext();
+  const { setSelectedRegulatoryArea, setIsSearchByQueryActive } =
+    useRegulatoryAreasContext();
   const theme = useTheme();
 
   const switchContext = (mode: AppMode) => {
     setMode(mode);
+    setSelectedRegulatoryArea(undefined);
+    setIsSearchByQueryActive(false);
   };
 
   return (

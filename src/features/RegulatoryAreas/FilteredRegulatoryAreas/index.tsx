@@ -4,8 +4,6 @@ import { RegulatoryAreasList } from "../RegulatoryAreasList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BoundingBox } from "@/types/MapTypes";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
-import { useAppContext } from "@contexts/AppContext";
-import { RegulatoryAreaDetails } from "../SelectedRegulatoryAreas/RegulatoryAreaDetails";
 import { Search } from "./Search";
 
 type FilteredRegulatoryAreasProps = {
@@ -16,25 +14,34 @@ export const FilteredRegulatoryAreas = ({
   onGroupFocus,
 }: FilteredRegulatoryAreasProps) => {
   const {
-    selectedRegulatoryArea,
     setIsSearchByQueryActive,
     isSearchByQueryActive,
+    setClickedFeaturesList,
+    isListVisible,
+    setIsListVisible,
   } = useRegulatoryAreasContext();
-  const {
-    registerRegulatoryModalHandlers,
-    openRegulatoryModalFromFilterButtons,
-  } = useAppContext();
 
   const insets = useSafeAreaInsets();
   const snapPoints = useMemo(() => ["25%", "66%", "99%"], []);
   const modalRef = useRef<BottomSheetModal>(null);
+  useEffect(() => {}, [isSearchByQueryActive]);
+
+  const onDismiss = () => {
+    setIsSearchByQueryActive(false);
+    setClickedFeaturesList(undefined);
+    setIsListVisible(false);
+    modalRef.current?.dismiss();
+  };
 
   useEffect(() => {
-    return registerRegulatoryModalHandlers({
-      presentList: () => modalRef.current?.present(),
-      dismissList: () => modalRef.current?.dismiss(),
-    });
-  }, [registerRegulatoryModalHandlers]);
+    if (isSearchByQueryActive || isListVisible) {
+      modalRef.current?.present();
+    }
+  }, [isSearchByQueryActive, isListVisible]);
+
+  if (!isListVisible && !isSearchByQueryActive) {
+    return null;
+  }
 
   return (
     <BottomSheetModal
@@ -44,21 +51,12 @@ export const FilteredRegulatoryAreas = ({
       enableDynamicSizing={false}
       enablePanDownToClose
       topInset={insets.top}
-      onDismiss={() => {
-        setIsSearchByQueryActive(false);
-      }}
+      onDismiss={onDismiss}
     >
-      {selectedRegulatoryArea ? (
-        <RegulatoryAreaDetails regulatoryArea={selectedRegulatoryArea} />
-      ) : (
-        <>
-          <Search />
-          <RegulatoryAreasList
-            onGroupFocus={onGroupFocus}
-            onSelectArea={openRegulatoryModalFromFilterButtons}
-          />
-        </>
-      )}
+      <>
+        <Search onClose={onDismiss} />
+        <RegulatoryAreasList onGroupFocus={onGroupFocus} onClose={onDismiss} />
+      </>
     </BottomSheetModal>
   );
 };
