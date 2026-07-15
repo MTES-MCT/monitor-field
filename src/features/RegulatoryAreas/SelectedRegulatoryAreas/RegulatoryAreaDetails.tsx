@@ -8,7 +8,6 @@ import { getRegulatoryAreaLabel } from "../utils/getRegulatoryAreaLabel";
 
 type RegulatoryAreasdetailsProps = {
   regulatoryArea: RegulatoryAreaListItem;
-  onDismiss: () => void;
 };
 
 export const RegulatoryAreaDetails = ({

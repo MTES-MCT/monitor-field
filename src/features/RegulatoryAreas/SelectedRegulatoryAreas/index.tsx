@@ -22,12 +22,13 @@ export const SelectedRegulatoryAreas = ({
   setClickedRegulatoryAreas,
 }: SelectedRegulatoryAreasProps) => {
   const insets = useSafeAreaInsets();
-  const snapPoints = useMemo(() => ["25%", "50%", "100%"], []);
+  const snapPoints = useMemo(() => ["25%", "66%", "99%"], []);
   const modalRef = useRef<BottomSheetModal>(null);
 
   const { setSelectedRegulatoryArea, selectedRegulatoryArea } =
     useRegulatoryAreasContext();
-  const { registerRegulatoryModalHandlers } = useAppContext();
+  const { registerRegulatoryModalHandlers, openRegulatoryModalFromMapClick } =
+    useAppContext();
 
   useEffect(() => {
     return registerRegulatoryModalHandlers({
@@ -36,11 +37,7 @@ export const SelectedRegulatoryAreas = ({
     });
   }, [registerRegulatoryModalHandlers]);
 
-  const handleDetailsDismiss = () => {
-    setSelectedRegulatoryArea(undefined);
-  };
-
-  const handleSelectionDismiss = () => {
+  const onDismiss = () => {
     setClickedRegulatoryAreas([]);
     setSelectedRegulatoryArea(undefined);
   };
@@ -53,17 +50,15 @@ export const SelectedRegulatoryAreas = ({
       enableDynamicSizing={false}
       enablePanDownToClose
       topInset={insets.top + Spacing.four}
-      onDismiss={handleSelectionDismiss}
+      onDismiss={onDismiss}
     >
       {selectedRegulatoryArea ? (
-        <RegulatoryAreaDetails
-          regulatoryArea={selectedRegulatoryArea}
-          onDismiss={handleDetailsDismiss}
-        />
+        <RegulatoryAreaDetails regulatoryArea={selectedRegulatoryArea} />
       ) : (
         <RegulatoryAreasList
           areas={clickedRegulatoryAreas}
-          title={`${clickedRegulatoryAreas.length} zones superposees sur ce point`}
+          title={`${clickedRegulatoryAreas.length} zones superposées sur ce point`}
+          onSelectArea={openRegulatoryModalFromMapClick}
         />
       )}
     </BottomSheetModal>

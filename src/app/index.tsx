@@ -73,6 +73,7 @@ export default function App({
     setSearchBbox,
     regulatoryAreas,
     setSelectedRegulatoryArea,
+    setIsSearchByQueryActive,
   } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
@@ -201,6 +202,7 @@ export default function App({
     setClickedRegulatoryAreas([]);
     setSelectedRegulatoryArea(undefined);
     openRegulatoryModalFromFilterButtons();
+    setIsSearchByQueryActive(false);
   };
 
   return (
@@ -243,10 +245,7 @@ export default function App({
 
           <View style={styles.bottomWrapper}>
             <LocationButton onLocate={handleLocate} />
-            <BottomBar
-              consultRegulatoryAreas={consultRegulatoryAreas}
-              onSearch={isMonitorFish ? fish.fetch : () => Promise.resolve()}
-            />
+            <BottomBar consultRegulatoryAreas={consultRegulatoryAreas} />
           </View>
         </SafeAreaView>
       </MapLibreMap>

@@ -1,6 +1,7 @@
 import { RegulatoryAreaListItem } from "@contexts/RegulatoryAreasContext";
+import { FishRegulatoryArea } from "@database/fish/getFishRegulatoryAreasQuery";
 
-function normalizeText(value: string) {
+export function normalizeText(value: string) {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -8,7 +9,7 @@ function normalizeText(value: string) {
 }
 
 export function matchesRegulatoryAreaSearch(
-  area: RegulatoryAreaListItem,
+  area: FishRegulatoryArea,
   searchQuery: string | undefined,
 ) {
   const normalizedQuery = searchQuery?.trim() ? normalizeText(searchQuery) : "";

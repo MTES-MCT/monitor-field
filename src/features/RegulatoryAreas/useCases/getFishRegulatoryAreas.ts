@@ -1,5 +1,9 @@
-import { RegulatoryAreaListItem } from "@contexts/RegulatoryAreasContext";
+import {
+  Filters,
+  RegulatoryAreaListItem,
+} from "@contexts/RegulatoryAreasContext";
 import { getFishRegulatoryAreasQuery } from "@database/fish/getFishRegulatoryAreasQuery";
+import { matchesRegulatoryAreaSearch } from "@features/RegulatoryAreas/RegulatoryAreasList/utils";
 
 import {
   BoundingBox,
@@ -11,11 +15,11 @@ import { getDatabase } from "@database/db";
 export type FishRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection;
   listItems: RegulatoryAreaListItem[];
-  totalCount: number;
 };
 
 export async function getFishRegulatoryAreas(
   bbox: BoundingBox,
+  filters: Filters,
 ): Promise<FishRegulatoryAreasResult> {
   const db = await getDatabase();
 
@@ -25,41 +29,41 @@ export async function getFishRegulatoryAreas(
   const listItems: RegulatoryAreaListItem[] = [];
 
   for (const area of fetchedAreas) {
-    listItems.push({
-      id: area.id,
-      type: area.type,
-      theme: area.theme,
-      zone: area.zone,
-      bbox: {
-        minLon: area.bbox_min_lon,
-        minLat: area.bbox_min_lat,
-        maxLon: area.bbox_max_lon,
-        maxLat: area.bbox_max_lat,
-      },
-      fillColor: area.fill_color,
-      isSelected: false,
-    });
+    if (matchesRegulatoryAreaSearch(area, filters.searchQuery)) {
+      listItems.push({
+        id: area.id,
+        type: area.type,
+        theme: area.theme,
+        zone: area.zone,
+        bbox: {
+          minLon: area.bbox_min_lon,
+          minLat: area.bbox_min_lat,
+          maxLon: area.bbox_max_lon,
+          maxLat: area.bbox_max_lat,
+        },
+        fillColor: area.fill_color,
+        isSelected: false,
+      });
+      // TODO(13/07/2026): add schema for regulatory areas
+      const feature = JSON.parse(area.geojson ?? "");
+      if (!feature) {
+        continue;
+      }
 
-    // TODO(13/07/2026): add schema for regulatory areas
-    const feature = JSON.parse(area.geojson ?? "");
-    if (!feature) {
-      continue;
+      feature.properties = {
+        id: area.id,
+        type: area.type,
+        theme: area.theme,
+        zone: area.zone,
+        fillColor: area.fill_color,
+        isSelected: false,
+      };
+      features.push(feature);
     }
-
-    feature.properties = {
-      id: area.id,
-      type: area.type,
-      theme: area.theme,
-      zone: area.zone,
-      fillColor: area.fill_color,
-      isSelected: false,
-    };
-    features.push(feature);
   }
 
   return {
     geoJSON: { type: "FeatureCollection", features },
     listItems,
-    totalCount: listItems.length,
   };
 }

@@ -1,5 +1,4 @@
 import { BoundingBox } from "@/types/MapTypes";
-import { useAppContext } from "@contexts/AppContext";
 import { ThemedText } from "@components/Text";
 import { Spacing } from "@constants/theme";
 import {
@@ -11,16 +10,13 @@ import { useTheme } from "@hooks/use-theme";
 import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { getRegulatoryAreaLabel } from "../utils/getRegulatoryAreaLabel";
-import {
-  getRegulatoryAreasByGroup,
-  matchesRegulatoryAreaSearch,
-} from "./utils";
+import { getRegulatoryAreasByGroup } from "./utils";
 
 type RegulatoryAreasListProps = {
   areas?: RegulatoryAreaListItem[];
-  onDismiss?: () => void;
   onGroupFocus?: (bbox: BoundingBox) => void;
   title?: string;
+  onSelectArea: () => void;
 };
 
 type GroupRow = {
@@ -59,26 +55,16 @@ export const RegulatoryAreasList = ({
   title,
   areas,
   onGroupFocus,
+  onSelectArea,
 }: RegulatoryAreasListProps) => {
-  const {
-    filters,
-    regulatoryAreas,
-    setRegulatoryAreas,
-    setSelectedRegulatoryArea,
-  } = useRegulatoryAreasContext();
-  const { openRegulatoryModalFromMapClick } = useAppContext();
+  const { regulatoryAreas, setRegulatoryAreas, setSelectedRegulatoryArea } =
+    useRegulatoryAreasContext();
   const theme = useTheme();
   const sourceRegulatoryAreas = areas ?? regulatoryAreas;
-  const filteredRegulatoryAreas = useMemo(
-    () =>
-      sourceRegulatoryAreas.filter((area) =>
-        matchesRegulatoryAreaSearch(area, filters.searchQuery),
-      ),
-    [filters.searchQuery, sourceRegulatoryAreas],
-  );
+
   const groupedRegulatoryAreas = useMemo(
-    () => Object.entries(getRegulatoryAreasByGroup(filteredRegulatoryAreas)),
-    [filteredRegulatoryAreas],
+    () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas)),
+    [sourceRegulatoryAreas],
   );
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
@@ -99,10 +85,7 @@ export const RegulatoryAreasList = ({
 
     setSelectedRegulatoryArea(area);
     setRegulatoryAreas(updatedAreas);
-
-    requestAnimationFrame(() => {
-      openRegulatoryModalFromMapClick();
-    });
+    onSelectArea();
   };
 
   const clickOnGroup = (group: string, areas: RegulatoryAreaListItem[]) => {
@@ -192,8 +175,7 @@ export const RegulatoryAreasList = ({
       ListHeaderComponent={
         <View style={styles.headerRow}>
           <ThemedText type="defaultBold">
-            {title ??
-              `REG (${filteredRegulatoryAreas.length ?? 0}) sur la zone`}
+            {title ?? `REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
           </ThemedText>
         </View>
       }

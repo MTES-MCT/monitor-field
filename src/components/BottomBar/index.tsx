@@ -7,15 +7,11 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../Text";
 
 type BottomBarProps = {
-  onSearch: () => Promise<void>;
   consultRegulatoryAreas: () => void;
 };
 
-export function BottomBar({
-  onSearch,
-  consultRegulatoryAreas,
-}: BottomBarProps) {
-  const { config } = useAppContext();
+export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
+  const { config, openRegulatoryModalFromFilterButtons } = useAppContext();
   const {
     setIsSearchZoneActive,
     isSearchZoneActive,
@@ -24,6 +20,7 @@ export function BottomBar({
     hasSearchZoneChanged,
     setHasSearchZoneChanged,
     totalCount,
+    setIsSearchByQueryActive,
   } = useRegulatoryAreasContext();
   const theme = useTheme();
 
@@ -35,11 +32,12 @@ export function BottomBar({
   const searchByNewBbox = async () => {
     setCommittedSearchBbox(searchBbox);
     setHasSearchZoneChanged(false);
-
-    await onSearch();
   };
 
-  const searchByQuery = () => {};
+  const searchByQuery = () => {
+    openRegulatoryModalFromFilterButtons();
+    setIsSearchByQueryActive(true);
+  };
 
   return (
     <View>

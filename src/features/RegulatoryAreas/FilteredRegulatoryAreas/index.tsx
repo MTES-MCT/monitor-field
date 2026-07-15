@@ -2,7 +2,6 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef } from "react";
 import { RegulatoryAreasList } from "../RegulatoryAreasList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Spacing } from "@constants/theme";
 import { BoundingBox } from "@/types/MapTypes";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useAppContext } from "@contexts/AppContext";
@@ -16,11 +15,19 @@ type FilteredRegulatoryAreasProps = {
 export const FilteredRegulatoryAreas = ({
   onGroupFocus,
 }: FilteredRegulatoryAreasProps) => {
+  const {
+    selectedRegulatoryArea,
+    setIsSearchByQueryActive,
+    isSearchByQueryActive,
+  } = useRegulatoryAreasContext();
+  const {
+    registerRegulatoryModalHandlers,
+    openRegulatoryModalFromFilterButtons,
+  } = useAppContext();
+
   const insets = useSafeAreaInsets();
-  const snapPoints = useMemo(() => ["33%", "70%", "99%"], []);
+  const snapPoints = useMemo(() => ["25%", "66%", "99%"], []);
   const modalRef = useRef<BottomSheetModal>(null);
-  const { selectedRegulatoryArea } = useRegulatoryAreasContext();
-  const { registerRegulatoryModalHandlers } = useAppContext();
 
   useEffect(() => {
     return registerRegulatoryModalHandlers({
@@ -29,27 +36,27 @@ export const FilteredRegulatoryAreas = ({
     });
   }, [registerRegulatoryModalHandlers]);
 
-  const onDismiss = () => undefined;
-
   return (
     <BottomSheetModal
       ref={modalRef}
       snapPoints={snapPoints}
-      index={selectedRegulatoryArea ? 1 : 2}
+      index={isSearchByQueryActive ? 2 : 1}
       enableDynamicSizing={false}
       enablePanDownToClose
-      topInset={insets.top + Spacing.four}
-      onDismiss={onDismiss}
+      topInset={insets.top}
+      onDismiss={() => {
+        setIsSearchByQueryActive(false);
+      }}
     >
       {selectedRegulatoryArea ? (
-        <RegulatoryAreaDetails
-          regulatoryArea={selectedRegulatoryArea}
-          onDismiss={onDismiss}
-        />
+        <RegulatoryAreaDetails regulatoryArea={selectedRegulatoryArea} />
       ) : (
         <>
           <Search />
-          <RegulatoryAreasList onGroupFocus={onGroupFocus} />
+          <RegulatoryAreasList
+            onGroupFocus={onGroupFocus}
+            onSelectArea={openRegulatoryModalFromFilterButtons}
+          />
         </>
       )}
     </BottomSheetModal>

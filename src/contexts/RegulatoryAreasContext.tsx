@@ -11,7 +11,7 @@ export type RegulatoryAreaListItem = {
   isSelected: boolean;
 };
 
-type Filters = {
+export type Filters = {
   searchQuery: string | undefined;
 };
 
@@ -37,6 +37,8 @@ const RegulatoryAreasContext = createContext<
       setFilters: (
         filters: Filters | ((prevFilters: Filters) => Filters),
       ) => void;
+      isSearchByQueryActive: boolean;
+      setIsSearchByQueryActive: (active: boolean) => void;
     }
   | undefined
 >(undefined);
@@ -66,6 +68,8 @@ export function RegulatoryAreasProvider({
     searchQuery: undefined,
   });
 
+  const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false);
+
   return (
     <RegulatoryAreasContext.Provider
       value={{
@@ -85,6 +89,8 @@ export function RegulatoryAreasProvider({
         setSelectedRegulatoryArea,
         filters,
         setFilters,
+        isSearchByQueryActive,
+        setIsSearchByQueryActive,
       }}
     >
       {children}

@@ -6,7 +6,8 @@ import { StyleSheet, TextInput, View } from "react-native";
 
 export function Search() {
   const theme = useTheme();
-  const { filters, setFilters } = useRegulatoryAreasContext();
+  const { filters, setFilters, isSearchByQueryActive } =
+    useRegulatoryAreasContext();
   const [text, setText] = useState(filters.searchQuery ?? "");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -30,7 +31,7 @@ export function Search() {
   return (
     <View style={[styles.wrapper, { borderBottomColor: theme.lightGray }]}>
       <TextInput
-        autoFocus
+        autoFocus={isSearchByQueryActive}
         style={[styles.input, { borderColor: theme.lightGray }]}
         onChangeText={onChangeText}
         value={text}
