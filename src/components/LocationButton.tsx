@@ -62,7 +62,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
         console.warn("Unable to retrieve current location", error);
       }
     }
-    setIsLocationEnabled(!isLocationEnabled);
+      setIsLocationEnabled(!isLocationEnabled);
   };
 
   return (
