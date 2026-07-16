@@ -30,14 +30,12 @@ function getVisualState(params: {
 
 export function SwitchContextButton() {
   const { config, setMode } = useAppContext();
-  const { setSelectedRegulatoryArea, setIsSearchByQueryActive } =
-    useRegulatoryAreasContext();
+  const { resetContext } = useRegulatoryAreasContext();
   const theme = useTheme();
 
   const switchContext = (mode: AppMode) => {
     setMode(mode);
-    setSelectedRegulatoryArea(undefined);
-    setIsSearchByQueryActive(false);
+    resetContext();
   };
 
   return (

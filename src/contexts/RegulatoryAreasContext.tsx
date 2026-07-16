@@ -45,6 +45,7 @@ const RegulatoryAreasContext = createContext<
       ) => void;
       isListVisible: boolean;
       setIsListVisible: (visible: boolean) => void;
+      resetContext: () => void;
     }
   | undefined
 >(undefined);
@@ -80,6 +81,18 @@ export function RegulatoryAreasProvider({
   >(undefined);
   const [isListVisible, setIsListVisible] = useState(false);
 
+  const resetContext = () => {
+    setIsSearchZoneActive(false);
+    setHasSearchZoneChanged(false);
+    setTotalCount(undefined);
+    setRegulatoryAreas([]);
+    setSelectedRegulatoryArea(undefined);
+    setFilters({ searchQuery: undefined });
+    setIsSearchByQueryActive(false);
+    setClickedFeaturesList(undefined);
+    setIsListVisible(false);
+  };
+
   return (
     <RegulatoryAreasContext.Provider
       value={{
@@ -105,6 +118,7 @@ export function RegulatoryAreasProvider({
         setClickedFeaturesList,
         isListVisible,
         setIsListVisible,
+        resetContext
       }}
     >
       {children}
