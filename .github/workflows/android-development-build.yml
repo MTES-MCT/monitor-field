@@ -42,4 +42,4 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Trigger EAS Android development build
-        run: npx eas build --platform android --profile development --non-interactive
+        run: eas build --platform android --profile development --non-interactive
