@@ -1,5 +1,5 @@
 
-name: Android Development Build
+name: Android Preview Build
 
 on:
   workflow_dispatch:
@@ -9,11 +9,11 @@ env:
   JAVA_VERSION: "17"
 
 concurrency:
-  group: android-development-build-${{ github.ref }}
+  group: android-preview-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-android-development:
+  build-android-preview:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,5 +41,5 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Trigger EAS Android development build
-        run: eas build --platform android --profile development --non-interactive
+      - name: Trigger EAS Android preview build
+        run: eas build --platform android --profile preview --non-interactive
