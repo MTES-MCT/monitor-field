@@ -9,6 +9,13 @@
         "buildType": "app-bundle",
         "autoIncrement": true
       }
+    },
+    "development": {
+      "android": {
+        "distribution": "internal",
+        "buildType": "apk",
+        "autoIncrement": true
+      }
     }
   }
 }
