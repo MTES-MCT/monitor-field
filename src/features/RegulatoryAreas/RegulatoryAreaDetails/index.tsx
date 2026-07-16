@@ -55,7 +55,7 @@ export const RegulatoryAreaDetails = () => {
                 borderColor: theme.lightGray,
               }}
             />
-            <ThemedText type="default">
+            <ThemedText type="default" style={styles.titleText}>
               {getRegulatoryAreaLabel(
                 selectedRegulatoryArea.id,
                 selectedRegulatoryArea.theme,
@@ -105,11 +105,14 @@ export const RegulatoryAreaDetails = () => {
 };
 
 const styles = StyleSheet.create({
+  titleText: {
+    flexShrink: 1,
+  },
   titleWrapper: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: Spacing.four,
-    // paddingVertical: Spacing.two,
   },
   title: {
     alignItems: "center",

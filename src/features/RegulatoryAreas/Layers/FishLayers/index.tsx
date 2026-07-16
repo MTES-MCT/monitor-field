@@ -14,16 +14,12 @@ export const fishRegulatoryAreasIds = {
 
 const DEFAULT_FISH_AREA_COLOR = "#67A9CF";
 const OUTLINE_COLOR = "#05055eb3";
-const isSelectedExpression: any = [
-  "to-boolean",
-  ["coalesce", ["get", "isSelected"], false],
-];
+
 const fillColorExpression: any = [
   "coalesce",
   ["get", "fillColor"],
   DEFAULT_FISH_AREA_COLOR,
 ];
-const outlineWidthExpression = ["case", isSelectedExpression, 3, 1] as any;
 
 export type FishRegulatoryAreasLayerProps = {
   isLoading: boolean;
@@ -40,7 +36,23 @@ export type FishRegulatoryAreasLayerProps = {
   ids: typeof fishRegulatoryAreasIds;
 };
 
-function createFishRegulatoryAreasLayers(sourceId: string): MapLayer[] {
+function createFishRegulatoryAreasLayers(
+  sourceId: string,
+  isolatedRegulatoryArea: number | undefined,
+  selectedRegulatoryAreaId: number | undefined,
+): MapLayer[] {
+  const fillOpacityExpression: any = !isolatedRegulatoryArea
+    ? 0.4
+    : ["case", ["==", ["get", "id"], isolatedRegulatoryArea], 0.4, 0];
+
+  const selectedExpression: any = !selectedRegulatoryAreaId
+    ? 1
+    : ["case", ["==", ["get", "id"], selectedRegulatoryAreaId], 3, 1];
+
+  const outlineWidthExpression: any =
+    isolatedRegulatoryArea === undefined
+      ? selectedExpression
+      : ["case", ["==", ["get", "id"], isolatedRegulatoryArea], 3, 1];
   return [
     {
       id: fishRegulatoryAreasIds.fillLayer,
@@ -48,7 +60,7 @@ function createFishRegulatoryAreasLayers(sourceId: string): MapLayer[] {
       source: sourceId,
       paint: {
         "fill-color": fillColorExpression,
-        "fill-opacity": 0.4,
+        "fill-opacity": fillOpacityExpression,
       },
     },
     {
@@ -73,10 +85,10 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
     isSearchZoneActive,
     searchBbox,
     committedSearchBbox,
-    setTotalCount,
     setRegulatoryAreas,
     selectedRegulatoryArea,
     filters,
+    isolatedRegulatoryArea,
   } = useRegulatoryAreasContext();
   const { config } = useAppContext();
   const theme = useTheme();
@@ -99,12 +111,11 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
           properties: {
             ...feature.properties,
             fillColor: resolvedFillColor,
-            isSelected: feature.properties?.id === selectedRegulatoryArea?.id,
           },
         };
       }),
     };
-  }, [geoJSON, theme, selectedRegulatoryArea]);
+  }, [geoJSON, theme]);
 
   const fetch = useCallback(async () => {
     const bbox = committedSearchBbox ?? searchBbox;
@@ -112,7 +123,6 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
     if (!bbox) {
       setGeoJSON(undefined);
       setRegulatoryAreas([]);
-      setTotalCount(0);
       return;
     }
 
@@ -124,7 +134,6 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
       if (requestIdRef.current !== requestId) {
         return;
       }
-      setTotalCount(result.listItems.length);
       setRegulatoryAreas(result.listItems);
       setGeoJSON(result.geoJSON);
     } catch (error) {
@@ -135,13 +144,7 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
         setIsLoading(false);
       }
     }
-  }, [
-    committedSearchBbox,
-    searchBbox,
-    setRegulatoryAreas,
-    setTotalCount,
-    filters,
-  ]);
+  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters]);
 
   useEffect(() => {
     if (config.mode !== "MONITORFISH" || !isSearchZoneActive) {
@@ -163,7 +166,11 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
       },
     },
     layers: geoJSONWithResolvedFillColor
-      ? createFishRegulatoryAreasLayers(fishRegulatoryAreasIds.source)
+      ? createFishRegulatoryAreasLayers(
+          fishRegulatoryAreasIds.source,
+          isolatedRegulatoryArea,
+          selectedRegulatoryArea?.id,
+        )
       : [],
     ids: fishRegulatoryAreasIds,
   };

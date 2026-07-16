@@ -8,7 +8,6 @@ export type RegulatoryAreaListItem = {
   zone: string | undefined;
   bbox: BoundingBox;
   fillColor: string;
-  isSelected: boolean;
 };
 
 export type Filters = {
@@ -26,7 +25,6 @@ const RegulatoryAreasContext = createContext<
       hasSearchZoneChanged: boolean;
       setHasSearchZoneChanged: (changed: boolean) => void;
       totalCount: number | undefined;
-      setTotalCount: (count: number | undefined) => void;
       regulatoryAreas: RegulatoryAreaListItem[];
       setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void;
       selectedRegulatoryArea: RegulatoryAreaListItem | undefined;
@@ -46,6 +44,8 @@ const RegulatoryAreasContext = createContext<
       isListVisible: boolean;
       setIsListVisible: (visible: boolean) => void;
       resetContext: () => void;
+      isolatedRegulatoryArea: number | undefined;
+      setIsolatedRegulatoryArea: (areaId: number | undefined) => void;
     }
   | undefined
 >(undefined);
@@ -64,7 +64,7 @@ export function RegulatoryAreasProvider({
   >(undefined);
   const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false);
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
-  const [regulatoryAreas, setRegulatoryAreas] = useState<
+  const [regulatoryAreas, setLocalRegulatoryAreas] = useState<
     RegulatoryAreaListItem[]
   >([]);
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<
@@ -80,17 +80,25 @@ export function RegulatoryAreasProvider({
     RegulatoryAreaListItem[] | undefined
   >(undefined);
   const [isListVisible, setIsListVisible] = useState(false);
+  const [isolatedRegulatoryArea, setIsolatedRegulatoryArea] = useState<
+    number | undefined
+  >(undefined);
 
   const resetContext = () => {
     setIsSearchZoneActive(false);
     setHasSearchZoneChanged(false);
     setTotalCount(undefined);
-    setRegulatoryAreas([]);
+    setLocalRegulatoryAreas([]);
     setSelectedRegulatoryArea(undefined);
     setFilters({ searchQuery: undefined });
     setIsSearchByQueryActive(false);
     setClickedFeaturesList(undefined);
     setIsListVisible(false);
+  };
+
+  const setRegulatoryAreas = (areas: RegulatoryAreaListItem[]) => {
+    setLocalRegulatoryAreas(areas);
+    setTotalCount(areas.length);
   };
 
   return (
@@ -105,7 +113,6 @@ export function RegulatoryAreasProvider({
         hasSearchZoneChanged,
         setHasSearchZoneChanged,
         totalCount,
-        setTotalCount,
         regulatoryAreas,
         setRegulatoryAreas,
         selectedRegulatoryArea,
@@ -118,7 +125,9 @@ export function RegulatoryAreasProvider({
         setClickedFeaturesList,
         isListVisible,
         setIsListVisible,
-        resetContext
+        resetContext,
+        isolatedRegulatoryArea,
+        setIsolatedRegulatoryArea,
       }}
     >
       {children}

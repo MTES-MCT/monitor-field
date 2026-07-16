@@ -42,7 +42,6 @@ export async function getFishRegulatoryAreas(
           maxLat: area.bbox_max_lat,
         },
         fillColor: area.fill_color,
-        isSelected: false,
       });
       // TODO(13/07/2026): add schema for regulatory areas
       const feature = JSON.parse(area.geojson ?? "");
@@ -56,7 +55,6 @@ export async function getFishRegulatoryAreas(
         theme: area.theme,
         zone: area.zone,
         fillColor: area.fill_color,
-        isSelected: false,
       };
       features.push(feature);
     }

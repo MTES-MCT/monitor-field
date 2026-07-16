@@ -7,11 +7,11 @@ import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { Search } from "./Search";
 
 type FilteredRegulatoryAreasProps = {
-  onGroupFocus?: (bbox: BoundingBox) => void;
+  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void;
 };
 
 export const FilteredRegulatoryAreas = ({
-  onGroupFocus,
+  onFocusGroupOrRegulatoryArea,
 }: FilteredRegulatoryAreasProps) => {
   const {
     setIsSearchByQueryActive,
@@ -55,7 +55,10 @@ export const FilteredRegulatoryAreas = ({
     >
       <>
         <Search onClose={onDismiss} />
-        <RegulatoryAreasList onGroupFocus={onGroupFocus} onClose={onDismiss} />
+        <RegulatoryAreasList
+          onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
+          onClose={onDismiss}
+        />
       </>
     </BottomSheetModal>
   );

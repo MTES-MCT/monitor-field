@@ -14,9 +14,7 @@ import { getRegulatoryAreasByGroup } from "./utils";
 import { Image } from "expo-image";
 
 type RegulatoryAreasListProps = {
-  areas?: RegulatoryAreaListItem[];
-  onGroupFocus?: (bbox: BoundingBox) => void;
-  title?: string;
+  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void;
   onClose: () => void;
 };
 
@@ -53,16 +51,20 @@ function getGroupBoundingBox(
 }
 
 export const RegulatoryAreasList = ({
-  title,
-  areas,
-  onGroupFocus,
+  onFocusGroupOrRegulatoryArea,
   onClose,
 }: RegulatoryAreasListProps) => {
-  const { regulatoryAreas, setRegulatoryAreas, setSelectedRegulatoryArea } =
-    useRegulatoryAreasContext();
+  const {
+    clickedFeaturesList,
+    regulatoryAreas,
+    setSelectedRegulatoryArea,
+    setIsolatedRegulatoryArea,
+    isolatedRegulatoryArea,
+  } = useRegulatoryAreasContext();
 
   const theme = useTheme();
-  const sourceRegulatoryAreas = areas ?? regulatoryAreas;
+  const sourceRegulatoryAreas = clickedFeaturesList ?? regulatoryAreas;
+  const isClickedFeatureList = !!clickedFeaturesList;
 
   const groupedRegulatoryAreas = useMemo(
     () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas)),
@@ -80,13 +82,8 @@ export const RegulatoryAreasList = ({
       return;
     }
 
-    const updatedAreas = regulatoryAreas.map((currentArea) => ({
-      ...currentArea,
-      isSelected: currentArea.id === area.id,
-    }));
-
     setSelectedRegulatoryArea(area);
-    setRegulatoryAreas(updatedAreas);
+    onFocusGroupOrRegulatoryArea?.(area.bbox);
   };
 
   const clickOnGroup = (group: string, areas: RegulatoryAreaListItem[]) => {
@@ -96,18 +93,27 @@ export const RegulatoryAreasList = ({
       [group]: nextIsExpanded,
     }));
 
-    if (nextIsExpanded && onGroupFocus) {
+    if (nextIsExpanded && onFocusGroupOrRegulatoryArea) {
       const groupBoundingBox = getGroupBoundingBox(areas);
       if (groupBoundingBox) {
-        onGroupFocus(groupBoundingBox);
+        onFocusGroupOrRegulatoryArea(groupBoundingBox);
       }
     }
   };
 
   const closeModal = () => {
     setExpandedGroups({});
-
     onClose();
+  };
+
+  const isolateRegulatoryArea = (area: RegulatoryAreaListItem) => {
+    if (isolatedRegulatoryArea === area.id) {
+      setIsolatedRegulatoryArea(undefined);
+
+      return;
+    }
+
+    setIsolatedRegulatoryArea(area.id);
   };
 
   const flattenedRows = useMemo<RegulatoryRow[]>(() => {
@@ -145,31 +151,53 @@ export const RegulatoryAreasList = ({
     const color = theme[colorKey] ?? theme.white;
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => selectRegulatoryArea(item.area)}
-        style={styles.areaRow}
-      >
-        <View
-          style={{
-            ...styles.square,
-            backgroundColor: color,
-            borderColor: theme.lightGray,
-          }}
-        />
-        <ThemedText type="default">
-          {getRegulatoryAreaLabel(
-            item.area.id,
-            item.area.theme,
-            item.area.type,
-          )}
-        </ThemedText>
-      </TouchableOpacity>
+      <View style={styles.wrapper}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => selectRegulatoryArea(item.area)}
+          style={styles.areaRow}
+        >
+          <View
+            style={{
+              ...styles.square,
+              backgroundColor: color,
+              borderColor: theme.lightGray,
+            }}
+          />
+          <ThemedText type="default">
+            {getRegulatoryAreaLabel(
+              item.area.id,
+              item.area.theme,
+              item.area.type,
+            )}
+          </ThemedText>
+        </TouchableOpacity>
+        {isClickedFeatureList && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => isolateRegulatoryArea(item.area)}
+            style={styles.areaRow}
+          >
+            <Image
+              source={require("../../../../assets/icons/target.svg")}
+              style={[
+                styles.targetIcon,
+                {
+                  tintColor:
+                    isolatedRegulatoryArea === item.area.id
+                      ? theme.blueGray
+                      : theme.lightGray,
+                },
+              ]}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
   const renderHeader = () => {
-    if (title) {
+    if (isClickedFeatureList) {
       return (
         <View
           style={[
@@ -177,11 +205,11 @@ export const RegulatoryAreasList = ({
             { backgroundColor: theme.lightGray },
           ]}
         >
-          <ThemedText type="default">{title}</ThemedText>
+          <ThemedText type="default">{`${clickedFeaturesList?.length ?? 0} zones superposées sur ce point`}</ThemedText>
           <Pressable accessibilityRole="button" onPress={closeModal}>
             <Image
               source={require("../../../../assets/icons/close.svg")}
-              style={styles.icon}
+              style={styles.closeIcon}
             />
           </Pressable>
         </View>
@@ -231,6 +259,11 @@ export const RegulatoryAreasList = ({
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   headerRow: {
     alignItems: "center",
     justifyContent: "center",
@@ -262,14 +295,19 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
+    maxWidth: "80%",
   },
   square: {
     borderWidth: 1,
     height: 20,
     width: 20,
   },
-  icon: {
+  closeIcon: {
     height: Spacing.five,
     width: Spacing.five,
+  },
+  targetIcon: {
+    height: 20,
+    width: 20,
   },
 });

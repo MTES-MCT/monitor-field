@@ -3,22 +3,27 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef } from "react";
 import { RegulatoryAreasList } from "../RegulatoryAreasList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BoundingBox } from "@/types/mapTypes";
 
-export const SelectedRegulatoryAreas = () => {
+export const SelectedRegulatoryAreas = ({
+  onFocusGroupOrRegulatoryArea,
+}: {
+  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void;
+}) => {
   const insets = useSafeAreaInsets();
   const snapPoints = useMemo(() => ["25%", "66%", "99%"], []);
   const modalRef = useRef<BottomSheetModal>(null);
 
   const {
-    setSelectedRegulatoryArea,
     setClickedFeaturesList,
     clickedFeaturesList,
+    setIsolatedRegulatoryArea,
   } = useRegulatoryAreasContext();
 
   const onDismiss = () => {
     modalRef.current?.dismiss();
     setClickedFeaturesList(undefined);
-    setSelectedRegulatoryArea(undefined);
+    setIsolatedRegulatoryArea(undefined);
   };
 
   useEffect(() => {
@@ -40,9 +45,8 @@ export const SelectedRegulatoryAreas = () => {
       onDismiss={onDismiss}
     >
       <RegulatoryAreasList
-        areas={clickedFeaturesList}
-        title={`${clickedFeaturesList.length} zones superposées sur ce point`}
         onClose={onDismiss}
+        onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
       />
     </BottomSheetModal>
   );

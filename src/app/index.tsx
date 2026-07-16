@@ -124,14 +124,14 @@ export default function App({
     });
   };
 
-  const handleFocusGroup = (bbox: BoundingBox) => {
+  const onFocusGroupOrRegulatoryArea = (bbox: BoundingBox) => {
     cameraRef.current?.fitBounds(
       [bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat],
       {
         padding: {
           top: 40,
           right: 40,
-          bottom: 40,
+          bottom: 540,
           left: 40,
         },
         duration: 700,
@@ -167,6 +167,7 @@ export default function App({
     if (clickedRegulatoryAreas.length === 1) {
       setClickedFeaturesList(undefined);
       setSelectedRegulatoryArea(clickedRegulatoryAreas[0]);
+      onFocusGroupOrRegulatoryArea(clickedRegulatoryAreas[0].bbox);
 
       return;
     }
@@ -213,9 +214,13 @@ export default function App({
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
 
-          <SelectedRegulatoryAreas />
+          <SelectedRegulatoryAreas
+            onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
+          />
 
-          <FilteredRegulatoryAreas onGroupFocus={handleFocusGroup} />
+          <FilteredRegulatoryAreas
+            onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
+          />
 
           <RegulatoryAreaDetails />
 
