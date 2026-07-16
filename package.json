@@ -59,12 +59,11 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "build:android:production": "eas build --platform android --profile production",
-    "build:android:production:ci": "eas build --platform android --profile production --non-interactive",
-    "prepare": "husky"
+    "build:android:production:ci": "eas build --platform android --profile production --non-interactive"
   },
   "lint-staged": {
     "src/**/*.{js,ts,tsx}": [
-      "lint:fix"
+      "oxlint --fix"
     ]
   },
   "private": true
