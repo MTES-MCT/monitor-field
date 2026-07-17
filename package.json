@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
+    "test:type": "tsc",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "build:android:production": "eas build --platform android --profile production",
@@ -61,7 +62,8 @@
   },
   "lint-staged": {
     "src/**/*.{js,ts,tsx}": [
-      "oxlint --fix"
+      "oxlint --fix",
+      "bash -c 'npm run test:type'"
     ]
   },
   "op-sqlite": {

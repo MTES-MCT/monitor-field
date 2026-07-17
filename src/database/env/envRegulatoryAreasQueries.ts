@@ -1,6 +1,6 @@
 import type { DB } from '@op-engineering/op-sqlite'
 
-import { BoundingBox } from '@/types/mapTypes'
+import type { BoundingBox } from '@/types/mapTypes'
 import { ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 
 export type EnvRegulatoryArea = {

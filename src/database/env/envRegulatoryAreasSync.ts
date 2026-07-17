@@ -1,6 +1,6 @@
 import type { DB } from '@op-engineering/op-sqlite'
 
-import { BoundingBox } from '@/types/mapTypes'
+import type { BoundingBox } from '@/types/mapTypes'
 import { ENV_REGULATORY_AREAS_API_URL, ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 
 type ApiRow = {
@@ -32,7 +32,7 @@ function calculateBboxFromWkt(wkt: string | undefined): BoundingBox | undefined 
 
     for (const match of coordMatches) {
       const [lon, lat] = match.split(' ').map(Number)
-      if (!isNaN(lon) && !isNaN(lat)) {
+      if (lon && !isNaN(lon) && lat && !isNaN(lat)) {
         coords.push([lon, lat])
       }
     }
@@ -101,7 +101,7 @@ export async function syncEnvRegulatoryAreas(db: DB) {
           row.type_de_reglementation,
           row.thematique,
           row.zone,
-          row.reglementations,
+          row.regulations,
           row.wkt,
           bbox?.minLon ?? null,
           bbox?.minLat ?? null,
