@@ -30,7 +30,7 @@ type Token = '(' | ')' | ',' | string
 export function parseWktToGeojson(input: string | undefined): GeoJSONFeature | undefined {
   if (!input) return undefined
 
-  const parts: string[] = input.split('')
+  const parts: string[] = input.split(';')
   const _: string = parts.pop() ?? ''
 
   let i: number = 0
