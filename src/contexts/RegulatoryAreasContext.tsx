@@ -1,145 +1,120 @@
-import { BoundingBox } from "@/types/mapTypes";
-import { createContext, useContext, useState } from "react";
+import type { BoundingBox } from '@/types/mapTypes'
+import { createContext, useContext, useState } from 'react'
 
 export type RegulatoryAreaListItem = {
-  id: number;
-  type: string | undefined;
-  theme: string | undefined;
-  zone: string | undefined;
-  bbox: BoundingBox;
-  fillColor: string;
-};
+  id: number
+  type: string | undefined
+  theme: string | undefined
+  zone: string | undefined
+  bbox: BoundingBox
+  fillColor: string
+}
 
 export type Filters = {
-  searchQuery: string | undefined;
-};
+  searchQuery: string | undefined
+}
 
 const RegulatoryAreasContext = createContext<
   | {
-      searchBbox: BoundingBox | undefined;
-      setSearchBbox: (bbox: BoundingBox | undefined) => void;
-      committedSearchBbox: BoundingBox | undefined;
-      setCommittedSearchBbox: (bbox: BoundingBox | undefined) => void;
-      isSearchZoneActive: boolean;
-      setIsSearchZoneActive: (active: boolean) => void;
-      hasSearchZoneChanged: boolean;
-      setHasSearchZoneChanged: (changed: boolean) => void;
-      totalCount: number | undefined;
-      regulatoryAreas: RegulatoryAreaListItem[];
-      setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void;
-      selectedRegulatoryArea: RegulatoryAreaListItem | undefined;
-      setSelectedRegulatoryArea: (
-        area: RegulatoryAreaListItem | undefined,
-      ) => void;
-      filters: Filters;
-      setFilters: (
-        filters: Filters | ((prevFilters: Filters) => Filters),
-      ) => void;
-      isSearchByQueryActive: boolean;
-      setIsSearchByQueryActive: (active: boolean) => void;
-      clickedFeaturesList: RegulatoryAreaListItem[] | undefined;
-      setClickedFeaturesList: (
-        areas: RegulatoryAreaListItem[] | undefined,
-      ) => void;
-      isListVisible: boolean;
-      setIsListVisible: (visible: boolean) => void;
-      resetContext: () => void;
-      isolatedRegulatoryArea: number | undefined;
-      setIsolatedRegulatoryArea: (areaId: number | undefined) => void;
+      searchBbox: BoundingBox | undefined
+      setSearchBbox: (bbox: BoundingBox | undefined) => void
+      committedSearchBbox: BoundingBox | undefined
+      setCommittedSearchBbox: (bbox: BoundingBox | undefined) => void
+      isSearchZoneActive: boolean
+      setIsSearchZoneActive: (active: boolean) => void
+      hasSearchZoneChanged: boolean
+      setHasSearchZoneChanged: (changed: boolean) => void
+      totalCount: number | undefined
+      regulatoryAreas: RegulatoryAreaListItem[]
+      setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void
+      selectedRegulatoryArea: RegulatoryAreaListItem | undefined
+      setSelectedRegulatoryArea: (area: RegulatoryAreaListItem | undefined) => void
+      filters: Filters
+      setFilters: (filters: Filters | ((prevFilters: Filters) => Filters)) => void
+      isSearchByQueryActive: boolean
+      setIsSearchByQueryActive: (active: boolean) => void
+      clickedFeaturesList: RegulatoryAreaListItem[] | undefined
+      setClickedFeaturesList: (areas: RegulatoryAreaListItem[] | undefined) => void
+      isListVisible: boolean
+      setIsListVisible: (visible: boolean) => void
+      resetContext: () => void
+      isolatedRegulatoryArea: number | undefined
+      setIsolatedRegulatoryArea: (areaId: number | undefined) => void
     }
   | undefined
->(undefined);
+>(undefined)
 
-export function RegulatoryAreasProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isSearchZoneActive, setIsSearchZoneActive] = useState(false);
-  const [searchBbox, setSearchBbox] = useState<BoundingBox | undefined>(
-    undefined,
-  );
-  const [committedSearchBbox, setCommittedSearchBbox] = useState<
-    BoundingBox | undefined
-  >(undefined);
-  const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false);
-  const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
-  const [regulatoryAreas, setLocalRegulatoryAreas] = useState<
-    RegulatoryAreaListItem[]
-  >([]);
-  const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<
-    RegulatoryAreaListItem | undefined
-  >(undefined);
+export function RegulatoryAreasProvider({ children }: { children: React.ReactNode }) {
+  const [isSearchZoneActive, setIsSearchZoneActive] = useState(false)
+  const [searchBbox, setSearchBbox] = useState<BoundingBox | undefined>(undefined)
+  const [committedSearchBbox, setCommittedSearchBbox] = useState<BoundingBox | undefined>(undefined)
+  const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false)
+  const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
+  const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
+  const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
 
   const [filters, setFilters] = useState<Filters>({
-    searchQuery: undefined,
-  });
+    searchQuery: undefined
+  })
 
-  const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false);
-  const [clickedFeaturesList, setClickedFeaturesList] = useState<
-    RegulatoryAreaListItem[] | undefined
-  >(undefined);
-  const [isListVisible, setIsListVisible] = useState(false);
-  const [isolatedRegulatoryArea, setIsolatedRegulatoryArea] = useState<
-    number | undefined
-  >(undefined);
+  const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false)
+  const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
+  const [isListVisible, setIsListVisible] = useState(false)
+  const [isolatedRegulatoryArea, setIsolatedRegulatoryArea] = useState<number | undefined>(undefined)
 
   const resetContext = () => {
-    setIsSearchZoneActive(false);
-    setHasSearchZoneChanged(false);
-    setTotalCount(undefined);
-    setLocalRegulatoryAreas([]);
-    setSelectedRegulatoryArea(undefined);
-    setFilters({ searchQuery: undefined });
-    setIsSearchByQueryActive(false);
-    setClickedFeaturesList(undefined);
-    setIsListVisible(false);
-  };
+    setIsSearchZoneActive(false)
+    setHasSearchZoneChanged(false)
+    setTotalCount(undefined)
+    setLocalRegulatoryAreas([])
+    setSelectedRegulatoryArea(undefined)
+    setFilters({ searchQuery: undefined })
+    setIsSearchByQueryActive(false)
+    setClickedFeaturesList(undefined)
+    setIsListVisible(false)
+  }
 
   const setRegulatoryAreas = (areas: RegulatoryAreaListItem[]) => {
-    setLocalRegulatoryAreas(areas);
-    setTotalCount(areas.length);
-  };
+    setLocalRegulatoryAreas(areas)
+    setTotalCount(areas.length)
+  }
 
   return (
     <RegulatoryAreasContext.Provider
       value={{
-        searchBbox,
-        setSearchBbox,
-        committedSearchBbox,
-        setCommittedSearchBbox,
-        isSearchZoneActive,
-        setIsSearchZoneActive,
-        hasSearchZoneChanged,
-        setHasSearchZoneChanged,
-        totalCount,
-        regulatoryAreas,
-        setRegulatoryAreas,
-        selectedRegulatoryArea,
-        setSelectedRegulatoryArea,
-        filters,
-        setFilters,
-        isSearchByQueryActive,
-        setIsSearchByQueryActive,
         clickedFeaturesList,
-        setClickedFeaturesList,
+        committedSearchBbox,
+        filters,
+        hasSearchZoneChanged,
         isListVisible,
-        setIsListVisible,
-        resetContext,
+        isSearchByQueryActive,
+        isSearchZoneActive,
         isolatedRegulatoryArea,
+        regulatoryAreas,
+        resetContext,
+        searchBbox,
+        selectedRegulatoryArea,
+        setClickedFeaturesList,
+        setCommittedSearchBbox,
+        setFilters,
+        setHasSearchZoneChanged,
+        setIsListVisible,
+        setIsSearchByQueryActive,
+        setIsSearchZoneActive,
         setIsolatedRegulatoryArea,
+        setRegulatoryAreas,
+        setSearchBbox,
+        setSelectedRegulatoryArea,
+        totalCount
       }}
     >
       {children}
     </RegulatoryAreasContext.Provider>
-  );
+  )
 }
 
 export function useRegulatoryAreasContext() {
-  const ctx = useContext(RegulatoryAreasContext);
-  if (!ctx)
-    throw new Error(
-      "useRegulatoryAreasContext must be used within RegulatoryAreasProvider",
-    );
-  return ctx;
+  const ctx = useContext(RegulatoryAreasContext)
+  if (!ctx) throw new Error('useRegulatoryAreasContext must be used within RegulatoryAreasProvider')
+  return ctx
 }

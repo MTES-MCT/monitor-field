@@ -1,17 +1,10 @@
-import { AppModeConfig } from "./types";
+import type { AppModeConfig } from './types'
 
 export const monitorEnvConfig: AppModeConfig = {
-  mode: "MONITORENV",
+  colors: ['blueSapphire', 'skobeloff', 'basicGreen', 'opal', 'sage', 'lightGreen'],
+  dataLayers: ['env_regulatory_areas'],
   features: {
-    hasRegulatoryAreasFilters: true,
+    hasRegulatoryAreasFilters: true
   },
-  dataLayers: ["env_regulatory_areas"],
-  colors: [
-    "blueSapphire",
-    "skobeloff",
-    "basicGreen",
-    "opal",
-    "sage",
-    "lightGreen",
-  ],
-};
+  mode: 'MONITORENV'
+}

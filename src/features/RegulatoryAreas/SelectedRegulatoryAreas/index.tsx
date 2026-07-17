@@ -1,38 +1,34 @@
-import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useEffect, useMemo, useRef } from "react";
-import { RegulatoryAreasList } from "../RegulatoryAreasList";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BoundingBox } from "@/types/mapTypes";
+import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { BottomSheetModal } from '@gorhom/bottom-sheet'
+import { useEffect, useMemo, useRef } from 'react'
+import { RegulatoryAreasList } from '../RegulatoryAreasList'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import type { BoundingBox } from '@/types/mapTypes'
 
 export const SelectedRegulatoryAreas = ({
-  onFocusGroupOrRegulatoryArea,
+  onFocusGroupOrRegulatoryArea
 }: {
-  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void;
+  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void
 }) => {
-  const insets = useSafeAreaInsets();
-  const snapPoints = useMemo(() => ["25%", "66%", "99%"], []);
-  const modalRef = useRef<BottomSheetModal>(null);
+  const insets = useSafeAreaInsets()
+  const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
+  const modalRef = useRef<BottomSheetModal>(null)
 
-  const {
-    setClickedFeaturesList,
-    clickedFeaturesList,
-    setIsolatedRegulatoryArea,
-  } = useRegulatoryAreasContext();
+  const { setClickedFeaturesList, clickedFeaturesList, setIsolatedRegulatoryArea } = useRegulatoryAreasContext()
 
   const onDismiss = () => {
-    modalRef.current?.dismiss();
-    setClickedFeaturesList(undefined);
-    setIsolatedRegulatoryArea(undefined);
-  };
+    modalRef.current?.dismiss()
+    setClickedFeaturesList(undefined)
+    setIsolatedRegulatoryArea(undefined)
+  }
 
   useEffect(() => {
     if (clickedFeaturesList) {
-      modalRef.current?.present();
+      modalRef.current?.present()
     }
-  }, [clickedFeaturesList]);
+  }, [clickedFeaturesList])
 
-  if (!clickedFeaturesList) return null;
+  if (!clickedFeaturesList) return null
 
   return (
     <BottomSheetModal
@@ -44,10 +40,7 @@ export const SelectedRegulatoryAreas = ({
       topInset={insets.top}
       onDismiss={onDismiss}
     >
-      <RegulatoryAreasList
-        onClose={onDismiss}
-        onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
-      />
+      <RegulatoryAreasList onClose={onDismiss} onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} />
     </BottomSheetModal>
-  );
-};
+  )
+}

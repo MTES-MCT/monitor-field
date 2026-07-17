@@ -1,100 +1,82 @@
-import {
-  Platform,
-  Text as RNText,
-  StyleSheet,
-  type TextProps,
-} from "react-native";
+import { Platform, Text as RNText, StyleSheet, type TextProps } from 'react-native'
 
-import { Fonts, ThemeColor } from "@constants/theme";
-import { useTheme } from "@hooks/use-theme";
+import { Fonts, type ThemeColor } from '@constants/theme'
+import { useTheme } from '@hooks/use-theme'
 
 export type ThemedTextProps = TextProps & {
-  type?:
-    | "default"
-    | "defaultBold"
-    | "title"
-    | "small"
-    | "smallBold"
-    | "subtitle"
-    | "link"
-    | "linkPrimary"
-    | "code";
-  themeColor?: ThemeColor;
-};
+  type?: 'default' | 'defaultBold' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code'
+  themeColor?: ThemeColor
+}
 
-export function ThemedText({
-  style,
-  type = "default",
-  themeColor,
-  ...rest
-}: ThemedTextProps) {
-  const theme = useTheme();
+export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+  const theme = useTheme()
 
   return (
     <RNText
       style={[
-        { color: theme[themeColor ?? "text"] },
-        type === "default" && styles.default,
-        type === "defaultBold" && styles.defaultBold,
-        type === "title" && styles.title,
-        type === "small" && styles.small,
-        type === "smallBold" && styles.smallBold,
-        type === "subtitle" && styles.subtitle,
-        type === "link" && styles.link,
-        type === "linkPrimary" && styles.linkPrimary,
-        type === "code" && styles.code,
-        style,
+        { color: theme[themeColor ?? 'text'] },
+        type === 'default' && styles.default,
+        type === 'defaultBold' && styles.defaultBold,
+        type === 'title' && styles.title,
+        type === 'small' && styles.small,
+        type === 'smallBold' && styles.smallBold,
+        type === 'subtitle' && styles.subtitle,
+        type === 'link' && styles.link,
+        type === 'linkPrimary' && styles.linkPrimary,
+        type === 'code' && styles.code,
+        style
       ]}
+      // oxlint-disable-next-line react/jsx-props-no-spreading
       {...rest}
     />
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  small: {
-    fontFamily: Fonts.sansMedium,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  smallBold: {
-    fontFamily: Fonts.sansBold,
-    fontSize: 14,
-    lineHeight: 20,
+  code: {
+    fontFamily: Fonts.mono,
+    fontSize: 12,
+    fontWeight: Platform.select({ android: 700 }) ?? 500
   },
   default: {
     fontFamily: Fonts.sansMedium,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 24
   },
   defaultBold: {
     fontFamily: Fonts.sansBold,
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 24
   },
-  title: {
-    fontFamily: Fonts.sansExtraBold,
-    fontSize: 48,
-    lineHeight: 52,
+  link: {
+    fontFamily: Fonts.sansMedium,
+    fontSize: 14,
+    lineHeight: 30
+  },
+  linkPrimary: {
+    color: '#3c87f7',
+    fontFamily: Fonts.sansMedium,
+    fontSize: 14,
+    lineHeight: 30
+  },
+  small: {
+    fontFamily: Fonts.sansMedium,
+    fontSize: 14,
+    lineHeight: 20
+  },
+  smallBold: {
+    fontFamily: Fonts.sansBold,
+    fontSize: 14,
+    lineHeight: 20
   },
   subtitle: {
     fontFamily: Fonts.sansExtraBold,
     fontSize: 32,
-    lineHeight: 44,
+    lineHeight: 44
   },
-  link: {
-    fontFamily: Fonts.sansMedium,
-    lineHeight: 30,
-    fontSize: 14,
-  },
-  linkPrimary: {
-    fontFamily: Fonts.sansMedium,
-    lineHeight: 30,
-    fontSize: 14,
-    color: "#3c87f7",
-  },
-  code: {
-    fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
-  },
-});
+  title: {
+    fontFamily: Fonts.sansExtraBold,
+    fontSize: 48,
+    lineHeight: 52
+  }
+})

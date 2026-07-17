@@ -1,9 +1,19 @@
 {
   "name": "monitorfield",
-  "main": "expo-router/entry",
   "version": "1.0.0",
-  "op-sqlite": {
-    "performanceMode": true
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "build:android:production": "eas build --platform android --profile production",
+    "build:android:production:ci": "eas build --platform android --profile production --non-interactive"
   },
   "dependencies": {
     "@expo/ui": "56.0.18",
@@ -49,22 +59,12 @@
     "prettier": "3.8.4",
     "typescript": "6.0.3"
   },
-  "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "build:android:production": "eas build --platform android --profile production",
-    "build:android:production:ci": "eas build --platform android --profile production --non-interactive"
-  },
   "lint-staged": {
     "src/**/*.{js,ts,tsx}": [
       "oxlint --fix"
     ]
   },
-  "private": true
+  "op-sqlite": {
+    "performanceMode": true
+  }
 }
