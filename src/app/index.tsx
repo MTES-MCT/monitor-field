@@ -147,8 +147,8 @@ export default function App({
       return;
     }
 
-    const mapPoint = event.nativeEvent.point;
-    const features = await mapRef.current?.queryRenderedFeatures(mapPoint, {
+    const position = event.nativeEvent.point;
+    const features = await mapRef.current?.queryRenderedFeatures(position, {
       layers: [fish.ids.fillLayer],
     });
     const clickedFeaturesIds =
@@ -157,23 +157,21 @@ export default function App({
       clickedFeaturesIds.includes(area.id),
     );
 
-    if (!clickedRegulatoryAreas.length) {
-      setClickedFeaturesList(undefined);
-      setSelectedRegulatoryArea(undefined);
+    const featuresToDisplay =
+      clickedRegulatoryAreas && clickedRegulatoryAreas.length > 1
+        ? clickedRegulatoryAreas
+        : undefined;
+    setClickedFeaturesList(featuresToDisplay);
 
-      return;
-    }
+    const selectedFeature =
+      !clickedRegulatoryAreas || clickedRegulatoryAreas.length > 1
+        ? undefined
+        : clickedRegulatoryAreas[0];
+    setSelectedRegulatoryArea(selectedFeature);
 
     if (clickedRegulatoryAreas.length === 1) {
-      setClickedFeaturesList(undefined);
-      setSelectedRegulatoryArea(clickedRegulatoryAreas[0]);
       onFocusGroupOrRegulatoryArea(clickedRegulatoryAreas[0].bbox);
-
-      return;
     }
-
-    setSelectedRegulatoryArea(undefined);
-    setClickedFeaturesList(clickedRegulatoryAreas);
   };
 
   const consultRegulatoryAreas = () => {
