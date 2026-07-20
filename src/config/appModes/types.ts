@@ -1,10 +1,10 @@
-export type AppMode = "MONITORENV" | "MONITORFISH";
+export type AppMode = 'MONITORENV' | 'MONITORFISH'
 
 export type AppModeConfig = {
-  mode: AppMode;
+  mode: AppMode
   features: {
-    hasRegulatoryAreasFilters: boolean;
-  };
-  dataLayers: string[];
-  colors: string[];
-};
+    hasRegulatoryAreasFilters: boolean
+  }
+  dataLayers: string[]
+  colors: string[]
+}

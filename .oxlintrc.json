@@ -1,15 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "import",
-    "react",
-    "unicorn",
-    "typescript",
-  ],
-  "jsPlugins": [
-    "eslint-plugin-expo",
-    "eslint-plugin-prettier"
-  ],
+  "plugins": ["import", "react", "unicorn", "typescript"],
+  "jsPlugins": ["eslint-plugin-expo", "eslint-plugin-prettier"],
   "categories": {
     "correctness": "off"
   },
@@ -48,14 +40,20 @@
     "/.expo"
   ],
   "rules": {
+    "eslint/sort-keys": [
+      "error",
+      "asc",
+      {
+        "caseSensitive": true,
+        "natural": false
+      }
+    ],
     "import/namespace": "error",
     "import/no-named-as-default": "warn",
     "import/no-named-as-default-member": "warn",
     "import/no-duplicates": "warn",
-    "eqeqeq": [
-      "warn",
-      "smart"
-    ],
+    "import/newline-after-import": "error",
+    "eqeqeq": ["warn", "smart"],
     "typescript/consistent-return": "error",
     "no-console": "error",
     "no-dupe-class-members": "error",
@@ -88,10 +86,7 @@
       }
     ],
     "no-with": "warn",
-    "unicode-bom": [
-      "warn",
-      "never"
-    ],
+    "unicode-bom": ["warn", "never"],
     "use-isnan": "error",
     "valid-typeof": "error",
     "import/first": "warn",
@@ -101,6 +96,8 @@
     "react/jsx-no-comment-textnodes": "error",
     "react/jsx-no-duplicate-props": "error",
     "react/jsx-no-undef": "error",
+    "react/jsx-no-useless-fragment": "error",
+    "react/jsx-pascal-case": "error",
     "react/no-children-prop": "error",
     "react/no-danger-with-children": "error",
     "react/no-direct-mutation-state": "error",
@@ -111,34 +108,23 @@
     "react/no-unescaped-entities": "error",
     "react/no-unknown-property": "warn",
     "react/no-this-in-sfc": "warn",
-    "expo/use-dom-exports": [
-      "error"
-    ],
-    "expo/no-env-var-destructuring": [
-      "error"
-    ],
-    "expo/no-dynamic-env-var": [
-      "error"
-    ],
+    "react/jsx-props-no-spreading": "error",
+    "expo/use-dom-exports": ["error"],
+    "expo/no-env-var-destructuring": ["error"],
+    "expo/no-dynamic-env-var": ["error"],
     "prettier/prettier": "error",
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn"
   },
   "overrides": [
     {
-      "files": [
-        "**/metro.config.js"
-      ],
+      "files": ["**/metro.config.js"],
       "env": {
         "node": true
       }
     },
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.d.ts"
-      ],
+      "files": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
       "rules": {
         "no-unused-vars": [
           "warn",
@@ -175,9 +161,7 @@
           }
         ]
       },
-      "plugins": [
-        "typescript"
-      ]
+      "plugins": ["typescript"]
     }
   ]
 }

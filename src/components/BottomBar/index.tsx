@@ -1,17 +1,17 @@
-import { Spacing } from "@constants/theme";
-import { useAppContext } from "@contexts/AppContext";
-import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
-import { useTheme } from "@hooks/use-theme";
-import { Image } from "expo-image";
-import { Pressable, StyleSheet, View } from "react-native";
-import { ThemedText } from "../Text";
+import { Spacing } from '@constants/theme'
+import { useAppContext } from '@contexts/AppContext'
+import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { useTheme } from '@hooks/use-theme'
+import { Image } from 'expo-image'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { ThemedText } from '../Text'
 
 type BottomBarProps = {
-  consultRegulatoryAreas: () => void;
-};
+  consultRegulatoryAreas: () => void
+}
 
 export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
-  const { config } = useAppContext();
+  const { config } = useAppContext()
   const {
     setIsSearchZoneActive,
     isSearchZoneActive,
@@ -20,24 +20,24 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
     hasSearchZoneChanged,
     setHasSearchZoneChanged,
     totalCount,
-    setIsSearchByQueryActive,
-  } = useRegulatoryAreasContext();
-  const theme = useTheme();
+    setIsSearchByQueryActive
+  } = useRegulatoryAreasContext()
+  const theme = useTheme()
 
   const searchByBbox = async () => {
-    setIsSearchZoneActive(!isSearchZoneActive);
-    searchByNewBbox();
-  };
+    setIsSearchZoneActive(!isSearchZoneActive)
+    searchByNewBbox()
+  }
 
   const searchByNewBbox = async () => {
-    setCommittedSearchBbox(searchBbox);
-    setHasSearchZoneChanged(false);
-    setIsSearchByQueryActive(false);
-  };
+    setCommittedSearchBbox(searchBbox)
+    setHasSearchZoneChanged(false)
+    setIsSearchByQueryActive(false)
+  }
 
   const searchByQuery = () => {
-    setIsSearchByQueryActive(true);
-  };
+    setIsSearchByQueryActive(true)
+  }
 
   return (
     <View>
@@ -49,8 +49,8 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
             styles.buttonBase,
             {
               backgroundColor: theme.charcoal,
-              marginBottom: Spacing.two,
-            },
+              marginBottom: Spacing.two
+            }
           ]}
         >
           <ThemedText themeColor="white" type="small">
@@ -66,23 +66,17 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
             style={[
               styles.buttonBase,
               {
-                backgroundColor: isSearchZoneActive
-                  ? theme.blueGray
-                  : theme.charcoal,
-                flex: !isSearchZoneActive ? 1 : 0,
-              },
+                backgroundColor: isSearchZoneActive ? theme.blueGray : theme.charcoal,
+                flex: !isSearchZoneActive ? 1 : 0
+              }
             ]}
           >
             <Image
-              source={require("../../../assets/icons/display.svg")}
+              source={require('../../../assets/icons/display.svg')}
               style={[styles.icon, { tintColor: theme.white }]}
             />
             {!isSearchZoneActive && (
-              <ThemedText
-                type="small"
-                themeColor="white"
-                style={{ marginLeft: Spacing.two }}
-              >
+              <ThemedText type="small" themeColor="white" style={{ marginLeft: Spacing.two }}>
                 Afficher les reg.ici
               </ThemedText>
             )}
@@ -92,15 +86,15 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
               onPress={consultRegulatoryAreas}
               accessibilityRole="button"
               accessibilityState={{
-                selected: isSearchZoneActive,
                 disabled: false,
+                selected: isSearchZoneActive
               }}
               style={[
                 styles.buttonBase,
                 {
                   backgroundColor: theme.white,
-                  flex: 1,
-                },
+                  flex: 1
+                }
               ]}
             >
               <ThemedText type="small" themeColor="text">
@@ -114,59 +108,53 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
             onPress={searchByQuery}
             accessibilityRole="button"
             accessibilityState={{
-              disabled: false,
+              disabled: false
             }}
             style={[styles.buttonBase, { backgroundColor: theme.white }]}
           >
-            <Image
-              source={require("../../../assets/icons/search.svg")}
-              style={styles.icon}
-            />
+            <Image source={require('../../../assets/icons/search.svg')} style={styles.icon} />
           </Pressable>
           {config.features.hasRegulatoryAreasFilters && (
             <Pressable
               onPress={searchByQuery}
               accessibilityRole="button"
               accessibilityState={{
-                disabled: false,
+                disabled: false
               }}
               style={[styles.buttonBase, { backgroundColor: theme.white }]}
             >
-              <Image
-                source={require("../../../assets/icons/filter.svg")}
-                style={styles.icon}
-              />
+              <Image source={require('../../../assets/icons/filter.svg')} style={styles.icon} />
             </Pressable>
           )}
         </View>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flexDirection: "row",
-    gap: Spacing.two,
-  },
   buttonBase: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: Spacing.three,
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: Spacing.three
   },
   displayWrapper: {
     flex: 1,
-    flexDirection: "row",
-    gap: Spacing.half,
+    flexDirection: 'row',
+    gap: Spacing.half
   },
   icon: {
     height: Spacing.five,
-    width: Spacing.five,
+    width: Spacing.five
   },
   searchAndFilterWrapper: {
-    flexDirection: "row",
-    gap: Spacing.half,
+    flexDirection: 'row',
+    gap: Spacing.half
   },
-});
+  wrapper: {
+    flexDirection: 'row',
+    gap: Spacing.two
+  }
+})

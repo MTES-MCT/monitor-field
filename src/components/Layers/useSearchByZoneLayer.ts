@@ -1,110 +1,104 @@
-import { useMemo } from "react";
+import { useMemo } from 'react'
 
-import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
-import { useTheme } from "@hooks/use-theme";
-import type { BoundingBox, GeoJSONFeature, MapLayer } from "@/types/mapTypes";
+import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { useTheme } from '@hooks/use-theme'
+import type { BoundingBox, GeoJSONFeature, MapLayer } from '@/types/mapTypes'
 
 export const searchByZoneIds = {
-  source: "search-by-zone-source",
-  outlineLayer: "search-by-zone-outline",
-};
+  outlineLayer: 'search-by-zone-outline',
+  source: 'search-by-zone-source'
+}
 
-const SEARCH_ZONE_INSET_RATIO = 0.05;
+const SEARCH_ZONE_INSET_RATIO = 0.05
 
 export type SearchByZoneLayerProps = {
   source:
     | {
-        id: string;
+        id: string
         definition: {
-          type: "geojson";
-          data: GeoJSONFeature;
-        };
+          type: 'geojson'
+          data: GeoJSONFeature
+        }
       }
-    | undefined;
-  layer: MapLayer | undefined;
-  ids: typeof searchByZoneIds;
-};
+    | undefined
+  layer: MapLayer | undefined
+  ids: typeof searchByZoneIds
+}
 
 function bboxToGeoJSON(searchBbox: BoundingBox): GeoJSONFeature {
-  const { minLon, minLat, maxLon, maxLat } = searchBbox;
+  const { minLon, minLat, maxLon, maxLat } = searchBbox
 
   return {
-    type: "Feature",
-    properties: {},
     geometry: {
-      type: "Polygon",
       coordinates: [
         [
           [minLon, minLat],
           [maxLon, minLat],
           [maxLon, maxLat],
           [minLon, maxLat],
-          [minLon, minLat],
-        ],
+          [minLon, minLat]
+        ]
       ],
+      type: 'Polygon'
     },
-  };
+    properties: {},
+    type: 'Feature'
+  }
 }
 
 function insetBoundingBox(searchBbox: BoundingBox): BoundingBox {
-  const lonInset =
-    (searchBbox.maxLon - searchBbox.minLon) * SEARCH_ZONE_INSET_RATIO;
-  const latInset =
-    (searchBbox.maxLat - searchBbox.minLat) * SEARCH_ZONE_INSET_RATIO;
+  const lonInset = (searchBbox.maxLon - searchBbox.minLon) * SEARCH_ZONE_INSET_RATIO
+  const latInset = (searchBbox.maxLat - searchBbox.minLat) * SEARCH_ZONE_INSET_RATIO
 
   return {
-    minLon: searchBbox.minLon + lonInset,
-    minLat: searchBbox.minLat + latInset,
-    maxLon: searchBbox.maxLon - lonInset,
     maxLat: searchBbox.maxLat - latInset,
-  };
+    maxLon: searchBbox.maxLon - lonInset,
+    minLat: searchBbox.minLat + latInset,
+    minLon: searchBbox.minLon + lonInset
+  }
 }
 
 function createSearchByZoneLayer(sourceId: string, color: string): MapLayer {
   return {
     id: searchByZoneIds.outlineLayer,
-    type: "line",
-    source: sourceId,
     paint: {
-      "line-color": color,
-      "line-width": 2,
-      "line-dasharray": [2, 2],
+      'line-color': color,
+      'line-dasharray': [2, 2],
+      'line-width': 2
     },
-  };
+    source: sourceId,
+    type: 'line'
+  }
 }
 
 export function useSearchByZoneLayer(): SearchByZoneLayerProps {
-  const { searchBbox, committedSearchBbox, hasSearchZoneChanged } =
-    useRegulatoryAreasContext();
-  const theme = useTheme();
+  const { searchBbox, committedSearchBbox, hasSearchZoneChanged } = useRegulatoryAreasContext()
+  const theme = useTheme()
 
-  const displayedBbox = hasSearchZoneChanged ? committedSearchBbox : searchBbox;
+  const displayedBbox = hasSearchZoneChanged ? committedSearchBbox : searchBbox
 
   const geoJSON = useMemo(
-    () =>
-      displayedBbox
-        ? bboxToGeoJSON(insetBoundingBox(displayedBbox))
-        : undefined,
-    [displayedBbox],
-  );
+    () => (displayedBbox ? bboxToGeoJSON(insetBoundingBox(displayedBbox)) : undefined),
+    [displayedBbox]
+  )
 
   if (!geoJSON) {
     return {
-      source: undefined,
-      layer: undefined,
       ids: searchByZoneIds,
-    };
+      layer: undefined,
+      source: undefined
+    }
   }
 
   return {
-    source: {
-      id: searchByZoneIds.source,
-      definition: {
-        type: "geojson",
-        data: geoJSON,
-      },
-    },
-    layer: createSearchByZoneLayer(searchByZoneIds.source, theme.charcoal),
     ids: searchByZoneIds,
-  };
+    layer: createSearchByZoneLayer(searchByZoneIds.source, theme.charcoal),
+    source: {
+      definition: {
+        data: geoJSON,
+        type: 'geojson'
+      },
+      id: searchByZoneIds.source
+    }
+  }
 }
