@@ -1,5 +1,5 @@
 import { Spacing } from "@constants/theme";
-import { useAppMode } from "@contexts/AppModeContext";
+import { useAppContext } from "@contexts/AppContext";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
 import { Image } from "expo-image";
@@ -7,15 +7,11 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../Text";
 
 type BottomBarProps = {
-  onSearch: () => Promise<void>;
   consultRegulatoryAreas: () => void;
 };
 
-export function BottomBar({
-  onSearch,
-  consultRegulatoryAreas,
-}: BottomBarProps) {
-  const { config } = useAppMode();
+export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
+  const { config } = useAppContext();
   const {
     setIsSearchZoneActive,
     isSearchZoneActive,
@@ -24,28 +20,30 @@ export function BottomBar({
     hasSearchZoneChanged,
     setHasSearchZoneChanged,
     totalCount,
+    setIsSearchByQueryActive,
   } = useRegulatoryAreasContext();
   const theme = useTheme();
 
-  const searchByZone = async () => {
+  const searchByBbox = async () => {
     setIsSearchZoneActive(!isSearchZoneActive);
-    searchByNewZone();
+    searchByNewBbox();
   };
 
-  const searchByNewZone = async () => {
+  const searchByNewBbox = async () => {
     setCommittedSearchBbox(searchBbox);
     setHasSearchZoneChanged(false);
-
-    await onSearch();
+    setIsSearchByQueryActive(false);
   };
 
-  const searchByQuery = () => {};
+  const searchByQuery = () => {
+    setIsSearchByQueryActive(true);
+  };
 
   return (
     <View>
       {hasSearchZoneChanged && (
         <Pressable
-          onPress={searchByNewZone}
+          onPress={searchByNewBbox}
           accessibilityRole="button"
           style={[
             styles.buttonBase,
@@ -63,7 +61,7 @@ export function BottomBar({
       <View style={styles.wrapper}>
         <View style={styles.displayWrapper}>
           <Pressable
-            onPress={searchByZone}
+            onPress={searchByBbox}
             accessibilityRole="button"
             style={[
               styles.buttonBase,

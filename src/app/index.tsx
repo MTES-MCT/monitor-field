@@ -1,27 +1,32 @@
-import { useEffect, useRef } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type NativeSyntheticEvent } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MaxContentWidth, Spacing } from "@constants/theme";
-import { useAppMode } from "@contexts/AppModeContext";
+import { useAppContext } from "@contexts/AppContext";
 
-import type { BoundingBox } from "@/types/mapTypes";
+import { type BoundingBox } from "@/types/mapTypes";
 import { BottomBar } from "@components/BottomBar";
 import { useSearchByZoneLayer } from "@components/Layers/useSearchByZoneLayer";
 import { LocationButton } from "@components/LocationButton";
 import { SwitchContextButton } from "@components/SwitchContextButton";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useFishRegulatoryAreasLayer } from "@features/RegulatoryAreas/Layers/FishLayers";
-import { RegulatoryAreasList } from "@features/RegulatoryAreas/RegulatoryAreasList";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { SelectedRegulatoryAreas } from "@features/RegulatoryAreas/SelectedRegulatoryAreas";
 import {
   Camera,
-  Map,
+  Map as MapLibreMap,
   UserLocation,
   type CameraRef,
   type MapRef,
+  type PressEvent,
+  type PressEventWithFeatures,
   type StyleSpecification,
 } from "@maplibre/maplibre-react-native";
+import { useEffect, useRef } from "react";
+import { FilteredRegulatoryAreas } from "@features/RegulatoryAreas/FilteredRegulatoryAreas";
+import { RegulatoryAreaDetails } from "@features/RegulatoryAreas/RegulatoryAreaDetails";
+
+export const CENTERED_ON_FRANCE = [2.99049, 46.82801];
 
 const baseMapStyle: StyleSpecification = {
   version: 8,
@@ -49,13 +54,20 @@ export default function App({
 }: {
   isFirstLocationEnabled: boolean;
 }) {
-  const { config, setIsLocationEnabled, isLocationEnabled } = useAppMode();
+  const { config, setIsLocationEnabled, isLocationEnabled } = useAppContext();
   const mapRef = useRef<MapRef>(null);
   const cameraRef = useRef<CameraRef>(null);
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const { isSearchZoneActive, setHasSearchZoneChanged, setSearchBbox } =
-    useRegulatoryAreasContext();
+  const {
+    isSearchZoneActive,
+    setHasSearchZoneChanged,
+    setSearchBbox,
+    regulatoryAreas,
+    setSelectedRegulatoryArea,
+    setIsSearchByQueryActive,
+    setClickedFeaturesList,
+    setIsListVisible,
+  } = useRegulatoryAreasContext();
 
   const isMonitorFish = config.mode === "MONITORFISH";
   const fish = useFishRegulatoryAreasLayer();
@@ -112,14 +124,14 @@ export default function App({
     });
   };
 
-  const handleFocusGroup = (bbox: BoundingBox) => {
+  const onFocusGroupOrRegulatoryArea = (bbox: BoundingBox) => {
     cameraRef.current?.fitBounds(
       [bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat],
       {
         padding: {
           top: 40,
           right: 40,
-          bottom: 40,
+          bottom: 540,
           left: 40,
         },
         duration: 700,
@@ -128,13 +140,50 @@ export default function App({
     );
   };
 
+  const onMapPress = async (
+    event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>,
+  ) => {
+    if (!isMonitorFish || !isSearchZoneActive) {
+      return;
+    }
+
+    const position = event.nativeEvent.point;
+    const features = await mapRef.current?.queryRenderedFeatures(position, {
+      layers: [fish.ids.fillLayer],
+    });
+    const clickedFeaturesIds =
+      features?.map((feature) => feature.properties?.id) ?? [];
+    const clickedRegulatoryAreas = regulatoryAreas.filter((area) =>
+      clickedFeaturesIds.includes(area.id),
+    );
+
+    const featuresToDisplay =
+      clickedRegulatoryAreas && clickedRegulatoryAreas.length > 1
+        ? clickedRegulatoryAreas
+        : undefined;
+    setClickedFeaturesList(featuresToDisplay);
+
+    const selectedFeature =
+      !clickedRegulatoryAreas || clickedRegulatoryAreas.length > 1
+        ? undefined
+        : clickedRegulatoryAreas[0];
+    setSelectedRegulatoryArea(selectedFeature);
+
+    if (clickedRegulatoryAreas.length === 1) {
+      onFocusGroupOrRegulatoryArea(clickedRegulatoryAreas[0].bbox);
+    }
+  };
+
   const consultRegulatoryAreas = () => {
-    bottomSheetRef.current?.present();
+    setClickedFeaturesList(undefined);
+    setSelectedRegulatoryArea(undefined);
+    setIsListVisible(true);
+    setIsSearchByQueryActive(false);
   };
 
   return (
     <>
-      <Map
+      <MapLibreMap
         ref={mapRef}
         mapStyle={mapStyle}
         touchZoom
@@ -144,28 +193,41 @@ export default function App({
         touchPitch
         touchRotate={false}
         onRegionDidChange={onRegionDidChange}
+        onPress={onMapPress}
       >
         {isLocationEnabled && <UserLocation accuracy />}
         <Camera
           ref={cameraRef}
-          zoom={6}
+          initialViewState={
+            isLocationEnabled
+              ? undefined
+              : {
+                  zoom: 4,
+                  center: [2.99049, 46.82801],
+                }
+          }
+          maxBounds={[-180, -90, 180, 90]}
           trackUserLocation={isLocationEnabled ? "default" : undefined}
         />
         <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
           <SwitchContextButton />
+
+          <SelectedRegulatoryAreas
+            onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
+          />
+
+          <FilteredRegulatoryAreas
+            onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea}
+          />
+
+          <RegulatoryAreaDetails />
+
           <View style={styles.bottomWrapper}>
             <LocationButton onLocate={handleLocate} />
-            <BottomBar
-              consultRegulatoryAreas={consultRegulatoryAreas}
-              onSearch={isMonitorFish ? fish.fetch : () => Promise.resolve()}
-            />
+            <BottomBar consultRegulatoryAreas={consultRegulatoryAreas} />
           </View>
-          <RegulatoryAreasList
-            onGroupFocus={handleFocusGroup}
-            ref={bottomSheetRef}
-          />
         </SafeAreaView>
-      </Map>
+      </MapLibreMap>
     </>
   );
 }
@@ -178,7 +240,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.three,
     gap: Spacing.three,
-    paddingVertical: Spacing.three,
+    paddingBottom: Spacing.three,
     maxWidth: MaxContentWidth,
     justifyContent: "space-between",
   },

@@ -1,4 +1,31 @@
 import { RegulatoryAreaListItem } from "@contexts/RegulatoryAreasContext";
+import { FishRegulatoryArea } from "@database/fish/getFishRegulatoryAreasQuery";
+
+export function normalizeText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+export function matchesRegulatoryAreaSearch(
+  area: FishRegulatoryArea,
+  searchQuery: string | undefined,
+) {
+  const normalizedQuery = searchQuery?.trim() ? normalizeText(searchQuery) : "";
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const searchableFields = [area.zone, area.theme, area.type].filter(
+    Boolean,
+  ) as string[];
+
+  return searchableFields.some((field) =>
+    normalizeText(field).includes(normalizedQuery),
+  );
+}
 
 export function getRegulatoryAreasByGroup(
   regulatoryAreas: RegulatoryAreaListItem[],

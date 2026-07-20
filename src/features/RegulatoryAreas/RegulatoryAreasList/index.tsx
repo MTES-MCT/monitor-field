@@ -1,23 +1,21 @@
+import { BoundingBox } from "@/types/mapTypes";
 import { ThemedText } from "@components/Text";
 import { Spacing } from "@constants/theme";
 import {
   type RegulatoryAreaListItem,
   useRegulatoryAreasContext,
 } from "@contexts/RegulatoryAreasContext";
-import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useTheme } from "@hooks/use-theme";
-import { BoundingBox } from "@/types/mapTypes";
-import { forwardRef, useMemo, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMemo, useState } from "react";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { getRegulatoryAreaLabel } from "../utils/getRegulatoryAreaLabel";
 import { getRegulatoryAreasByGroup } from "./utils";
-
-function getAreaLabel(area: RegulatoryAreaListItem) {
-  return area.theme || area.type || `Zone #${area.id}`;
-}
+import { Image } from "expo-image";
 
 type RegulatoryAreasListProps = {
-  onGroupFocus: (bbox: BoundingBox) => void;
+  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void;
+  onClose: () => void;
 };
 
 type GroupRow = {
@@ -52,17 +50,25 @@ function getGroupBoundingBox(
   );
 }
 
-export const RegulatoryAreasList = forwardRef<
-  BottomSheetModal,
-  RegulatoryAreasListProps
->(({ onGroupFocus }, ref) => {
-  const { regulatoryAreas, setRegulatoryAreas } = useRegulatoryAreasContext();
+export const RegulatoryAreasList = ({
+  onFocusGroupOrRegulatoryArea,
+  onClose,
+}: RegulatoryAreasListProps) => {
+  const {
+    clickedFeaturesList,
+    regulatoryAreas,
+    setSelectedRegulatoryArea,
+    setIsolatedRegulatoryArea,
+    isolatedRegulatoryArea,
+  } = useRegulatoryAreasContext();
+
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
-  const snapPoints = useMemo(() => ["33%", "70%", "90%"], []);
+  const sourceRegulatoryAreas = clickedFeaturesList ?? regulatoryAreas;
+  const isClickedFeatureList = !!clickedFeaturesList;
+
   const groupedRegulatoryAreas = useMemo(
-    () => Object.entries(getRegulatoryAreasByGroup(regulatoryAreas)),
-    [regulatoryAreas],
+    () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas)),
+    [sourceRegulatoryAreas],
   );
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
@@ -76,16 +82,8 @@ export const RegulatoryAreasList = forwardRef<
       return;
     }
 
-    const updatedAreas = regulatoryAreas.map((currentArea) => ({
-      ...currentArea,
-      isSelected: currentArea.id === area.id,
-    }));
-
-    setRegulatoryAreas(updatedAreas);
-  };
-
-  const onDismiss = () => {
-    setExpandedGroups({});
+    setSelectedRegulatoryArea(area);
+    onFocusGroupOrRegulatoryArea?.(area.bbox);
   };
 
   const clickOnGroup = (group: string, areas: RegulatoryAreaListItem[]) => {
@@ -95,12 +93,27 @@ export const RegulatoryAreasList = forwardRef<
       [group]: nextIsExpanded,
     }));
 
-    if (nextIsExpanded) {
+    if (nextIsExpanded && onFocusGroupOrRegulatoryArea) {
       const groupBoundingBox = getGroupBoundingBox(areas);
       if (groupBoundingBox) {
-        onGroupFocus(groupBoundingBox);
+        onFocusGroupOrRegulatoryArea(groupBoundingBox);
       }
     }
+  };
+
+  const closeModal = () => {
+    setExpandedGroups({});
+    onClose();
+  };
+
+  const isolateRegulatoryArea = (area: RegulatoryAreaListItem) => {
+    if (isolatedRegulatoryArea === area.id) {
+      setIsolatedRegulatoryArea(undefined);
+
+      return;
+    }
+
+    setIsolatedRegulatoryArea(area.id);
   };
 
   const flattenedRows = useMemo<RegulatoryRow[]>(() => {
@@ -138,80 +151,130 @@ export const RegulatoryAreasList = forwardRef<
     const color = theme[colorKey] ?? theme.white;
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => selectRegulatoryArea(item.area)}
-        style={styles.areaRow}
-      >
-        <View
-          style={{
-            ...styles.square,
-            backgroundColor: color,
-            borderColor: theme.lightGray,
-          }}
-        />
-        <ThemedText type="default">{getAreaLabel(item.area)}</ThemedText>
-      </TouchableOpacity>
+      <View style={styles.wrapper}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => selectRegulatoryArea(item.area)}
+          style={styles.areaRow}
+        >
+          <View
+            style={{
+              ...styles.square,
+              backgroundColor: color,
+              borderColor: theme.lightGray,
+            }}
+          />
+          <ThemedText type="default">
+            {getRegulatoryAreaLabel(
+              item.area.id,
+              item.area.theme,
+              item.area.type,
+            )}
+          </ThemedText>
+        </TouchableOpacity>
+        {isClickedFeatureList && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => isolateRegulatoryArea(item.area)}
+            style={styles.areaRow}
+          >
+            <Image
+              source={require("../../../../assets/icons/target.svg")}
+              style={[
+                styles.targetIcon,
+                {
+                  tintColor:
+                    isolatedRegulatoryArea === item.area.id
+                      ? theme.blueGray
+                      : theme.lightGray,
+                },
+              ]}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
-  return (
-    <BottomSheetModal
-      ref={ref}
-      snapPoints={snapPoints}
-      index={0}
-      enableDynamicSizing={false}
-      enablePanDownToClose
-      topInset={insets.top + Spacing.four}
-      onDismiss={onDismiss}
-    >
-      <BottomSheetFlatList
-        style={{ marginBottom: Spacing.six }}
-        data={flattenedRows}
-        extraData={expandedGroups}
-        keyExtractor={(item) =>
-          item.type === "group"
-            ? `group-${item.group}`
-            : `area-${item.group}-${item.area.id}`
-        }
-        renderItem={renderRow}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <View style={styles.headerRow}>
-            <ThemedText type="defaultBold">
-              REG ({regulatoryAreas.length ?? 0}) sur la zone
-            </ThemedText>
-          </View>
-        }
-        ListEmptyComponent={
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            style={styles.emptyState}
-          >
-            Aucune zone réglementaire dans cette zone de recherche.
-          </ThemedText>
-        }
-        ItemSeparatorComponent={() => (
-          <View
-            style={{
-              height: 1,
-              backgroundColor: theme.lightGray,
-            }}
-          />
-        )}
-      />
-    </BottomSheetModal>
-  );
-});
+  const renderHeader = () => {
+    if (isClickedFeatureList) {
+      return (
+        <View
+          style={[
+            styles.headerRowWithTitle,
+            { backgroundColor: theme.lightGray },
+          ]}
+        >
+          <ThemedText type="default">{`${clickedFeaturesList?.length ?? 0} zones superposées sur ce point`}</ThemedText>
+          <Pressable accessibilityRole="button" onPress={closeModal}>
+            <Image
+              source={require("../../../../assets/icons/close.svg")}
+              style={styles.closeIcon}
+            />
+          </Pressable>
+        </View>
+      );
+    }
 
-RegulatoryAreasList.displayName = "RegulatoryAreasList";
+    return (
+      <View style={styles.headerRow}>
+        <ThemedText type="defaultBold">
+          {`REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
+        </ThemedText>
+      </View>
+    );
+  };
+  return (
+    <BottomSheetFlatList
+      style={{ marginBottom: Spacing.six }}
+      data={flattenedRows}
+      extraData={expandedGroups}
+      keyExtractor={(item) =>
+        item.type === "group"
+          ? `group-${item.group}`
+          : `area-${item.group}-${item.area.id}`
+      }
+      renderItem={renderRow}
+      contentContainerStyle={styles.listContent}
+      ListHeaderComponent={renderHeader()}
+      ListEmptyComponent={
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          style={styles.emptyState}
+        >
+          Aucune zone réglementaire ne correspond à cette recherche.
+        </ThemedText>
+      }
+      ItemSeparatorComponent={() => (
+        <View
+          style={{
+            height: 1,
+            backgroundColor: theme.lightGray,
+          }}
+        />
+      )}
+    />
+  );
+};
 
 const styles = StyleSheet.create({
+  wrapper: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   headerRow: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.two,
+  },
+  headerRowWithTitle: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
   },
   emptyState: {
     paddingHorizontal: Spacing.four,
@@ -232,9 +295,18 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
+    maxWidth: "80%",
   },
   square: {
     borderWidth: 1,
+    height: 20,
+    width: 20,
+  },
+  closeIcon: {
+    height: Spacing.five,
+    width: Spacing.five,
+  },
+  targetIcon: {
     height: 20,
     width: 20,
   },

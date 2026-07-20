@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GeoJSONCollection, MapLayer } from "@/types/mapTypes";
+import { useAppContext } from "@contexts/AppContext";
 import { useRegulatoryAreasContext } from "@contexts/RegulatoryAreasContext";
 import { useTheme } from "@hooks/use-theme";
 import { getFishRegulatoryAreas } from "../../useCases/getFishRegulatoryAreas";
@@ -13,16 +14,12 @@ export const fishRegulatoryAreasIds = {
 
 const DEFAULT_FISH_AREA_COLOR = "#67A9CF";
 const OUTLINE_COLOR = "#05055eb3";
-const isSelectedExpression: any = [
-  "to-boolean",
-  ["coalesce", ["get", "isSelected"], false],
-];
+
 const fillColorExpression: any = [
   "coalesce",
   ["get", "fillColor"],
   DEFAULT_FISH_AREA_COLOR,
 ];
-const outlineWidthExpression = ["case", isSelectedExpression, 3, 1] as any;
 
 export type FishRegulatoryAreasLayerProps = {
   isLoading: boolean;
@@ -37,10 +34,25 @@ export type FishRegulatoryAreasLayerProps = {
     | undefined;
   layers: MapLayer[];
   ids: typeof fishRegulatoryAreasIds;
-  fetch: () => Promise<void>;
 };
 
-function createFishRegulatoryAreasLayers(sourceId: string): MapLayer[] {
+function createFishRegulatoryAreasLayers(
+  sourceId: string,
+  isolatedRegulatoryArea: number | undefined,
+  selectedRegulatoryAreaId: number | undefined,
+): MapLayer[] {
+  const fillOpacityExpression: any = !isolatedRegulatoryArea
+    ? 0.4
+    : ["case", ["==", ["get", "id"], isolatedRegulatoryArea], 0.4, 0];
+
+  const selectedExpression: any = !selectedRegulatoryAreaId
+    ? 1
+    : ["case", ["==", ["get", "id"], selectedRegulatoryAreaId], 3, 1];
+
+  const outlineWidthExpression: any =
+    isolatedRegulatoryArea === undefined
+      ? selectedExpression
+      : ["case", ["==", ["get", "id"], isolatedRegulatoryArea], 3, 1];
   return [
     {
       id: fishRegulatoryAreasIds.fillLayer,
@@ -48,7 +60,7 @@ function createFishRegulatoryAreasLayers(sourceId: string): MapLayer[] {
       source: sourceId,
       paint: {
         "fill-color": fillColorExpression,
-        "fill-opacity": 0.4,
+        "fill-opacity": fillOpacityExpression,
       },
     },
     {
@@ -70,12 +82,17 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
   const [isLoading, setIsLoading] = useState(false);
 
   const {
+    isSearchZoneActive,
     searchBbox,
-    setTotalCount,
+    committedSearchBbox,
     setRegulatoryAreas,
     selectedRegulatoryArea,
+    filters,
+    isolatedRegulatoryArea,
   } = useRegulatoryAreasContext();
+  const { config } = useAppContext();
   const theme = useTheme();
+  const requestIdRef = useRef(0);
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
     if (!geoJSON) {
@@ -87,7 +104,6 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
       features: geoJSON.features.map((feature) => {
         const resolvedFillColor =
           theme[feature.properties?.fillColor as keyof typeof theme] ??
-          feature.properties?.fillColor ??
           DEFAULT_FISH_AREA_COLOR;
 
         return {
@@ -95,46 +111,47 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
           properties: {
             ...feature.properties,
             fillColor: resolvedFillColor,
-            isSelected: feature.properties?.id === selectedRegulatoryArea?.id,
           },
         };
       }),
     };
-  }, [geoJSON, theme, selectedRegulatoryArea]);
+  }, [geoJSON, theme]);
 
   const fetch = useCallback(async () => {
-    if (!searchBbox) {
+    const bbox = committedSearchBbox ?? searchBbox;
+
+    if (!bbox) {
       setGeoJSON(undefined);
+      setRegulatoryAreas([]);
       return;
     }
-    if (isLoading) {
-      return;
-    }
+
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     try {
-      const result = await getFishRegulatoryAreas(
-        searchBbox,
-        setTotalCount,
-        setRegulatoryAreas,
-      );
-      setGeoJSON(result);
+      const result = await getFishRegulatoryAreas(bbox, filters);
+
+      if (requestIdRef.current !== requestId) {
+        return;
+      }
+      setRegulatoryAreas(result.listItems);
+      setGeoJSON(result.geoJSON);
     } catch (error) {
       // oxlint-disable-next-line no-console
       console.warn("Failed to load regulatory areas", error);
     } finally {
-      setIsLoading(false);
+      if (requestIdRef.current === requestId) {
+        setIsLoading(false);
+      }
     }
-  }, [searchBbox, isLoading, setTotalCount, setRegulatoryAreas]);
+  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters]);
 
-  if (!geoJSONWithResolvedFillColor) {
-    return {
-      isLoading,
-      source: undefined,
-      layers: [],
-      ids: fishRegulatoryAreasIds,
-      fetch,
-    };
-  }
+  useEffect(() => {
+    if (config.mode !== "MONITORFISH" || !isSearchZoneActive) {
+      return;
+    }
+    fetch();
+  }, [searchBbox, filters, fetch, config.mode, isSearchZoneActive]);
 
   return {
     isLoading,
@@ -142,11 +159,19 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
       id: fishRegulatoryAreasIds.source,
       definition: {
         type: "geojson",
-        data: geoJSONWithResolvedFillColor,
+        data: geoJSONWithResolvedFillColor ?? {
+          type: "FeatureCollection",
+          features: [],
+        },
       },
     },
-    layers: createFishRegulatoryAreasLayers(fishRegulatoryAreasIds.source),
+    layers: geoJSONWithResolvedFillColor
+      ? createFishRegulatoryAreasLayers(
+          fishRegulatoryAreasIds.source,
+          isolatedRegulatoryArea,
+          selectedRegulatoryArea?.id,
+        )
+      : [],
     ids: fishRegulatoryAreasIds,
-    fetch,
   };
 }

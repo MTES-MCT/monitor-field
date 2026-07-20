@@ -1,5 +1,4 @@
 import type { DB } from "@op-engineering/op-sqlite";
-
 import type { BoundingBox } from "@/types/mapTypes";
 import { FISH_REGULATORY_AREAS_TABLE } from "../db.schema";
 

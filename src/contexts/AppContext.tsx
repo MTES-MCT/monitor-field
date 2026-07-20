@@ -8,7 +8,7 @@ const configs: Record<AppMode, AppModeConfig> = {
   MONITORFISH: monitorFishConfig,
 };
 
-const AppModeContext = createContext<
+const AppContext = createContext<
   | {
       config: AppModeConfig;
       setMode: (mode: AppMode) => void;
@@ -18,23 +18,28 @@ const AppModeContext = createContext<
   | undefined
 >(undefined);
 
-export function AppModeProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<AppMode>("MONITORENV");
   const [isLocationEnabled, setIsLocationEnabled] = useState<boolean>(false);
 
   const config = configs[mode];
 
   return (
-    <AppModeContext.Provider
-      value={{ config, setMode, isLocationEnabled, setIsLocationEnabled }}
+    <AppContext.Provider
+      value={{
+        config,
+        setMode,
+        isLocationEnabled,
+        setIsLocationEnabled,
+      }}
     >
       {children}
-    </AppModeContext.Provider>
+    </AppContext.Provider>
   );
 }
 
-export function useAppMode() {
-  const ctx = useContext(AppModeContext);
-  if (!ctx) throw new Error("useAppMode must be used within AppModeProvider");
+export function useAppContext() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useAppContext must be used within AppProvider");
   return ctx;
 }

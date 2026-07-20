@@ -32,7 +32,7 @@ export type Geometry =
 export type GeoJSONFeature = {
   type: "Feature";
   geometry: Geometry;
-  properties: Record<string, unknown>;
+  properties: Record<string, string | number | boolean | null | undefined>;
 };
 
 export type GeoJSONCollection = {

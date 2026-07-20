@@ -8,7 +8,10 @@ export type RegulatoryAreaListItem = {
   zone: string | undefined;
   bbox: BoundingBox;
   fillColor: string;
-  isSelected: boolean;
+};
+
+export type Filters = {
+  searchQuery: string | undefined;
 };
 
 const RegulatoryAreasContext = createContext<
@@ -22,13 +25,27 @@ const RegulatoryAreasContext = createContext<
       hasSearchZoneChanged: boolean;
       setHasSearchZoneChanged: (changed: boolean) => void;
       totalCount: number | undefined;
-      setTotalCount: (count: number | undefined) => void;
       regulatoryAreas: RegulatoryAreaListItem[];
       setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void;
       selectedRegulatoryArea: RegulatoryAreaListItem | undefined;
       setSelectedRegulatoryArea: (
         area: RegulatoryAreaListItem | undefined,
       ) => void;
+      filters: Filters;
+      setFilters: (
+        filters: Filters | ((prevFilters: Filters) => Filters),
+      ) => void;
+      isSearchByQueryActive: boolean;
+      setIsSearchByQueryActive: (active: boolean) => void;
+      clickedFeaturesList: RegulatoryAreaListItem[] | undefined;
+      setClickedFeaturesList: (
+        areas: RegulatoryAreaListItem[] | undefined,
+      ) => void;
+      isListVisible: boolean;
+      setIsListVisible: (visible: boolean) => void;
+      resetContext: () => void;
+      isolatedRegulatoryArea: number | undefined;
+      setIsolatedRegulatoryArea: (areaId: number | undefined) => void;
     }
   | undefined
 >(undefined);
@@ -47,12 +64,42 @@ export function RegulatoryAreasProvider({
   >(undefined);
   const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false);
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
-  const [regulatoryAreas, setRegulatoryAreas] = useState<
+  const [regulatoryAreas, setLocalRegulatoryAreas] = useState<
     RegulatoryAreaListItem[]
   >([]);
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<
     RegulatoryAreaListItem | undefined
   >(undefined);
+
+  const [filters, setFilters] = useState<Filters>({
+    searchQuery: undefined,
+  });
+
+  const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false);
+  const [clickedFeaturesList, setClickedFeaturesList] = useState<
+    RegulatoryAreaListItem[] | undefined
+  >(undefined);
+  const [isListVisible, setIsListVisible] = useState(false);
+  const [isolatedRegulatoryArea, setIsolatedRegulatoryArea] = useState<
+    number | undefined
+  >(undefined);
+
+  const resetContext = () => {
+    setIsSearchZoneActive(false);
+    setHasSearchZoneChanged(false);
+    setTotalCount(undefined);
+    setLocalRegulatoryAreas([]);
+    setSelectedRegulatoryArea(undefined);
+    setFilters({ searchQuery: undefined });
+    setIsSearchByQueryActive(false);
+    setClickedFeaturesList(undefined);
+    setIsListVisible(false);
+  };
+
+  const setRegulatoryAreas = (areas: RegulatoryAreaListItem[]) => {
+    setLocalRegulatoryAreas(areas);
+    setTotalCount(areas.length);
+  };
 
   return (
     <RegulatoryAreasContext.Provider
@@ -66,11 +113,21 @@ export function RegulatoryAreasProvider({
         hasSearchZoneChanged,
         setHasSearchZoneChanged,
         totalCount,
-        setTotalCount,
         regulatoryAreas,
         setRegulatoryAreas,
         selectedRegulatoryArea,
         setSelectedRegulatoryArea,
+        filters,
+        setFilters,
+        isSearchByQueryActive,
+        setIsSearchByQueryActive,
+        clickedFeaturesList,
+        setClickedFeaturesList,
+        isListVisible,
+        setIsListVisible,
+        resetContext,
+        isolatedRegulatoryArea,
+        setIsolatedRegulatoryArea,
       }}
     >
       {children}
