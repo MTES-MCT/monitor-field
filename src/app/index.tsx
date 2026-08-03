@@ -17,16 +17,17 @@ import {
   Map as MapLibreMap,
   UserLocation,
   type CameraRef,
+  type LngLat,
   type MapRef,
   type PressEvent,
   type PressEventWithFeatures,
   type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 
-export const CENTERED_ON_FRANCE = [2.99049, 46.82801]
+export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
 const baseMapStyle: StyleSpecification = {
   layers: [
@@ -47,13 +48,13 @@ const baseMapStyle: StyleSpecification = {
   version: 8
 }
 
-const LOCATION_FOCUS_ZOOM = 14
+const LOCATION_FOCUS_ZOOM = 35
 
-export default function App({ isFirstLocationEnabled }: { isFirstLocationEnabled: boolean }) {
-  const { config, setIsLocationEnabled, isLocationEnabled } = useAppContext()
+export default function App() {
+  const { config } = useAppContext()
   const mapRef = useRef<MapRef>(null)
   const cameraRef = useRef<CameraRef>(null)
-
+  const { isLocationButtonEnabled } = useAppContext()
   const {
     isSearchZoneActive,
     setHasSearchZoneChanged,
@@ -88,10 +89,6 @@ export default function App({ isFirstLocationEnabled }: { isFirstLocationEnabled
         })
     }
   }
-
-  useEffect(() => {
-    setIsLocationEnabled(isFirstLocationEnabled)
-  }, [isFirstLocationEnabled, setIsLocationEnabled])
 
   const onRegionDidChange = async () => {
     if (isSearchZoneActive) {
@@ -178,19 +175,19 @@ export default function App({ isFirstLocationEnabled }: { isFirstLocationEnabled
       onRegionDidChange={onRegionDidChange}
       onPress={onMapPress}
     >
-      {isLocationEnabled && <UserLocation accuracy />}
+      {isLocationButtonEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
         initialViewState={
-          isLocationEnabled
+          isLocationButtonEnabled
             ? undefined
             : {
-                center: [2.99049, 46.82801],
+                center: CENTERED_ON_FRANCE,
                 zoom: 4
               }
         }
         maxBounds={[-180, -90, 180, 90]}
-        trackUserLocation={isLocationEnabled ? 'default' : undefined}
+        trackUserLocation={isLocationButtonEnabled ? 'default' : undefined}
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <SwitchContextButton />

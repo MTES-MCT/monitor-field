@@ -1,51 +1,39 @@
 import { Spacing } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
 import { useTheme } from '@hooks/use-theme'
+import { useLocationStatus } from '@hooks/useLocationStatus'
 import { Image } from 'expo-image'
 import * as Location from 'expo-location'
-import { useEffect, useState } from 'react'
-import { AppState, Pressable, StyleSheet, View } from 'react-native'
+import { useEffect } from 'react'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 type LocationButtonProps = {
   onLocate: (coordinates: { longitude: number; latitude: number }) => void
 }
 
 export function LocationButton({ onLocate }: LocationButtonProps) {
-  const [isLocationGrantedAndEnabled, setIsLocationGrantedAndEnabled] = useState<boolean>(false)
+  const { isLocationEnabled, isLocationGranted } = useLocationStatus()
+  const { isLocationButtonEnabled, setIsLocationButtonEnabled } = useAppContext()
 
   const theme = useTheme()
-  const { isLocationEnabled, setIsLocationEnabled } = useAppContext()
-  const iconTintColor = isLocationEnabled ? theme.blueGray : theme.slateGray
+
+  const isButtonDisabled = !isLocationEnabled || !isLocationGranted
+  const iconTintColor = isLocationButtonEnabled && !isButtonDisabled ? theme.blueGray : theme.slateGray
 
   useEffect(() => {
-    const syncLocationAvailability = async () => {
-      const { status } = await Location.getForegroundPermissionsAsync()
-      const isServicesEnabled = await Location.hasServicesEnabledAsync()
-      setIsLocationGrantedAndEnabled(status === 'granted' && isServicesEnabled)
+    if (!isLocationEnabled) {
+      setIsLocationButtonEnabled(false)
     }
-
-    void syncLocationAvailability()
-
-    const subscription = AppState.addEventListener('change', nextState => {
-      if (nextState === 'active') {
-        void syncLocationAvailability()
-      }
-    })
-
-    return () => {
-      subscription.remove()
-    }
-  }, [])
+  }, [isLocationEnabled, setIsLocationButtonEnabled])
 
   const getLocation = async () => {
-    if (isLocationGrantedAndEnabled === false) {
+    if (!isLocationGranted) {
       return
     }
 
-    if (!isLocationEnabled) {
+    if (!isLocationButtonEnabled) {
       try {
-        const position = (await Location.getLastKnownPositionAsync()) ?? (await Location.getCurrentPositionAsync({}))
-
+        const position = await Location.getCurrentPositionAsync({})
         if (!position) {
           return
         }
@@ -59,8 +47,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
         console.warn('Unable to retrieve current location', error)
       }
     }
-
-    setIsLocationEnabled(!isLocationEnabled)
+    setIsLocationButtonEnabled(!isLocationButtonEnabled)
   }
 
   return (
@@ -69,14 +56,14 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
         onPress={getLocation}
         accessibilityRole="button"
         accessibilityState={{
-          disabled: isLocationGrantedAndEnabled === false
+          disabled: isButtonDisabled
         }}
         style={() => [styles.buttonBase, { backgroundColor: theme.white }]}
       >
         <Image
-          key={`${isLocationGrantedAndEnabled}-${isLocationEnabled}`}
+          key={`${isLocationGranted}-${isLocationEnabled}`}
           source={
-            isLocationGrantedAndEnabled === false
+            !isLocationEnabled || !isLocationGranted
               ? require('../../assets/icons/location-disabled.svg')
               : require('../../assets/icons/location.svg')
           }
