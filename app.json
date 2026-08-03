@@ -61,6 +61,14 @@
       ],
       [
         "@maplibre/maplibre-react-native"
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.incubateur.net/",
+          "project": "monitorfield",
+          "organization": "betagouv"
+        }
       ]
     ],
     "experiments": {

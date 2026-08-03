@@ -21,6 +21,7 @@
     "@gorhom/bottom-sheet": "5.2.14",
     "@maplibre/maplibre-react-native": "11.3.4",
     "@op-engineering/op-sqlite": "16.2.2",
+    "@sentry/react-native": "^8.19.0",
     "dayjs": "1.11.21",
     "expo": "56.0.12",
     "expo-constants": "56.0.18",
