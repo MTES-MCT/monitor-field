@@ -1,3 +1,4 @@
+import { ThemedText } from '@components/Text'
 import { Fonts, Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
@@ -35,35 +36,51 @@ export function Search({ onClose }: { onClose: () => void }) {
 
   return (
     <View style={[styles.wrapper, { borderBottomColor: theme.lightGray }]}>
-      <Pressable accessibilityRole="button" onPress={onCloseSearchInput}>
-        <Image source={require('../../../../assets/icons/chevron.svg')} style={styles.icon} />
+      <Pressable accessibilityRole="button" onPress={onCloseSearchInput} style={{}}>
+        <Image source={require('../../../../assets/icons/chevron.svg')} style={[styles.icon, styles.chevronIcon]} />
       </Pressable>
-      <TextInput
-        ref={inputRef}
-        autoFocus={isSearchByQueryActive}
-        style={[styles.input, { borderColor: theme.lightGray }]}
-        onChangeText={onChangeText}
-        value={text}
-      />
+      <View>
+        <TextInput
+          ref={inputRef}
+          autoFocus={isSearchByQueryActive}
+          style={[styles.input, { borderColor: theme.lightGray }]}
+          onChangeText={onChangeText}
+          value={text}
+        />
+        <View style={styles.informationMessage}>
+          <Image source={require('../../../../assets/icons/attention-filled.svg')} style={styles.icon} />
+          <ThemedText type="small" themeColor="slateGray">
+            La recherche se fait dans la zone en pointillés
+          </ThemedText>
+        </View>
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  chevronIcon: {
+    marginLeft: Spacing.two,
+    marginTop: Spacing.two
+  },
   icon: {
     height: Spacing.five,
     width: Spacing.five
   },
+  informationMessage: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginVertical: Spacing.two
+  },
   input: {
     borderWidth: 1,
-    flex: 1,
     fontFamily: Fonts.sansMedium,
-    height: 48,
-    margin: Spacing.four
+    height: 48
   },
   wrapper: {
-    alignItems: 'center',
     borderBottomWidth: 1,
-    flexDirection: 'row'
+    flexDirection: 'row',
+    gap: Spacing.two
   }
 })
