@@ -70,13 +70,13 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   subtitle: {
-    fontFamily: Fonts.sansExtraBold,
-    fontSize: 32,
-    lineHeight: 44
+    fontFamily: Fonts.sansBold,
+    fontSize: 24,
+    lineHeight: 32
   },
   title: {
-    fontFamily: Fonts.sansExtraBold,
-    fontSize: 48,
-    lineHeight: 52
+    fontFamily: Fonts.sansBold,
+    fontSize: 32,
+    lineHeight: 40
   }
 })
