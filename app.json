@@ -8,9 +8,9 @@
     "scheme": "monitorfield",
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#282F3E",
         "backgroundImage": "./assets/images/android-icon-background.png",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -28,10 +28,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#282F3E",
           "android": {
             "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "imageWidth": 90
           }
         }
       ],
@@ -59,7 +59,9 @@
           ]
         }
       ],
-      ["@maplibre/maplibre-react-native"]
+      [
+        "@maplibre/maplibre-react-native"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -71,6 +73,9 @@
         "projectId": "30661d74-0725-4cc0-a925-ce9a6a42b88d"
       }
     },
-    "owner": "monitorfield"
+    "owner": "monitorfield",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.monitorfield"
+    }
   }
 }

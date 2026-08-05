@@ -1,6 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router'
-import * as SplashScreen from 'expo-splash-screen'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { AppProvider } from '@contexts/AppContext'
@@ -10,8 +9,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
 import { Appearance } from 'react-native'
 import App from '.'
-
-void SplashScreen.preventAutoHideAsync()
+import { CustomSplashScreen } from '@components/CustomSplashScreen'
 
 const getFishLayers = async () => {
   try {
@@ -24,6 +22,7 @@ const getFishLayers = async () => {
 
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()
+  const [appReady, setAppReady] = useState(false)
 
   useEffect(() => {
     Appearance.setColorScheme('light')
@@ -31,9 +30,13 @@ export default function TabLayout() {
 
   useEffect(() => {
     getFishLayers().finally(() => {
-      void SplashScreen.hideAsync()
+      setAppReady(true)
     })
   }, [])
+
+  if (!appReady) {
+    return <CustomSplashScreen />
+  }
 
   return (
     <GestureHandlerRootView>
