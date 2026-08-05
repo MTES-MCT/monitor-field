@@ -36,7 +36,7 @@ export function Search({ onClose }: { onClose: () => void }) {
 
   return (
     <View style={[styles.wrapper, { borderBottomColor: theme.lightGray }]}>
-      <Pressable accessibilityRole="button" onPress={onCloseSearchInput} style={{}}>
+      <Pressable accessibilityRole="button" onPress={onCloseSearchInput}>
         <Image source={require('../../../../assets/icons/chevron.svg')} style={[styles.icon, styles.chevronIcon]} />
       </Pressable>
       <View>
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
+    flexGrow: 1,
     fontFamily: Fonts.sansMedium,
     height: 48
   },

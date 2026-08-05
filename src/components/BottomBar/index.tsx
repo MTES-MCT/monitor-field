@@ -48,6 +48,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
       const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
       zoomToBbox(centerLat, centerLon, committedSearchZoom)
       setSearchBbox(committedSearchBbox)
+      setHasSearchZoneChanged(false)
     }
   }
 

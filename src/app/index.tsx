@@ -98,7 +98,6 @@ export default function App() {
     setCurrentZoom(event.nativeEvent.zoom)
 
     if (isFromFlyToBbox) {
-      setHasSearchZoneChanged(false)
       setIsFromFlyToBbox(false)
       return
     }
