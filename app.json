@@ -8,7 +8,10 @@
     "scheme": "monitorfield",
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#282F3E"
+        "backgroundColor": "#282F3E",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.monitorfield",

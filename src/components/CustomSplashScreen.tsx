@@ -18,6 +18,9 @@ const ICON_SIZE = 48
 const FISH_MOVE_DURATION = 1500
 const FISH_PAUSE_DURATION = 1000
 
+// Keep the native splash visible until this custom one is ready to take over
+SplashScreen.preventAutoHideAsync()
+
 export function CustomSplashScreen() {
   const theme = useTheme()
   const { width: screenWidth } = useWindowDimensions()
