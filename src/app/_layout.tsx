@@ -9,6 +9,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
 import { Appearance } from 'react-native'
 import App from '.'
+import { syncEnvRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncEnvRegulatoryAreasDB'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 
 const getFishLayers = async () => {
@@ -17,6 +18,15 @@ const getFishLayers = async () => {
   } catch (error) {
     // oxlint-disable-next-line no-console
     console.warn('Unable to sync fish regulatory areas', error)
+  }
+}
+
+const getEnvLayers = async () => {
+  try {
+    await syncEnvRegulatoryAreasDB()
+  } catch (error) {
+    // oxlint-disable-next-line no-console
+    console.warn('Unable to sync env regulatory areas', error)
   }
 }
 
@@ -29,6 +39,9 @@ export default function TabLayout() {
   }, [])
 
   useEffect(() => {
+    getEnvLayers().finally(() => {
+      setAppReady(true)
+    })
     getFishLayers().finally(() => {
       setAppReady(true)
     })

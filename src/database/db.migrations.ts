@@ -13,8 +13,54 @@ const migrations: Migration[] = [
       await tx.execute(
         `
           CREATE TABLE IF NOT EXISTS ${ENV_REGULATORY_AREAS_TABLE} (
-            id INTEGER PRIMARY KEY NOT NULL
+            id INTEGER PRIMARY KEY NOT NULL,
+            fill_color TEXT,
+            url TEXT,
+            layer_name TEXT,
+            facade TEXT,
+            ref_reg TEXT,
+            date TEXT,
+            date_fin TEXT,
+            type TEXT,
+            geojson TEXT,
+            resume TEXT,
+            plan TEXT,
+            poly_name TEXT,
+            authorization_periods TEXT,
+            prohibition_periods TEXT,
+            additional_ref_reg TEXT,
+            themes TEXT,
+            tags TEXT,
+            location TEXT,
+            bbox_min_lon REAL,
+            bbox_min_lat REAL,
+            bbox_max_lon REAL,
+            bbox_max_lat REAL
           )
+        `
+      )
+      await tx.execute(
+        `
+          CREATE INDEX IF NOT EXISTS idx_env_bbox_min_lon
+          ON ${ENV_REGULATORY_AREAS_TABLE} (bbox_min_lon)
+        `
+      )
+      await tx.execute(
+        `
+          CREATE INDEX IF NOT EXISTS idx_env_bbox_max_lon
+          ON ${ENV_REGULATORY_AREAS_TABLE} (bbox_max_lon)
+        `
+      )
+      await tx.execute(
+        `
+          CREATE INDEX IF NOT EXISTS idx_env_bbox_min_lat
+          ON ${ENV_REGULATORY_AREAS_TABLE} (bbox_min_lat)
+        `
+      )
+      await tx.execute(
+        `
+          CREATE INDEX IF NOT EXISTS idx_env_bbox_max_lat
+          ON ${ENV_REGULATORY_AREAS_TABLE} (bbox_max_lat)
         `
       )
 

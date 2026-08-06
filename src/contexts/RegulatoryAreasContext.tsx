@@ -1,14 +1,8 @@
 import type { BoundingBox } from '@/types/mapTypes'
+import type { EnvRegulatoryArea, FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { createContext, useContext, useState } from 'react'
 
-export type RegulatoryAreaListItem = {
-  id: number
-  type: string | undefined
-  theme: string | undefined
-  zone: string | undefined
-  bbox: BoundingBox
-  fillColor: string
-}
+export type RegulatoryAreaListItem = FishRegulatoryArea | EnvRegulatoryArea
 
 export type Filters = {
   searchQuery: string | undefined

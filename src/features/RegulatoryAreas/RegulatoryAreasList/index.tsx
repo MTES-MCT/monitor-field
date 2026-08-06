@@ -9,6 +9,7 @@ import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { getRegulatoryAreasByGroup } from './utils'
 import { Image } from 'expo-image'
+import { useAppContext } from '@contexts/AppContext'
 
 type RegulatoryAreasListProps = {
   onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void
@@ -53,14 +54,15 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
     setIsolatedRegulatoryArea,
     isolatedRegulatoryArea
   } = useRegulatoryAreasContext()
+  const { config } = useAppContext()
 
   const theme = useTheme()
   const sourceRegulatoryAreas = clickedFeaturesList ?? regulatoryAreas
   const isClickedFeatureList = !!clickedFeaturesList
 
   const groupedRegulatoryAreas = useMemo(
-    () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas)),
-    [sourceRegulatoryAreas]
+    () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas, config.mode)),
+    [sourceRegulatoryAreas, config.mode]
   )
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
@@ -148,9 +150,7 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
               borderColor: theme.lightGray
             }}
           />
-          <ThemedText type="default">
-            {getRegulatoryAreaLabel(item.area.id, item.area.theme, item.area.type)}
-          </ThemedText>
+          <ThemedText type="default">{getRegulatoryAreaLabel(item.area, config.mode)}</ThemedText>
         </TouchableOpacity>
         {isClickedFeatureList && (
           <TouchableOpacity activeOpacity={0.7} onPress={() => isolateRegulatoryArea(item.area)} style={styles.areaRow}>

@@ -2,13 +2,14 @@ import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/map
 import { FishRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
 import { matchesRegulatoryAreaSearch } from '../RegulatoryAreasList/utils'
-import type { Filters, RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
+import type { Filters } from '@contexts/RegulatoryAreasContext'
 import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
+import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 
 export type FishRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
-  listItems: RegulatoryAreaListItem[]
+  listItems: FishRegulatoryArea[]
 }
 
 export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<FishRegulatoryAreasResult> {
@@ -16,10 +17,10 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
   const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox)
 
   const features: GeoJSONFeature[] = []
-  const listItems: RegulatoryAreaListItem[] = []
+  const listItems: FishRegulatoryArea[] = []
 
   for (const area of fetchedAreas) {
-    if (!matchesRegulatoryAreaSearch(area, filters.searchQuery)) {
+    if (!matchesRegulatoryAreaSearch(area, filters.searchQuery, 'MONITORFISH')) {
       continue
     }
 
@@ -30,8 +31,9 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
         minLat: area.bbox_min_lat,
         minLon: area.bbox_min_lon
       },
-      fillColor: area.fill_color,
+      fillColor: area.fillColor,
       id: area.id,
+      regulations: area.regulations,
       theme: area.theme,
       type: area.type,
       zone: area.zone
@@ -46,8 +48,9 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
     const featureWithProperties = {
       ...feature,
       properties: {
-        fillColor: area.fill_color,
+        fillColor: area.fillColor,
         id: area.id,
+        regulations: area.regulations,
         theme: area.theme,
         type: area.type,
         zone: area.zone

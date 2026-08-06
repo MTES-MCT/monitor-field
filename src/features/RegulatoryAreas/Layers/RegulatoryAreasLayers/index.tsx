@@ -5,11 +5,12 @@ import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
 import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
+import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
 
-export const fishRegulatoryAreasIds = {
-  fillLayer: 'fish-regulatory-areas-fill',
-  outlineLayer: 'fish-regulatory-areas-outline',
-  source: 'fish-regulatory-areas-source'
+export const regulatoryAreasIds = {
+  fillLayer: 'regulatory-areas-fill',
+  outlineLayer: 'regulatory-areas-outline',
+  source: 'regulatory-areas-source'
 }
 
 const DEFAULT_FISH_AREA_COLOR = '#67A9CF'
@@ -17,7 +18,7 @@ const OUTLINE_COLOR = '#05055eb3'
 
 const fillColorExpression: any = ['coalesce', ['get', 'fillColor'], DEFAULT_FISH_AREA_COLOR]
 
-export type FishRegulatoryAreasLayerProps = {
+export type RegulatoryAreasLayerProps = {
   isLoading: boolean
   source:
     | {
@@ -29,10 +30,10 @@ export type FishRegulatoryAreasLayerProps = {
       }
     | undefined
   layers: MapLayer[]
-  ids: typeof fishRegulatoryAreasIds
+  ids: typeof regulatoryAreasIds
 }
 
-function createFishRegulatoryAreasLayers(
+function createRegulatoryAreasLayers(
   sourceId: string,
   isolatedRegulatoryArea: number | undefined,
   selectedRegulatoryAreaId: number | undefined
@@ -51,7 +52,7 @@ function createFishRegulatoryAreasLayers(
       : ['case', ['==', ['get', 'id'], isolatedRegulatoryArea], 3, 1]
   return [
     {
-      id: fishRegulatoryAreasIds.fillLayer,
+      id: regulatoryAreasIds.fillLayer,
       paint: {
         'fill-color': fillColorExpression,
         'fill-opacity': fillOpacityExpression
@@ -60,7 +61,7 @@ function createFishRegulatoryAreasLayers(
       type: 'fill'
     },
     {
-      id: fishRegulatoryAreasIds.outlineLayer,
+      id: regulatoryAreasIds.outlineLayer,
       paint: {
         'line-color': OUTLINE_COLOR,
         'line-width': outlineWidthExpression
@@ -71,7 +72,7 @@ function createFishRegulatoryAreasLayers(
   ]
 }
 
-export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
+export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const [geoJSON, setGeoJSON] = useState<GeoJSONCollection | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -121,7 +122,12 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
     const requestId = ++requestIdRef.current
     setIsLoading(true)
     try {
-      const result = await getFishRegulatoryAreas(bbox, filters)
+      let result
+      if (config.mode === 'MONITORFISH') {
+        result = await getFishRegulatoryAreas(bbox, filters)
+      } else {
+        result = await getEnvRegulatoryAreas(bbox, filters)
+      }
 
       if (requestIdRef.current !== requestId) {
         return
@@ -136,24 +142,20 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters])
+  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters, config.mode])
 
   useEffect(() => {
-    if (config.mode !== 'MONITORFISH' || !isSearchZoneActive) {
+    if (!isSearchZoneActive) {
       return
     }
     fetch()
-  }, [searchBbox, filters, fetch, config.mode, isSearchZoneActive])
+  }, [searchBbox, filters, fetch, isSearchZoneActive])
 
   return {
-    ids: fishRegulatoryAreasIds,
+    ids: regulatoryAreasIds,
     isLoading,
     layers: geoJSONWithResolvedFillColor
-      ? createFishRegulatoryAreasLayers(
-          fishRegulatoryAreasIds.source,
-          isolatedRegulatoryArea,
-          selectedRegulatoryArea?.id
-        )
+      ? createRegulatoryAreasLayers(regulatoryAreasIds.source, isolatedRegulatoryArea, selectedRegulatoryArea?.id)
       : [],
     source: {
       definition: {
@@ -163,7 +165,7 @@ export function useFishRegulatoryAreasLayer(): FishRegulatoryAreasLayerProps {
         },
         type: 'geojson'
       },
-      id: fishRegulatoryAreasIds.source
+      id: regulatoryAreasIds.source
     }
   }
 }
