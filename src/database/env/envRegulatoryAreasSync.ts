@@ -10,6 +10,7 @@ import { ENV_REGULATORY_AREAS_API_URL, ENV_REGULATORY_AREAS_TABLE } from '../db.
 
 type ApiRow = {
   id: number
+  edition: string
   url: string
   layer_name: string
   facade: string
@@ -125,8 +126,9 @@ export async function syncEnvRegulatoryAreas(db: DB) {
           tags,
           location,
           fill_color,
+          edition,
           bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
           [
             row.id,
@@ -148,6 +150,7 @@ export async function syncEnvRegulatoryAreas(db: DB) {
             row.tags,
             row.location,
             fillColor ?? null,
+            row.edition,
             bbox?.minLon ?? null,
             bbox?.minLat ?? null,
             bbox?.maxLon ?? null,

@@ -32,6 +32,7 @@ const migrations: Migration[] = [
             themes TEXT,
             tags TEXT,
             location TEXT,
+            edition TEXT,
             bbox_min_lon REAL,
             bbox_min_lat REAL,
             bbox_max_lon REAL,

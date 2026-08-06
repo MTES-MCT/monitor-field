@@ -9,9 +9,23 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two
   },
+  border: {
+    borderBottomColor: 'lightgray',
+    borderBottomWidth: 1,
+    borderTopColor: 'lightgray',
+    borderTopWidth: 1,
+    marginTop: Spacing.three,
+    paddingBottom: Spacing.three
+  },
+  circle: {
+    borderRadius: '50%',
+    height: 10,
+    width: 10
+  },
   content: {
+    paddingBottom: 64,
     paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
+    paddingTop: Spacing.two
   },
   emptyState: {
     paddingHorizontal: Spacing.four
@@ -32,6 +46,14 @@ export const styles = StyleSheet.create({
     height: Spacing.five,
     width: Spacing.five
   },
+  labelWithCircle: {
+    alignItems: 'baseline',
+    borderTopColor: 'lightgray',
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.three
+  },
   listContent: {
     paddingBottom: Spacing.four
   },
@@ -42,11 +64,13 @@ export const styles = StyleSheet.create({
   },
   title: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
     gap: Spacing.two
   },
   titleText: {
-    flexShrink: 1
+    flex: 1,
+    flexWrap: 'wrap'
   },
   titleWrapper: {
     alignItems: 'center',

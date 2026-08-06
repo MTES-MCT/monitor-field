@@ -17,6 +17,11 @@ export function FishRegulatoryAreaDetails({
   onDismiss: () => void
 }) {
   const theme = useTheme()
+  const labelStyle = {
+    color: theme.textSecondary,
+    marginTop: Spacing.three
+  }
+
   return (
     <>
       <View style={styles.titleWrapper}>
@@ -37,15 +42,15 @@ export function FishRegulatoryAreaDetails({
         </Pressable>
       </View>
       <View style={styles.content}>
-        <ThemedText type="default" style={{ color: theme.textSecondary, marginTop: Spacing.three }}>
+        <ThemedText type="small" style={labelStyle}>
           Thématique(s)
         </ThemedText>
         <ThemedText type="default">{regulatoryArea.theme}</ThemedText>
-        <ThemedText type="default" style={{ color: theme.textSecondary, marginTop: Spacing.three }}>
+        <ThemedText type="small" style={labelStyle}>
           Type
         </ThemedText>
         <ThemedText type="default">{regulatoryArea.type}</ThemedText>
-        <ThemedText type="default" style={{ color: theme.textSecondary, marginTop: Spacing.three }}>
+        <ThemedText type="small" style={labelStyle}>
           Zone
         </ThemedText>
         <ThemedText type="default">{regulatoryArea.zone}</ThemedText>

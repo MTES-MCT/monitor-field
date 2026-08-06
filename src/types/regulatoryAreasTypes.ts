@@ -26,6 +26,7 @@ export type FishRegulatoryArea = Omit<
 
 export type EnvRegulatoryAreaFromDatabase = {
   id: number
+  edition: string
   url: string
   layerName: string
   facade: string

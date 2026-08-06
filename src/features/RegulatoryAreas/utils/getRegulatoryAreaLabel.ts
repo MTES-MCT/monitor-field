@@ -6,5 +6,5 @@ export function getRegulatoryAreaLabel(area: FishRegulatoryArea | EnvRegulatoryA
     return zone || theme || type || `Zone #${id}`
   }
   const { layerName, location } = area as EnvRegulatoryArea
-  return `${layerName} - ${location}`
+  return `${layerName}${location ? ` - ${location}` : ''}`
 }
