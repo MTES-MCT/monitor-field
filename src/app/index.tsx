@@ -21,9 +21,10 @@ import {
   type MapRef,
   type PressEvent,
   type PressEventWithFeatures,
-  type StyleSpecification
+  type StyleSpecification,
+  type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 
@@ -59,12 +60,15 @@ export default function App() {
     isSearchZoneActive,
     setHasSearchZoneChanged,
     setSearchBbox,
+    setCurrentZoom,
     regulatoryAreas,
     setSelectedRegulatoryArea,
     setIsSearchByQueryActive,
     setClickedFeaturesList,
     setIsListVisible
   } = useRegulatoryAreasContext()
+
+  const [isFromFlyToBbox, setIsFromFlyToBbox] = useState(false)
 
   const isMonitorFish = config.mode === 'MONITORFISH'
   const fish = useFishRegulatoryAreasLayer()
@@ -90,10 +94,18 @@ export default function App() {
     }
   }
 
-  const onRegionDidChange = async () => {
+  const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
+    setCurrentZoom(event.nativeEvent.zoom)
+
+    if (isFromFlyToBbox) {
+      setIsFromFlyToBbox(false)
+      return
+    }
+
     if (isSearchZoneActive) {
       setHasSearchZoneChanged(true)
     }
+
     const bounds = await mapRef.current?.getBounds()
     if (!bounds) return undefined
     const [lonA, latA, lonB, latB] = bounds
@@ -118,6 +130,7 @@ export default function App() {
     if (!bbox) {
       return
     }
+
     cameraRef.current?.fitBounds([bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat], {
       duration: 700,
       easing: 'ease',
@@ -128,6 +141,16 @@ export default function App() {
         top: 40
       }
     })
+  }
+
+  const flyToBbox = (centerLat: number, centerLon: number, zoom: number | undefined) => {
+    cameraRef.current?.flyTo({
+      center: [centerLon, centerLat],
+      duration: 900,
+      easing: 'ease',
+      ...(zoom !== undefined && { zoom })
+    })
+    setIsFromFlyToBbox(true)
   }
 
   const onMapPress = async (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
@@ -200,7 +223,7 @@ export default function App() {
 
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
-          <BottomBar consultRegulatoryAreas={consultRegulatoryAreas} />
+          <BottomBar consultRegulatoryAreas={consultRegulatoryAreas} zoomToBbox={flyToBbox} />
         </View>
       </SafeAreaView>
     </MapLibreMap>

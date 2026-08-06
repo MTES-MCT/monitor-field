@@ -20,6 +20,10 @@ const RegulatoryAreasContext = createContext<
       setSearchBbox: (bbox: BoundingBox | undefined) => void
       committedSearchBbox: BoundingBox | undefined
       setCommittedSearchBbox: (bbox: BoundingBox | undefined) => void
+      currentZoom: number | undefined
+      setCurrentZoom: (zoom: number | undefined) => void
+      committedSearchZoom: number | undefined
+      setCommittedSearchZoom: (zoom: number | undefined) => void
       isSearchZoneActive: boolean
       setIsSearchZoneActive: (active: boolean) => void
       hasSearchZoneChanged: boolean
@@ -48,6 +52,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [isSearchZoneActive, setIsSearchZoneActive] = useState(false)
   const [searchBbox, setSearchBbox] = useState<BoundingBox | undefined>(undefined)
   const [committedSearchBbox, setCommittedSearchBbox] = useState<BoundingBox | undefined>(undefined)
+  const [currentZoom, setCurrentZoom] = useState<number | undefined>(undefined)
+  const [committedSearchZoom, setCommittedSearchZoom] = useState<number | undefined>(undefined)
   const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false)
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
   const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
@@ -72,6 +78,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     setIsSearchByQueryActive(false)
     setClickedFeaturesList(undefined)
     setIsListVisible(false)
+    setCurrentZoom(undefined)
   }
 
   const setRegulatoryAreas = (areas: RegulatoryAreaListItem[]) => {
@@ -84,6 +91,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       value={{
         clickedFeaturesList,
         committedSearchBbox,
+        committedSearchZoom,
+        currentZoom,
         filters,
         hasSearchZoneChanged,
         isListVisible,
@@ -96,6 +105,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         selectedRegulatoryArea,
         setClickedFeaturesList,
         setCommittedSearchBbox,
+        setCommittedSearchZoom,
+        setCurrentZoom,
         setFilters,
         setHasSearchZoneChanged,
         setIsListVisible,

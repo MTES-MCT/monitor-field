@@ -8,17 +8,23 @@ import { ThemedText } from '../Text'
 
 type BottomBarProps = {
   consultRegulatoryAreas: () => void
+  zoomToBbox: (centerLat: number, centerLon: number, zoom: number | undefined) => void
 }
 
-export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
+export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps) {
   const { config } = useAppContext()
   const {
+    committedSearchBbox,
+    committedSearchZoom,
+    currentZoom,
     setIsSearchZoneActive,
     isSearchZoneActive,
     searchBbox,
     setCommittedSearchBbox,
+    setCommittedSearchZoom,
     hasSearchZoneChanged,
     setHasSearchZoneChanged,
+    setSearchBbox,
     totalCount,
     setIsSearchByQueryActive
   } = useRegulatoryAreasContext()
@@ -31,8 +37,19 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
 
   const searchByNewBbox = async () => {
     setCommittedSearchBbox(searchBbox)
+    setCommittedSearchZoom(currentZoom)
     setHasSearchZoneChanged(false)
     setIsSearchByQueryActive(false)
+  }
+
+  const centerOnSearchBox = () => {
+    if (committedSearchBbox) {
+      const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
+      const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
+      zoomToBbox(centerLat, centerLon, committedSearchZoom)
+      setSearchBbox(committedSearchBbox)
+      setHasSearchZoneChanged(false)
+    }
   }
 
   const searchByQuery = () => {
@@ -42,21 +59,47 @@ export function BottomBar({ consultRegulatoryAreas }: BottomBarProps) {
   return (
     <View>
       {hasSearchZoneChanged && (
-        <Pressable
-          onPress={searchByNewBbox}
-          accessibilityRole="button"
-          style={[
-            styles.buttonBase,
-            {
-              backgroundColor: theme.charcoal,
-              marginBottom: Spacing.two
-            }
-          ]}
-        >
-          <ThemedText themeColor="white" type="small">
-            Chercher dans cette zone
-          </ThemedText>
-        </Pressable>
+        <View style={styles.wrapper}>
+          <Pressable
+            onPress={centerOnSearchBox}
+            accessibilityRole="button"
+            style={[
+              styles.buttonBase,
+              {
+                backgroundColor: theme.white,
+                marginBottom: Spacing.two
+              }
+            ]}
+          >
+            <Image
+              source={require('../../../assets/icons/select-rectangle.svg')}
+              style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.slateGray }]}
+            />
+            <ThemedText themeColor="slateGray" type="small">
+              Recentrer
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            onPress={searchByNewBbox}
+            accessibilityRole="button"
+            style={[
+              styles.buttonBase,
+              {
+                backgroundColor: theme.charcoal,
+                flex: 1,
+                marginBottom: Spacing.two
+              }
+            ]}
+          >
+            <Image
+              source={require('../../../assets/icons/display.svg')}
+              style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.white }]}
+            />
+            <ThemedText themeColor="white" type="small">
+              Afficher les reg. ici
+            </ThemedText>
+          </Pressable>
+        </View>
       )}
       <View style={styles.wrapper}>
         <View style={styles.displayWrapper}>
