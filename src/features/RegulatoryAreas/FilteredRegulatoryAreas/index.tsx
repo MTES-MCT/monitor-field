@@ -5,12 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { BoundingBox } from '@/types/mapTypes'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { Search } from './Search'
+import { useTheme } from '@hooks/use-theme'
 
 type FilteredRegulatoryAreasProps = {
-  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void
+  onFocusRegulatoryArea: (bbox: BoundingBox) => void
 }
 
-export const FilteredRegulatoryAreas = ({ onFocusGroupOrRegulatoryArea }: FilteredRegulatoryAreasProps) => {
+export const FilteredRegulatoryAreas = ({ onFocusRegulatoryArea }: FilteredRegulatoryAreasProps) => {
+  const theme = useTheme()
   const { setIsSearchByQueryActive, isSearchByQueryActive, setClickedFeaturesList, isListVisible, setIsListVisible } =
     useRegulatoryAreasContext()
 
@@ -45,10 +47,13 @@ export const FilteredRegulatoryAreas = ({ onFocusGroupOrRegulatoryArea }: Filter
       enablePanDownToClose
       topInset={insets.top}
       onDismiss={onDismiss}
+      handleIndicatorStyle={{
+        backgroundColor: theme.lightGray
+      }}
     >
       <>
         <Search onClose={onDismiss} />
-        <RegulatoryAreasList onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} onClose={onDismiss} />
+        <RegulatoryAreasList onFocusRegulatoryArea={onFocusRegulatoryArea} onClose={onDismiss} />
       </>
     </BottomSheetModal>
   )

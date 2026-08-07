@@ -1,14 +1,8 @@
 import type { BoundingBox } from '@/types/mapTypes'
+import type { EnvRegulatoryArea, FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { createContext, useContext, useState } from 'react'
 
-export type RegulatoryAreaListItem = {
-  id: number
-  type: string | undefined
-  theme: string | undefined
-  zone: string | undefined
-  bbox: BoundingBox
-  fillColor: string
-}
+export type RegulatoryAreaListItem = FishRegulatoryArea | EnvRegulatoryArea
 
 export type Filters = {
   searchQuery: string | undefined
@@ -42,8 +36,8 @@ const RegulatoryAreasContext = createContext<
       isListVisible: boolean
       setIsListVisible: (visible: boolean) => void
       resetContext: () => void
-      isolatedRegulatoryArea: number | undefined
-      setIsolatedRegulatoryArea: (areaId: number | undefined) => void
+      isolatedRegulatoryAreaId: number | undefined
+      setIsolatedRegulatoryAreaId: (areaId: number | undefined) => void
     }
   | undefined
 >(undefined)
@@ -66,7 +60,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false)
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
   const [isListVisible, setIsListVisible] = useState(false)
-  const [isolatedRegulatoryArea, setIsolatedRegulatoryArea] = useState<number | undefined>(undefined)
+  const [isolatedRegulatoryAreaId, setIsolatedRegulatoryAreaId] = useState<number | undefined>(undefined)
 
   const resetContext = () => {
     setIsSearchZoneActive(false)
@@ -98,7 +92,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         isListVisible,
         isSearchByQueryActive,
         isSearchZoneActive,
-        isolatedRegulatoryArea,
+        isolatedRegulatoryAreaId,
         regulatoryAreas,
         resetContext,
         searchBbox,
@@ -112,7 +106,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         setIsListVisible,
         setIsSearchByQueryActive,
         setIsSearchZoneActive,
-        setIsolatedRegulatoryArea,
+        setIsolatedRegulatoryAreaId,
         setRegulatoryAreas,
         setSearchBbox,
         setSelectedRegulatoryArea,

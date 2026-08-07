@@ -1,15 +1,33 @@
 import type { DB } from '@op-engineering/op-sqlite'
 
-import type { BoundingBox } from '@/types/mapTypes'
+import { monitorEnvConfig } from '@config/appModes/monitorenv.config'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { calculateBboxFromWkt } from '@utils/calculateBboxFromWkt'
+import { normalizeFeatureProperty, stringToArrayItem } from '@utils/layersStyle'
+import { parseWktToGeojson } from '@utils/parseWktToGeojson'
+import dayjs from 'dayjs'
 import { ENV_REGULATORY_AREAS_API_URL, ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 
 type ApiRow = {
-  __id: number
-  type_de_reglementation: string
-  thematique: string
-  zone: string
-  regulations: string
+  id: number
+  edition: string
+  url: string
+  layer_name: string
+  facade: string
+  ref_reg: string
+  date: string
+  date_fin: string
+  location: string
+  type: string
   wkt: string
+  resume: string
+  plan: string
+  poly_name: string
+  authorization_periods: string
+  prohibition_periods: string
+  additional_ref_reg: string
+  themes: string
+  tags: string
 }
 
 type ApiResponse = {
@@ -19,44 +37,10 @@ type ApiResponse = {
   }
 }
 
-function calculateBboxFromWkt(wkt: string | undefined): BoundingBox | undefined {
-  if (!wkt) return undefined
-
-  try {
-    const wktTrimmed = wkt.trim()
-    const coords: [number, number][] = []
-
-    // Extract all coordinates from WKT
-    const coordMatches = wktTrimmed.match(/-?\d+\.?\d*\s+-?\d+\.?\d*/g)
-    if (!coordMatches) return undefined
-
-    for (const match of coordMatches) {
-      const [lon, lat] = match.split(' ').map(Number)
-      if (lon && !isNaN(lon) && lat && !isNaN(lat)) {
-        coords.push([lon, lat])
-      }
-    }
-
-    if (coords.length === 0) return undefined
-
-    const lons = coords.map(c => c[0])
-    const lats = coords.map(c => c[1])
-
-    return {
-      maxLat: Math.max(...lats),
-      maxLon: Math.max(...lons),
-      minLat: Math.min(...lats),
-      minLon: Math.min(...lons)
-    }
-  } catch {
-    return undefined
-  }
-}
-
 async function fetchAllEnvRegulatoryAreas() {
   const rows: ApiRow[] = []
-  let nextUrl: string | undefined = ENV_REGULATORY_AREAS_API_URL
-
+  // TODO: replace facade parameter with user setting when this issue is resolved: https://github.com/MTES-MCT/monitor-field/issues/32
+  let nextUrl: string | undefined = `${ENV_REGULATORY_AREAS_API_URL}?facade__exact=NAMO`
   while (nextUrl) {
     const response = await fetch(nextUrl)
 
@@ -72,43 +56,115 @@ async function fetchAllEnvRegulatoryAreas() {
   return rows
 }
 
+function buildFeatureColorKey(row: ApiRow): string {
+  const id = normalizeFeatureProperty(row.id)
+  const tags = normalizeFeatureProperty(row.tags)
+  const title = normalizeFeatureProperty(row.layer_name ?? row.resume)
+
+  return `${id}-${title}-${tags}`
+}
+
 export async function syncEnvRegulatoryAreas(db: DB) {
+  const palette = monitorEnvConfig?.colors
+
+  const existingCountResult = await db.execute(`SELECT COUNT(*) AS count FROM ${ENV_REGULATORY_AREAS_TABLE}`)
+  const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0)
+  const lastUpdate = await AsyncStorage.getItem('env-regulatory-areas-last-update')
+  const sevenDaysAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
+  const shouldSkipFetch = existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
+
+  if (shouldSkipFetch) {
+    return
+  }
+
   const rows = await fetchAllEnvRegulatoryAreas()
 
-  await db.transaction(async tx => {
-    await tx.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
+  if (!rows || rows.length === 0) {
+    // oxlint-disable-next-line no-console
+    console.warn('No env regulatory areas to sync')
+    return
+  }
 
-    for (const row of rows) {
-      const bbox = calculateBboxFromWkt(row.wkt)
+  try {
+    await db.transaction(async tx => {
+      await tx.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
 
-      await tx.execute(
-        `
-          INSERT INTO ${ENV_REGULATORY_AREAS_TABLE} (
-            id,
-            type,
-            theme,
-            zone,
-            regulations,
-            wkt,
-            bbox_min_lon,
-            bbox_min_lat,
-            bbox_max_lon,
-            bbox_max_lat
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
-        [
-          row.__id,
-          row.type_de_reglementation,
-          row.thematique,
-          row.zone,
-          row.regulations,
-          row.wkt,
-          bbox?.minLon ?? null,
-          bbox?.minLat ?? null,
-          bbox?.maxLon ?? null,
-          bbox?.maxLat ?? null
-        ]
-      )
-    }
-  })
+      for (let idx = 0; idx < rows.length; idx++) {
+        const row = rows[idx]
+
+        if (!row) {
+          // oxlint-disable-next-line no-console
+          console.warn(`Skipping null row at index ${idx}`)
+          continue
+        }
+
+        const bbox = calculateBboxFromWkt(row.wkt)
+
+        const colorKey = buildFeatureColorKey(row)
+        const fillColor = stringToArrayItem(colorKey, palette) ?? palette[0]
+
+        const geojson = row.wkt ? parseWktToGeojson(row.wkt) : undefined
+
+        await tx.execute(
+          `
+        INSERT INTO ${ENV_REGULATORY_AREAS_TABLE} (
+          id,
+          url,
+          layer_name,
+          facade,
+          ref_reg,
+          date,
+          date_fin,
+          type,
+          geojson,
+          resume,
+          plan,
+          poly_name,
+          authorization_periods,
+          prohibition_periods,
+          additional_ref_reg,
+          themes,
+          tags,
+          location,
+          fill_color,
+          edition,
+          bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+          [
+            row.id,
+            row.url,
+            row.layer_name,
+            row.facade,
+            row.ref_reg,
+            row.date,
+            row.date_fin,
+            row.type,
+            geojson ? JSON.stringify(geojson) : null,
+            row.resume,
+            row.plan,
+            row.poly_name,
+            row.authorization_periods,
+            row.prohibition_periods,
+            row.additional_ref_reg,
+            row.themes,
+            row.tags,
+            row.location,
+            fillColor ?? null,
+            row.edition,
+            bbox?.minLon ?? null,
+            bbox?.minLat ?? null,
+            bbox?.maxLon ?? null,
+            bbox?.maxLat ?? null
+          ]
+        )
+      }
+    })
+  } catch (error) {
+    // oxlint-disable-next-line no-console
+    console.error('Transaction failed during env sync:', error)
+    throw error
+  }
+
+  await AsyncStorage.setItem('env-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
 }

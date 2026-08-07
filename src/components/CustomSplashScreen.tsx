@@ -36,8 +36,8 @@ export function CustomSplashScreen() {
     fishTranslateX.value = -offscreenOffset
     fishTranslateX.value = withRepeat(
       withSequence(
-        withTiming(-20, { duration: FISH_MOVE_DURATION, easing: Easing.out(Easing.ease) }),
-        withTiming(-20, { duration: FISH_PAUSE_DURATION }),
+        withTiming(0, { duration: FISH_MOVE_DURATION, easing: Easing.out(Easing.ease) }),
+        withTiming(0, { duration: FISH_PAUSE_DURATION }),
         withTiming(offscreenOffset, { duration: FISH_MOVE_DURATION, easing: Easing.in(Easing.ease) }),
         withTiming(-offscreenOffset, { duration: 0 })
       ),
@@ -53,7 +53,7 @@ export function CustomSplashScreen() {
   return (
     <View style={styles.container}>
       <View />
-      <View style={styles.iconContainer}>
+      <View style={[styles.iconContainer, { width: screenWidth }]}>
         <Image
           source={require('../../assets/icons/algae.svg')}
           style={[styles.icon, styles.algaeIcon, { tintColor: theme.mediumSeaGreen }]}
@@ -64,7 +64,7 @@ export function CustomSplashScreen() {
       </View>
       <View style={styles.textContainer}>
         <ThemedText type="subtitle" style={{ color: theme.white }}>
-          Monitofield
+          Monitorfield
         </ThemedText>
         <ThemedText type="default" style={{ color: theme.white }}>
           version de test
@@ -76,7 +76,8 @@ export function CustomSplashScreen() {
 
 const styles = StyleSheet.create({
   algaeIcon: {
-    left: 0,
+    left: '50%',
+    marginLeft: -(ICON_SIZE / 2),
     position: 'absolute',
     top: Spacing.five,
     zIndex: 1
@@ -88,15 +89,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   fishWrapper: {
-    left: 0,
+    // centered in the full-width container; translateX moves it left/right across the screen
+    left: '45%',
+    marginLeft: -(ICON_SIZE / 2),
     position: 'absolute',
     top: 0,
     zIndex: 0
   },
   icon: { height: ICON_SIZE, width: ICON_SIZE },
   iconContainer: {
-    height: ICON_SIZE,
-    width: ICON_SIZE
+    height: ICON_SIZE + Spacing.five,
+    overflow: 'hidden'
   },
   textContainer: {
     alignItems: 'center',

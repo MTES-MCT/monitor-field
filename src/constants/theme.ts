@@ -13,7 +13,7 @@ const lightColors = {
   background: '#ffffff',
   backgroundElement: '#F0F0F3',
   backgroundSelected: '#E0E1E6',
-  textSecondary: '#60646C',
+  textSecondary: '#707785',
   gunMetal: '#282F3E',
   // TODO Make that charcoal object 100 & 50
   charcoal: '#3B4559',

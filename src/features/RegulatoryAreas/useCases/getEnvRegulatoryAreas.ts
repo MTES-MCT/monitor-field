@@ -1,36 +1,49 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
-import { FishRegulatoryAreaFeatureSchema } from '@/types/schemas'
+import { EnvRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
 import { matchesRegulatoryAreaSearch } from '../RegulatoryAreasList/utils'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
-import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
+import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
-import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 
-export type FishRegulatoryAreasResult = {
+export type EnvRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
-  listItems: FishRegulatoryArea[]
+  listItems: EnvRegulatoryArea[]
 }
 
-export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<FishRegulatoryAreasResult> {
+export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<EnvRegulatoryAreasResult> {
   const db = await getDatabase()
-  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox)
+  const fetchedAreas = await getEnvRegulatoryAreasQuery(db, bbox)
 
   const features: GeoJSONFeature[] = []
-  const listItems: FishRegulatoryArea[] = []
+  const listItems: EnvRegulatoryArea[] = []
 
   for (const area of fetchedAreas) {
-    if (!matchesRegulatoryAreaSearch(area, filters.searchQuery, 'MONITORFISH')) {
+    if (!matchesRegulatoryAreaSearch(area, filters.searchQuery, 'MONITORENV ')) {
       continue
     }
 
-    const currentArea: Omit<FishRegulatoryArea, 'bbox'> = {
+    const currentArea: Omit<EnvRegulatoryArea, 'bbox'> = {
+      additionalRefReg: area.additionalRefReg,
+      authorizationPeriods: area.authorizationPeriods,
+      date: area.date,
+      dateFin: area.dateFin,
+      edition: area.edition,
+      facade: area.facade,
       fillColor: area.fillColor,
       id: area.id,
-      regulations: area.regulations,
-      theme: area.theme,
+      layerName: area.layerName,
+      location: area.location,
+      plan: area.plan,
+      polyName: area.polyName,
+      prohibitionPeriods: area.prohibitionPeriods,
+      refReg: area.refReg,
+      resume: area.resume,
+      tags: area.tags,
+      themes: area.themes,
       type: area.type,
-      zone: area.zone
+      url: area.url
     }
 
     listItems.push({
@@ -54,7 +67,7 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
       properties: { ...currentArea }
     }
 
-    const validatedFeature = FishRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
+    const validatedFeature = EnvRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
 
     if (!validatedFeature.success) {
       // oxlint-disable-next-line no-console

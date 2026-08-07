@@ -7,8 +7,9 @@ import { RegulatoryAreasProvider } from '@contexts/RegulatoryAreasContext'
 import { syncFishRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncFishRegulatoryAreasDB'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
-import { Appearance } from 'react-native'
+import { Appearance, StatusBar } from 'react-native'
 import App from '.'
+import { syncEnvRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncEnvRegulatoryAreasDB'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 
 const getFishLayers = async () => {
@@ -20,6 +21,15 @@ const getFishLayers = async () => {
   }
 }
 
+const getEnvLayers = async () => {
+  try {
+    await syncEnvRegulatoryAreasDB()
+  } catch (error) {
+    // oxlint-disable-next-line no-console
+    console.warn('Unable to sync env regulatory areas', error)
+  }
+}
+
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()
   const [appReady, setAppReady] = useState(false)
@@ -28,7 +38,11 @@ export default function TabLayout() {
     Appearance.setColorScheme('light')
   }, [])
 
+  // TODO: improve this logic to wait for both syncs to finish before setting appReady to true
   useEffect(() => {
+    getEnvLayers().finally(() => {
+      setAppReady(true)
+    })
     getFishLayers().finally(() => {
       setAppReady(true)
     })
@@ -44,6 +58,7 @@ export default function TabLayout() {
         <RegulatoryAreasProvider>
           <BottomSheetModalProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <StatusBar barStyle="dark-content" />
               <App />
             </ThemeProvider>
           </BottomSheetModalProvider>

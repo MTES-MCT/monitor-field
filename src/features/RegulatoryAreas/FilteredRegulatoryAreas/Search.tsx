@@ -1,5 +1,5 @@
 import { ThemedText } from '@components/Text'
-import { Fonts, Spacing } from '@constants/theme'
+import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
@@ -35,53 +35,60 @@ export function Search({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <View style={[styles.wrapper, { borderBottomColor: theme.lightGray }]}>
-      <Pressable accessibilityRole="button" onPress={onCloseSearchInput}>
-        <Image source={require('../../../../assets/icons/chevron.svg')} style={[styles.icon, styles.chevronIcon]} />
-      </Pressable>
-      <View>
+    <>
+      <View style={[styles.searchBox, { borderColor: theme.lightGray }]}>
+        <Pressable onPress={onCloseSearchInput} hitSlop={8}>
+          <Image source={require('../../../../assets/icons/chevron.svg')} style={styles.icon} />
+        </Pressable>
+
         <TextInput
           ref={inputRef}
           autoFocus={isSearchByQueryActive}
-          style={[styles.input, { borderColor: theme.lightGray }]}
-          onChangeText={onChangeText}
+          style={styles.input}
           value={text}
+          onChangeText={onChangeText}
         />
-        <View style={styles.informationMessage}>
-          <Image source={require('../../../../assets/icons/attention-filled.svg')} style={styles.icon} />
-          <ThemedText type="small" themeColor="slateGray">
-            La recherche se fait dans la zone en pointillés
-          </ThemedText>
-        </View>
+
+        {text.length > 0 && (
+          <Pressable onPress={() => onChangeText('')} hitSlop={8}>
+            <Image source={require('../../../../assets/icons/close.svg')} style={styles.icon} />
+          </Pressable>
+        )}
       </View>
-    </View>
+      <View style={styles.informationMessage}>
+        <Image source={require('../../../../assets/icons/attention-filled.svg')} style={styles.icon} />
+        <ThemedText type="small" themeColor="slateGray">
+          La recherche se fait dans la zone en pointillés
+        </ThemedText>
+      </View>
+    </>
   )
 }
 
 const styles = StyleSheet.create({
-  chevronIcon: {
-    marginLeft: Spacing.two,
-    marginTop: Spacing.two
-  },
   icon: {
-    height: Spacing.five,
-    width: Spacing.five
+    height: 20,
+    width: 20
   },
   informationMessage: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: Spacing.two,
+    marginHorizontal: Spacing.two,
     marginVertical: Spacing.two
   },
   input: {
-    borderWidth: 1,
-    flexGrow: 1,
-    fontFamily: Fonts.sansMedium,
-    height: 48
+    color: '#2b3a4a',
+    flex: 1,
+    fontSize: 17,
+    paddingVertical: 0
   },
-  wrapper: {
-    borderBottomWidth: 1,
+  searchBox: {
+    alignItems: 'center',
+    borderWidth: 1,
     flexDirection: 'row',
-    gap: Spacing.two
+    height: 48,
+    marginHorizontal: Spacing.two,
+    paddingHorizontal: Spacing.one
   }
 })

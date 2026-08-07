@@ -1,23 +1,12 @@
 import type { DB } from '@op-engineering/op-sqlite'
 import type { BoundingBox } from '@/types/mapTypes'
 import { FISH_REGULATORY_AREAS_TABLE } from '../db.schema'
+import type { FishRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 
-export type FishRegulatoryArea = {
-  id: number
-  type: string
-  theme: string
-  zone: string
-  regulations: string
-  wkt: string
-  geojson: string
-  bbox_min_lon: number
-  bbox_min_lat: number
-  bbox_max_lon: number
-  bbox_max_lat: number
-  fill_color: string
-}
-
-export async function getFishRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Promise<FishRegulatoryArea[]> {
+export async function getFishRegulatoryAreasQuery(
+  db: DB,
+  bbox: BoundingBox
+): Promise<FishRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
 
   try {
@@ -34,7 +23,7 @@ export async function getFishRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pr
           fish.bbox_min_lat,
           fish.bbox_max_lon,
           fish.bbox_max_lat,
-          fish.fill_color
+          fish.fill_color as fillColor
         FROM ${FISH_REGULATORY_AREAS_TABLE} AS fish
         WHERE fish.bbox_max_lon >= ?
           AND fish.bbox_min_lon <= ?
@@ -45,7 +34,7 @@ export async function getFishRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pr
       [minLon, maxLon, minLat, maxLat]
     )
 
-    return result.rows as FishRegulatoryArea[]
+    return result.rows as FishRegulatoryAreaFromDatabase[]
   } catch (error) {
     // oxlint-disable-next-line no-console
     console.warn('Error fetching areas', error)

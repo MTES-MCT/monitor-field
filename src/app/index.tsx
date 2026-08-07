@@ -10,7 +10,6 @@ import { useSearchByZoneLayer } from '@components/Layers/useSearchByZoneLayer'
 import { LocationButton } from '@components/LocationButton'
 import { SwitchContextButton } from '@components/SwitchContextButton'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useFishRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/FishLayers'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
@@ -27,6 +26,7 @@ import {
 import { useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
+import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
@@ -52,7 +52,6 @@ const baseMapStyle: StyleSpecification = {
 const LOCATION_FOCUS_ZOOM = 35
 
 export default function App() {
-  const { config } = useAppContext()
   const mapRef = useRef<MapRef>(null)
   const cameraRef = useRef<CameraRef>(null)
   const { isLocationButtonEnabled } = useAppContext()
@@ -70,15 +69,14 @@ export default function App() {
 
   const [isFromFlyToBbox, setIsFromFlyToBbox] = useState(false)
 
-  const isMonitorFish = config.mode === 'MONITORFISH'
-  const fish = useFishRegulatoryAreasLayer()
+  const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const searchByZone = useSearchByZoneLayer()
 
   const mapStyle: StyleSpecification = {
     ...baseMapStyle,
     layers: [
       ...baseMapStyle.layers,
-      ...(isMonitorFish && isSearchZoneActive ? fish.layers : []),
+      ...(isSearchZoneActive ? regulatoryAreaLayer.layers : []),
       ...(isSearchZoneActive && searchByZone.layer ? [searchByZone.layer] : [])
     ],
     sources: {
@@ -87,10 +85,9 @@ export default function App() {
         searchByZone.source && {
           [searchByZone.source.id]: searchByZone.source.definition
         }),
-      ...(isMonitorFish &&
-        fish.source && {
-          [fish.source.id]: fish.source.definition
-        })
+      ...(regulatoryAreaLayer.source && {
+        [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
+      })
     }
   }
 
@@ -126,7 +123,7 @@ export default function App() {
     })
   }
 
-  const onFocusGroupOrRegulatoryArea = (bbox: BoundingBox | undefined) => {
+  const onFocusRegulatoryArea = (bbox: BoundingBox | undefined) => {
     if (!bbox) {
       return
     }
@@ -154,13 +151,13 @@ export default function App() {
   }
 
   const onMapPress = async (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
-    if (!isMonitorFish || !isSearchZoneActive) {
+    if (!isSearchZoneActive) {
       return
     }
 
     const position = event.nativeEvent.point
     const features = await mapRef.current?.queryRenderedFeatures(position, {
-      layers: [fish.ids.fillLayer]
+      layers: [regulatoryAreaLayer.ids.fillLayer]
     })
     const clickedFeaturesIds = features?.map(feature => feature.properties?.id) ?? []
     const clickedRegulatoryAreas = regulatoryAreas.filter(area => clickedFeaturesIds.includes(area.id))
@@ -174,7 +171,7 @@ export default function App() {
     setSelectedRegulatoryArea(selectedFeature)
 
     if (clickedRegulatoryAreas.length === 1) {
-      onFocusGroupOrRegulatoryArea(clickedRegulatoryAreas[0]?.bbox)
+      onFocusRegulatoryArea(clickedRegulatoryAreas[0]?.bbox)
     }
   }
 
@@ -215,9 +212,9 @@ export default function App() {
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <SwitchContextButton />
 
-        <SelectedRegulatoryAreas onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} />
+        <SelectedRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
 
-        <FilteredRegulatoryAreas onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} />
+        <FilteredRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
 
         <RegulatoryAreaDetails />
 
