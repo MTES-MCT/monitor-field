@@ -12,7 +12,7 @@ import { Image } from 'expo-image'
 import { useAppContext } from '@contexts/AppContext'
 
 type RegulatoryAreasListProps = {
-  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void
+  onFocusRegulatoryArea: (bbox: BoundingBox) => void
   onClose: () => void
 }
 
@@ -30,29 +30,13 @@ type AreaRow = {
 
 type RegulatoryRow = GroupRow | AreaRow
 
-function getGroupBoundingBox(areas: RegulatoryAreaListItem[]): BoundingBox | undefined {
-  if (areas.length === 0 || !areas[0]?.bbox) {
-    return undefined
-  }
-
-  return areas.reduce<BoundingBox>(
-    (bbox, area) => ({
-      maxLat: Math.max(bbox.maxLat, area.bbox.maxLat),
-      maxLon: Math.max(bbox.maxLon, area.bbox.maxLon),
-      minLat: Math.min(bbox.minLat, area.bbox.minLat),
-      minLon: Math.min(bbox.minLon, area.bbox.minLon)
-    }),
-    { ...areas[0].bbox }
-  )
-}
-
-export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: RegulatoryAreasListProps) => {
+export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: RegulatoryAreasListProps) => {
   const {
     clickedFeaturesList,
     regulatoryAreas,
     setSelectedRegulatoryArea,
-    setIsolatedRegulatoryArea,
-    isolatedRegulatoryArea
+    setIsolatedRegulatoryAreaId,
+    isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
   const { config } = useAppContext()
 
@@ -61,7 +45,10 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
   const isClickedFeatureList = !!clickedFeaturesList
 
   const groupedRegulatoryAreas = useMemo(
-    () => Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas, config.mode)),
+    () =>
+      Object.entries(getRegulatoryAreasByGroup(sourceRegulatoryAreas, config.mode)).sort(([groupA], [groupB]) =>
+        groupA.localeCompare(groupB)
+      ),
     [sourceRegulatoryAreas, config.mode]
   )
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
@@ -73,22 +60,15 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
     }
 
     setSelectedRegulatoryArea(area)
-    onFocusGroupOrRegulatoryArea?.(area.bbox)
+    onFocusRegulatoryArea?.(area.bbox)
   }
 
-  const clickOnGroup = (group: string, areas: RegulatoryAreaListItem[]) => {
+  const clickOnGroup = (group: string) => {
     const nextIsExpanded = !expandedGroups[group]
     setExpandedGroups(currentGroups => ({
       ...currentGroups,
       [group]: nextIsExpanded
     }))
-
-    if (nextIsExpanded && onFocusGroupOrRegulatoryArea) {
-      const groupBoundingBox = getGroupBoundingBox(areas)
-      if (groupBoundingBox) {
-        onFocusGroupOrRegulatoryArea(groupBoundingBox)
-      }
-    }
   }
 
   const closeModal = () => {
@@ -97,13 +77,13 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
   }
 
   const isolateRegulatoryArea = (area: RegulatoryAreaListItem) => {
-    if (isolatedRegulatoryArea === area.id) {
-      setIsolatedRegulatoryArea(undefined)
+    if (isolatedRegulatoryAreaId === area.id) {
+      setIsolatedRegulatoryAreaId(undefined)
 
       return
     }
 
-    setIsolatedRegulatoryArea(area.id)
+    setIsolatedRegulatoryAreaId(area.id)
   }
 
   const flattenedRows = useMemo<RegulatoryRow[]>(() => {
@@ -127,11 +107,7 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
   const renderRow = ({ item }: { item: RegulatoryRow }) => {
     if (item.type === 'group') {
       return (
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={styles.groupButton}
-          onPress={() => clickOnGroup(item.group, item.areas)}
-        >
+        <TouchableOpacity activeOpacity={0.7} style={styles.groupButton} onPress={() => clickOnGroup(item.group)}>
           <ThemedText type="defaultBold">{item.group}</ThemedText>
         </TouchableOpacity>
       )
@@ -159,7 +135,7 @@ export const RegulatoryAreasList = ({ onFocusGroupOrRegulatoryArea, onClose }: R
               style={[
                 styles.targetIcon,
                 {
-                  tintColor: isolatedRegulatoryArea === item.area.id ? theme.blueGray : theme.lightGray
+                  tintColor: isolatedRegulatoryAreaId === item.area.id ? theme.blueGray : theme.lightGray
                 }
               ]}
             />
@@ -233,6 +209,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    minHeight: 48,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.three
   },
@@ -263,6 +240,7 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    minHeight: 48
   }
 })

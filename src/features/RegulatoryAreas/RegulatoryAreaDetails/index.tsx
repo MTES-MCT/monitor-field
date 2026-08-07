@@ -44,6 +44,9 @@ export const RegulatoryAreaDetails = () => {
       enablePanDownToClose
       topInset={insets?.top}
       onDismiss={onDismiss}
+      handleIndicatorStyle={{
+        backgroundColor: theme.lightGray
+      }}
     >
       <BottomSheetScrollView>
         {config.mode === 'MONITORFISH' && (
