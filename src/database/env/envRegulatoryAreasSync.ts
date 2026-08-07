@@ -39,6 +39,7 @@ type ApiResponse = {
 
 async function fetchAllEnvRegulatoryAreas() {
   const rows: ApiRow[] = []
+  // TODO: replace facade parameter with user setting when this issue is resolved: https://github.com/MTES-MCT/monitor-field/issues/32
   let nextUrl: string | undefined = `${ENV_REGULATORY_AREAS_API_URL}?facade__exact=NAMO`
   while (nextUrl) {
     const response = await fetch(nextUrl)

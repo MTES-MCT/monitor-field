@@ -24,15 +24,9 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       continue
     }
 
-    listItems.push({
+    const currentArea: Omit<EnvRegulatoryArea, 'bbox'> = {
       additionalRefReg: area.additionalRefReg,
       authorizationPeriods: area.authorizationPeriods,
-      bbox: {
-        maxLat: area.bbox_max_lat,
-        maxLon: area.bbox_max_lon,
-        minLat: area.bbox_min_lat,
-        minLon: area.bbox_min_lon
-      },
       date: area.date,
       dateFin: area.dateFin,
       edition: area.edition,
@@ -50,6 +44,16 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       themes: area.themes,
       type: area.type,
       url: area.url
+    }
+
+    listItems.push({
+      ...currentArea,
+      bbox: {
+        maxLat: area.bbox_max_lat,
+        maxLon: area.bbox_max_lon,
+        minLat: area.bbox_min_lat,
+        minLon: area.bbox_min_lon
+      }
     })
 
     const feature = parseGeoJSONFeature(area.geojson)
@@ -60,27 +64,7 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
 
     const featureWithProperties = {
       ...feature,
-      properties: {
-        additionalRefReg: area.additionalRefReg,
-        authorizationPeriods: area.authorizationPeriods,
-        date: area.date,
-        dateFin: area.dateFin,
-        edition: area.edition,
-        facade: area.facade,
-        fillColor: area.fillColor,
-        id: area.id,
-        layerName: area.layerName,
-        location: area.location,
-        plan: area.plan,
-        polyName: area.polyName,
-        prohibitionPeriods: area.prohibitionPeriods,
-        refReg: area.refReg,
-        resume: area.resume,
-        tags: area.tags,
-        themes: area.themes,
-        type: area.type,
-        url: area.url
-      }
+      properties: { ...currentArea }
     }
 
     const validatedFeature = EnvRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)

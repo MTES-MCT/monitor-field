@@ -42,7 +42,6 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
       `,
       [minLon, maxLon, minLat, maxLat]
     )
-    // console.log('Fetched areas from database:', result.rows[0])
 
     return result.rows as EnvRegulatoryAreaFromDatabase[]
   } catch (error) {

@@ -41,6 +41,7 @@ const EnvFeaturePropertiesSchema = z.object({
   authorizationPeriods: z.string().nullable(),
   date: z.string().nullable(),
   dateFin: z.string().nullable(),
+  edition: z.string().nullable(),
   facade: z.string().nullable(),
   fillColor: z.string(),
   id: z.number(),

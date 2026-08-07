@@ -38,6 +38,7 @@ export default function TabLayout() {
     Appearance.setColorScheme('light')
   }, [])
 
+  // TODO: improve this logic to wait for both syncs to finish before setting appReady to true
   useEffect(() => {
     getEnvLayers().finally(() => {
       setAppReady(true)

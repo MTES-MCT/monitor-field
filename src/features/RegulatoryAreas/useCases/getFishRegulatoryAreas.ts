@@ -24,19 +24,23 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
       continue
     }
 
-    listItems.push({
-      bbox: {
-        maxLat: area.bbox_max_lat,
-        maxLon: area.bbox_max_lon,
-        minLat: area.bbox_min_lat,
-        minLon: area.bbox_min_lon
-      },
+    const currentArea: Omit<FishRegulatoryArea, 'bbox'> = {
       fillColor: area.fillColor,
       id: area.id,
       regulations: area.regulations,
       theme: area.theme,
       type: area.type,
       zone: area.zone
+    }
+
+    listItems.push({
+      ...currentArea,
+      bbox: {
+        maxLat: area.bbox_max_lat,
+        maxLon: area.bbox_max_lon,
+        minLat: area.bbox_min_lat,
+        minLon: area.bbox_min_lon
+      }
     })
 
     const feature = parseGeoJSONFeature(area.geojson)
@@ -47,14 +51,7 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
 
     const featureWithProperties = {
       ...feature,
-      properties: {
-        fillColor: area.fillColor,
-        id: area.id,
-        regulations: area.regulations,
-        theme: area.theme,
-        type: area.type,
-        zone: area.zone
-      }
+      properties: { ...currentArea }
     }
 
     const validatedFeature = FishRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
