@@ -72,7 +72,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             ]}
           >
             <Image
-              source={require('../../../assets/icons/select-rectangle.svg')}
+              source={require('@assets/icons/select-rectangle.svg')}
               style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.slateGray }]}
             />
             <ThemedText themeColor="slateGray" type="small">
@@ -92,7 +92,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             ]}
           >
             <Image
-              source={require('../../../assets/icons/display.svg')}
+              source={require('@assets/icons/display.svg')}
               style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.white }]}
             />
             <ThemedText themeColor="white" type="small">
@@ -114,10 +114,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
               }
             ]}
           >
-            <Image
-              source={require('../../../assets/icons/display.svg')}
-              style={[styles.icon, { tintColor: theme.white }]}
-            />
+            <Image source={require('@assets/icons/display.svg')} style={[styles.icon, { tintColor: theme.white }]} />
             {!isSearchZoneActive && (
               <ThemedText type="small" themeColor="white" style={{ marginLeft: Spacing.two }}>
                 Afficher les reg.ici
@@ -155,7 +152,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             }}
             style={[styles.buttonBase, { backgroundColor: theme.white }]}
           >
-            <Image source={require('../../../assets/icons/search.svg')} style={styles.icon} />
+            <Image source={require('@assets/icons/search.svg')} style={styles.icon} />
           </Pressable>
           {config.features.hasRegulatoryAreasFilters && (
             <Pressable
@@ -166,7 +163,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
               }}
               style={[styles.buttonBase, { backgroundColor: theme.white }]}
             >
-              <Image source={require('../../../assets/icons/filter.svg')} style={styles.icon} />
+              <Image source={require('@assets/icons/filter.svg')} style={styles.icon} />
             </Pressable>
           )}
         </View>

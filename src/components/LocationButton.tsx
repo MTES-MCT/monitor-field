@@ -64,8 +64,8 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
           key={`${isLocationGranted}-${isLocationEnabled}`}
           source={
             !isLocationEnabled || !isLocationGranted
-              ? require('../../assets/icons/location-disabled.svg')
-              : require('../../assets/icons/location.svg')
+              ? require('@assets/icons/location-disabled.svg')
+              : require('@assets/icons/location.svg')
           }
           cachePolicy="none"
           transition={0}

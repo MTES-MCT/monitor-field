@@ -11,6 +11,7 @@ import { Appearance, StatusBar } from 'react-native'
 import App from '.'
 import { syncEnvRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncEnvRegulatoryAreasDB'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
+// import { OnBoarding } from '@features/OnBoarding'
 
 const getFishLayers = async () => {
   try {
@@ -60,6 +61,7 @@ export default function TabLayout() {
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
               <StatusBar barStyle="dark-content" />
               <App />
+              {/* <OnBoarding /> */}
             </ThemeProvider>
           </BottomSheetModalProvider>
         </RegulatoryAreasProvider>

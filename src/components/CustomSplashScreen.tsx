@@ -55,11 +55,11 @@ export function CustomSplashScreen() {
       <View />
       <View style={[styles.iconContainer, { width: screenWidth }]}>
         <Image
-          source={require('../../assets/icons/algae.svg')}
+          source={require('@assets/icons/algae.svg')}
           style={[styles.icon, styles.algaeIcon, { tintColor: theme.mediumSeaGreen }]}
         />
         <Animated.View style={[styles.fishWrapper, fishAnimatedStyle]}>
-          <Image source={require('../../assets/icons/fish.svg')} style={styles.icon} />
+          <Image source={require('@assets/icons/fish.svg')} style={styles.icon} />
         </Animated.View>
       </View>
       <View style={styles.textContainer}>

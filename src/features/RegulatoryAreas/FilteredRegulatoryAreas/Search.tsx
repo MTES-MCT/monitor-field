@@ -38,7 +38,7 @@ export function Search({ onClose }: { onClose: () => void }) {
     <>
       <View style={[styles.searchBox, { borderColor: theme.lightGray }]}>
         <Pressable onPress={onCloseSearchInput} hitSlop={8}>
-          <Image source={require('../../../../assets/icons/chevron.svg')} style={styles.icon} />
+          <Image source={require('@assets/icons/chevron.svg')} style={styles.icon} />
         </Pressable>
 
         <TextInput
@@ -51,12 +51,12 @@ export function Search({ onClose }: { onClose: () => void }) {
 
         {text.length > 0 && (
           <Pressable onPress={() => onChangeText('')} hitSlop={8}>
-            <Image source={require('../../../../assets/icons/close.svg')} style={styles.icon} />
+            <Image source={require('@assets/icons/close.svg')} style={styles.icon} />
           </Pressable>
         )}
       </View>
       <View style={styles.informationMessage}>
-        <Image source={require('../../../../assets/icons/attention-filled.svg')} style={styles.icon} />
+        <Image source={require('@assets/icons/attention-filled.svg')} style={styles.icon} />
         <ThemedText type="small" themeColor="slateGray">
           La recherche se fait dans la zone en pointillés
         </ThemedText>
