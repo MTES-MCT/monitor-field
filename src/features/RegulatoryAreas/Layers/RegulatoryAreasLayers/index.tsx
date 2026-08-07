@@ -35,21 +35,23 @@ export type RegulatoryAreasLayerProps = {
 
 function createRegulatoryAreasLayers(
   sourceId: string,
-  isolatedRegulatoryArea: number | undefined,
+  isolatedRegulatoryAreaId: number | undefined,
   selectedRegulatoryAreaId: number | undefined
 ): MapLayer[] {
-  const fillOpacityExpression: any = !isolatedRegulatoryArea
+  const isIsolated: boolean = !!isolatedRegulatoryAreaId || !!selectedRegulatoryAreaId
+  const isolatedRegulatoryAreaIdToUse: number | undefined = isolatedRegulatoryAreaId ?? selectedRegulatoryAreaId
+  const fillOpacityExpression: any = !isIsolated
     ? 0.4
-    : ['case', ['==', ['get', 'id'], isolatedRegulatoryArea], 0.4, 0]
+    : ['case', ['==', ['get', 'id'], isolatedRegulatoryAreaIdToUse], 0.4, 0]
 
   const selectedExpression: any = !selectedRegulatoryAreaId
     ? 1
     : ['case', ['==', ['get', 'id'], selectedRegulatoryAreaId], 3, 1]
 
-  const outlineWidthExpression: any =
-    isolatedRegulatoryArea === undefined
-      ? selectedExpression
-      : ['case', ['==', ['get', 'id'], isolatedRegulatoryArea], 3, 1]
+  const outlineWidthExpression: any = !isIsolated
+    ? selectedExpression
+    : ['case', ['==', ['get', 'id'], isolatedRegulatoryAreaIdToUse], 3, 1]
+
   return [
     {
       id: regulatoryAreasIds.fillLayer,
@@ -83,7 +85,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     setRegulatoryAreas,
     selectedRegulatoryArea,
     filters,
-    isolatedRegulatoryArea
+    isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
   const { config } = useAppContext()
   const theme = useTheme()
@@ -155,7 +157,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     ids: regulatoryAreasIds,
     isLoading,
     layers: geoJSONWithResolvedFillColor
-      ? createRegulatoryAreasLayers(regulatoryAreasIds.source, isolatedRegulatoryArea, selectedRegulatoryArea?.id)
+      ? createRegulatoryAreasLayers(regulatoryAreasIds.source, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id)
       : [],
     source: {
       definition: {

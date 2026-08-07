@@ -123,7 +123,7 @@ export default function App() {
     })
   }
 
-  const onFocusGroupOrRegulatoryArea = (bbox: BoundingBox | undefined) => {
+  const onFocusRegulatoryArea = (bbox: BoundingBox | undefined) => {
     if (!bbox) {
       return
     }
@@ -171,7 +171,7 @@ export default function App() {
     setSelectedRegulatoryArea(selectedFeature)
 
     if (clickedRegulatoryAreas.length === 1) {
-      onFocusGroupOrRegulatoryArea(clickedRegulatoryAreas[0]?.bbox)
+      onFocusRegulatoryArea(clickedRegulatoryAreas[0]?.bbox)
     }
   }
 
@@ -212,9 +212,9 @@ export default function App() {
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <SwitchContextButton />
 
-        <SelectedRegulatoryAreas onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} />
+        <SelectedRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
 
-        <FilteredRegulatoryAreas onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} />
+        <FilteredRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
 
         <RegulatoryAreaDetails />
 

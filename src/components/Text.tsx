@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   small: {
-    fontFamily: Fonts.sansMedium,
+    fontFamily: Fonts.sans,
     fontSize: 14,
     lineHeight: 20
   },

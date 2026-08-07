@@ -4,22 +4,24 @@ import { useEffect, useMemo, useRef } from 'react'
 import { RegulatoryAreasList } from '../RegulatoryAreasList'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { BoundingBox } from '@/types/mapTypes'
+import { useTheme } from '@hooks/use-theme'
 
 export const SelectedRegulatoryAreas = ({
-  onFocusGroupOrRegulatoryArea
+  onFocusRegulatoryArea
 }: {
-  onFocusGroupOrRegulatoryArea: (bbox: BoundingBox) => void
+  onFocusRegulatoryArea: (bbox: BoundingBox) => void
 }) => {
+  const theme = useTheme()
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const { setClickedFeaturesList, clickedFeaturesList, setIsolatedRegulatoryArea } = useRegulatoryAreasContext()
+  const { setClickedFeaturesList, clickedFeaturesList, setIsolatedRegulatoryAreaId } = useRegulatoryAreasContext()
 
   const onDismiss = () => {
     modalRef.current?.dismiss()
     setClickedFeaturesList(undefined)
-    setIsolatedRegulatoryArea(undefined)
+    setIsolatedRegulatoryAreaId(undefined)
   }
 
   useEffect(() => {
@@ -39,8 +41,11 @@ export const SelectedRegulatoryAreas = ({
       enablePanDownToClose
       topInset={insets.top}
       onDismiss={onDismiss}
+      handleIndicatorStyle={{
+        backgroundColor: theme.lightGray
+      }}
     >
-      <RegulatoryAreasList onClose={onDismiss} onFocusGroupOrRegulatoryArea={onFocusGroupOrRegulatoryArea} />
+      <RegulatoryAreasList onClose={onDismiss} onFocusRegulatoryArea={onFocusRegulatoryArea} />
     </BottomSheetModal>
   )
 }

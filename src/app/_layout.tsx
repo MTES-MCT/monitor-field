@@ -7,7 +7,7 @@ import { RegulatoryAreasProvider } from '@contexts/RegulatoryAreasContext'
 import { syncFishRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncFishRegulatoryAreasDB'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
-import { Appearance } from 'react-native'
+import { Appearance, StatusBar } from 'react-native'
 import App from '.'
 import { syncEnvRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncEnvRegulatoryAreasDB'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
@@ -58,6 +58,7 @@ export default function TabLayout() {
         <RegulatoryAreasProvider>
           <BottomSheetModalProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <StatusBar barStyle="dark-content" />
               <App />
             </ThemeProvider>
           </BottomSheetModalProvider>
