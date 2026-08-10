@@ -26,7 +26,8 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
     setHasSearchZoneChanged,
     setSearchBbox,
     totalCount,
-    setIsSearchByQueryActive
+    setIsSearchByQueryActive,
+    filters
   } = useRegulatoryAreasContext()
   const theme = useTheme()
 
@@ -72,7 +73,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             ]}
           >
             <Image
-              source={require('../../../assets/icons/select-rectangle.svg')}
+              source={require('@assets/icons/select-rectangle.svg')}
               style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.slateGray }]}
             />
             <ThemedText themeColor="slateGray" type="small">
@@ -92,7 +93,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             ]}
           >
             <Image
-              source={require('../../../assets/icons/display.svg')}
+              source={require('@assets/icons/display.svg')}
               style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.white }]}
             />
             <ThemedText themeColor="white" type="small">
@@ -114,10 +115,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
               }
             ]}
           >
-            <Image
-              source={require('../../../assets/icons/display.svg')}
-              style={[styles.icon, { tintColor: theme.white }]}
-            />
+            <Image source={require('@assets/icons/display.svg')} style={[styles.icon, { tintColor: theme.white }]} />
             {!isSearchZoneActive && (
               <ThemedText type="small" themeColor="white" style={{ marginLeft: Spacing.two }}>
                 Afficher les reg.ici
@@ -140,8 +138,11 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
                 }
               ]}
             >
-              <ThemedText type="small" themeColor="text">
-                REG ({totalCount ?? 0})
+              <ThemedText type="defaultBold" themeColor="text">
+                REG{' '}
+                <ThemedText type="defaultBold" themeColor="slateGray">
+                  ({totalCount ?? 0})
+                </ThemedText>
               </ThemedText>
             </Pressable>
           )}
@@ -155,7 +156,8 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             }}
             style={[styles.buttonBase, { backgroundColor: theme.white }]}
           >
-            <Image source={require('../../../assets/icons/search.svg')} style={styles.icon} />
+            {filters.searchQuery && <View style={[styles.dot, { backgroundColor: theme.blueGray }]} />}
+            <Image source={require('@assets/icons/search.svg')} style={styles.icon} />
           </Pressable>
           {config.features.hasRegulatoryAreasFilters && (
             <Pressable
@@ -164,9 +166,9 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
               accessibilityState={{
                 disabled: false
               }}
-              style={[styles.buttonBase, { backgroundColor: theme.white }]}
+              style={[styles.buttonBase, { backgroundColor: theme.white, zIndex: -1 }]}
             >
-              <Image source={require('../../../assets/icons/filter.svg')} style={styles.icon} />
+              <Image source={require('@assets/icons/filter.svg')} style={styles.icon} />
             </Pressable>
           )}
         </View>
@@ -181,12 +183,21 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    padding: Spacing.three
+    padding: Spacing.three,
+    position: 'relative'
   },
   displayWrapper: {
     flex: 1,
     flexDirection: 'row',
     gap: Spacing.half
+  },
+  dot: {
+    borderRadius: '50%',
+    height: 20,
+    left: 35,
+    position: 'absolute',
+    top: -10,
+    width: 20
   },
   icon: {
     height: Spacing.five,

@@ -51,7 +51,7 @@ export function EnvRegulatoryAreaDetails({
           </ThemedText>
         </View>
         <Pressable accessibilityRole="button" onPress={onDismiss}>
-          <Image source={require('../../../../assets/icons/close.svg')} style={styles.icon} />
+          <Image source={require('@assets/icons/close.svg')} style={styles.icon} />
         </Pressable>
       </View>
       <View style={styles.content}>

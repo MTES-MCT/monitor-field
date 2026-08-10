@@ -1,12 +1,12 @@
 import type { DB } from '@op-engineering/op-sqlite'
 
 import { monitorEnvConfig } from '@config/appModes/monitorenv.config'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { calculateBboxFromWkt } from '@utils/calculateBboxFromWkt'
 import { normalizeFeatureProperty, stringToArrayItem } from '@utils/layersStyle'
 import { parseWktToGeojson } from '@utils/parseWktToGeojson'
 import dayjs from 'dayjs'
 import { ENV_REGULATORY_AREAS_API_URL, ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
+import { storage } from '@storage'
 
 type ApiRow = {
   id: number
@@ -27,7 +27,6 @@ type ApiRow = {
   prohibition_periods: string
   additional_ref_reg: string
   themes: string
-  tags: string
 }
 
 type ApiResponse = {
@@ -37,10 +36,9 @@ type ApiResponse = {
   }
 }
 
-async function fetchAllEnvRegulatoryAreas() {
+async function fetchAllEnvRegulatoryAreas(facades: string[]) {
   const rows: ApiRow[] = []
-  // TODO: replace facade parameter with user setting when this issue is resolved: https://github.com/MTES-MCT/monitor-field/issues/32
-  let nextUrl: string | undefined = `${ENV_REGULATORY_AREAS_API_URL}?facade__exact=NAMO`
+  let nextUrl: string | undefined = `${ENV_REGULATORY_AREAS_API_URL}?facade__in=${facades.join(',')}`
   while (nextUrl) {
     const response = await fetch(nextUrl)
 
@@ -58,18 +56,18 @@ async function fetchAllEnvRegulatoryAreas() {
 
 function buildFeatureColorKey(row: ApiRow): string {
   const id = normalizeFeatureProperty(row.id)
-  const tags = normalizeFeatureProperty(row.tags)
-  const title = normalizeFeatureProperty(row.layer_name ?? row.resume)
+  const themes = normalizeFeatureProperty(row.themes)
+  const title = normalizeFeatureProperty(row.poly_name ?? row.resume)
 
-  return `${id}-${title}-${tags}`
+  return `${id}-${title}-${themes}`
 }
 
-export async function syncEnvRegulatoryAreas(db: DB) {
+export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
   const palette = monitorEnvConfig?.colors
 
   const existingCountResult = await db.execute(`SELECT COUNT(*) AS count FROM ${ENV_REGULATORY_AREAS_TABLE}`)
   const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0)
-  const lastUpdate = await AsyncStorage.getItem('env-regulatory-areas-last-update')
+  const lastUpdate = storage.getString('env-regulatory-areas-last-update')
   const sevenDaysAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
   const shouldSkipFetch = existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
 
@@ -77,7 +75,7 @@ export async function syncEnvRegulatoryAreas(db: DB) {
     return
   }
 
-  const rows = await fetchAllEnvRegulatoryAreas()
+  const rows = await fetchAllEnvRegulatoryAreas(facades)
 
   if (!rows || rows.length === 0) {
     // oxlint-disable-next-line no-console
@@ -91,7 +89,6 @@ export async function syncEnvRegulatoryAreas(db: DB) {
 
       for (let idx = 0; idx < rows.length; idx++) {
         const row = rows[idx]
-
         if (!row) {
           // oxlint-disable-next-line no-console
           console.warn(`Skipping null row at index ${idx}`)
@@ -124,12 +121,11 @@ export async function syncEnvRegulatoryAreas(db: DB) {
           prohibition_periods,
           additional_ref_reg,
           themes,
-          tags,
           location,
           fill_color,
           edition,
           bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
           [
             row.id,
@@ -148,10 +144,9 @@ export async function syncEnvRegulatoryAreas(db: DB) {
             row.prohibition_periods,
             row.additional_ref_reg,
             row.themes,
-            row.tags,
             row.location,
             fillColor ?? null,
-            row.edition,
+            row.edition === undefined ? null : row.edition,
             bbox?.minLon ?? null,
             bbox?.minLat ?? null,
             bbox?.maxLon ?? null,
@@ -166,5 +161,5 @@ export async function syncEnvRegulatoryAreas(db: DB) {
     throw error
   }
 
-  await AsyncStorage.setItem('env-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+  storage.set('env-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
 }

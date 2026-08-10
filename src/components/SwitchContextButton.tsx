@@ -52,7 +52,7 @@ export function SwitchContextButton() {
         ]}
       >
         <Image
-          source={require('../../assets/icons/algae.svg')}
+          source={require('@assets/icons/algae.svg')}
           style={[
             styles.icon,
             getVisualState({
@@ -80,7 +80,7 @@ export function SwitchContextButton() {
         ]}
       >
         <Image
-          source={require('../../assets/icons/fish.svg')}
+          source={require('@assets/icons/fish.svg')}
           style={[
             styles.icon,
             getVisualState({

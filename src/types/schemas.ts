@@ -45,12 +45,11 @@ const EnvFeaturePropertiesSchema = z.object({
   facade: z.string().nullable(),
   fillColor: z.string(),
   id: z.number(),
-  plan: z.string(),
+  plan: z.string().nullable(),
   polyName: z.string().nullable(),
   prohibitionPeriods: z.string().nullable(),
   refReg: z.string().nullable(),
   resume: z.string().nullable(),
-  tags: z.string().nullable(),
   themes: z.string().nullable(),
   type: z.string().nullable(),
   url: z.string().nullable()

@@ -15,7 +15,6 @@ export type EnvRegulatoryAreasResult = {
 export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<EnvRegulatoryAreasResult> {
   const db = await getDatabase()
   const fetchedAreas = await getEnvRegulatoryAreasQuery(db, bbox)
-
   const features: GeoJSONFeature[] = []
   const listItems: EnvRegulatoryArea[] = []
 
@@ -29,18 +28,17 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       authorizationPeriods: area.authorizationPeriods,
       date: area.date,
       dateFin: area.dateFin,
-      edition: area.edition,
+      edition: area.edition ?? null,
       facade: area.facade,
       fillColor: area.fillColor,
       id: area.id,
       layerName: area.layerName,
       location: area.location,
-      plan: area.plan,
+      plan: area.plan ?? null,
       polyName: area.polyName,
       prohibitionPeriods: area.prohibitionPeriods,
       refReg: area.refReg,
       resume: area.resume,
-      tags: area.tags,
       themes: area.themes,
       type: area.type,
       url: area.url
