@@ -27,11 +27,19 @@ const seaFrontOptions = [
   { label: 'Wallis-et-Futuna', value: 'Wallis-et-Futuna' }
 ]
 
-export function Step2({ setCurrentStep }: { setCurrentStep: () => void }) {
+export function Step2({ onNext }: { onNext: (facades: string[]) => void }) {
   const theme = useTheme()
   const [selectedSeaFronts, setSelectedSeaFronts] = useState<string[]>([])
 
   const isButtonDisabled = selectedSeaFronts.length === 0
+
+  const handleNextStep = () => {
+    if (isButtonDisabled) {
+      return
+    }
+
+    onNext(selectedSeaFronts)
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -63,7 +71,7 @@ export function Step2({ setCurrentStep }: { setCurrentStep: () => void }) {
 
       <Pressable
         disabled={isButtonDisabled}
-        onPress={setCurrentStep}
+        onPress={handleNextStep}
         accessibilityRole="button"
         accessibilityState={{
           disabled: isButtonDisabled

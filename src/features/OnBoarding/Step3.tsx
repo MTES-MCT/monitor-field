@@ -1,10 +1,18 @@
+import { storage } from '@storage'
 import { ThemedText } from '@components/Text'
 import { Spacing } from '@constants/theme'
 import { Image } from 'expo-image'
+import { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
 import Animated from 'react-native-reanimated'
 
-export function Step3() {
+export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
+  useEffect(() => {
+    syncPromise.then(() => {
+      storage.set('isOnBoardingFinished', true)
+    })
+  }, [syncPromise])
+
   return (
     <View style={styles.wrapper}>
       <Animated.View

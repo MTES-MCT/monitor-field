@@ -1,12 +1,12 @@
 import type { DB } from '@op-engineering/op-sqlite'
 
 import { monitorFishConfig } from '@config/appModes/monitorfish.config'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { calculateBboxFromWkt } from '@utils/calculateBboxFromWkt'
 import { normalizeFeatureProperty, stringToArrayItem } from '@utils/layersStyle'
 import { parseWktToGeojson } from '@utils/parseWktToGeojson'
 import dayjs from 'dayjs'
 import { FISH_REGULATORY_AREAS_API_URL, FISH_REGULATORY_AREAS_TABLE } from '../db.schema'
+import { storage } from '@storage'
 
 type ApiRow = {
   id: number
@@ -24,7 +24,8 @@ type ApiResponse = {
   }
 }
 
-async function fetchAllFishRegulatoryAreas() {
+// TODO: add facade filter once the fish API exposes a facade column
+async function fetchAllFishRegulatoryAreas(_facades: string[]) {
   const rows: ApiRow[] = []
   let nextUrl: string | undefined = FISH_REGULATORY_AREAS_API_URL
   while (nextUrl) {
@@ -50,12 +51,12 @@ function buildFeatureColorKey(row: ApiRow): string {
   return `${id}-${type}-${regulatoryAreaTheme}`
 }
 
-export async function syncFishRegulatoryAreas(db: DB) {
+export async function syncFishRegulatoryAreas(db: DB, facades: string[]) {
   const palette = monitorFishConfig?.colors
 
   const existingCountResult = await db.execute(`SELECT COUNT(*) AS count FROM ${FISH_REGULATORY_AREAS_TABLE}`)
   const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0)
-  const lastUpdate = await AsyncStorage.getItem('fish-regulatory-areas-last-update')
+  const lastUpdate = storage.getString('fish-regulatory-areas-last-update')
   const sevenDaysAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
   const shouldSkipFetch = existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
 
@@ -63,7 +64,7 @@ export async function syncFishRegulatoryAreas(db: DB) {
     return
   }
 
-  const rows = await fetchAllFishRegulatoryAreas()
+  const rows = await fetchAllFishRegulatoryAreas(facades)
   if (!rows || rows.length === 0) {
     // oxlint-disable-next-line no-console
     console.warn('No fish regulatory areas to sync')
@@ -120,5 +121,5 @@ export async function syncFishRegulatoryAreas(db: DB) {
     throw error
   }
 
-  await AsyncStorage.setItem('fish-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+  storage.set('fish-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
 }

@@ -1,57 +1,24 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { AppProvider } from '@contexts/AppContext'
 import { RegulatoryAreasProvider } from '@contexts/RegulatoryAreasContext'
-import { syncFishRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncFishRegulatoryAreasDB'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
+import { storage } from '@storage'
 import { Appearance, StatusBar } from 'react-native'
+import { OnBoarding } from '@features/OnBoarding'
 import App from '.'
-import { syncEnvRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncEnvRegulatoryAreasDB'
-import { CustomSplashScreen } from '@components/CustomSplashScreen'
-// import { OnBoarding } from '@features/OnBoarding'
-
-const getFishLayers = async () => {
-  try {
-    await syncFishRegulatoryAreasDB()
-  } catch (error) {
-    // oxlint-disable-next-line no-console
-    console.warn('Unable to sync fish regulatory areas', error)
-  }
-}
-
-const getEnvLayers = async () => {
-  try {
-    await syncEnvRegulatoryAreasDB()
-  } catch (error) {
-    // oxlint-disable-next-line no-console
-    console.warn('Unable to sync env regulatory areas', error)
-  }
-}
+import { useMMKVBoolean } from 'react-native-mmkv'
 
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()
-  const [appReady, setAppReady] = useState(false)
+  const [isOnBoardingFinished] = useMMKVBoolean('isOnBoardingFinished', storage)
 
   useEffect(() => {
     Appearance.setColorScheme('light')
   }, [])
-
-  // TODO: improve this logic to wait for both syncs to finish before setting appReady to true
-  useEffect(() => {
-    getEnvLayers().finally(() => {
-      setAppReady(true)
-    })
-    getFishLayers().finally(() => {
-      setAppReady(true)
-    })
-  }, [])
-
-  if (!appReady) {
-    return <CustomSplashScreen />
-  }
 
   return (
     <GestureHandlerRootView>
@@ -60,8 +27,7 @@ export default function TabLayout() {
           <BottomSheetModalProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
               <StatusBar barStyle="dark-content" />
-              <App />
-              {/* <OnBoarding /> */}
+              {!!isOnBoardingFinished ? <App /> : <OnBoarding />}
             </ThemeProvider>
           </BottomSheetModalProvider>
         </RegulatoryAreasProvider>

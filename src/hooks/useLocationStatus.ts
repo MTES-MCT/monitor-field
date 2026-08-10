@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Location from 'expo-location'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -20,10 +19,8 @@ export function useLocationStatus() {
     try {
       const { status: permissionStatus } = await Location.getForegroundPermissionsAsync()
       const isLocationGranted = permissionStatus === 'granted'
-      await AsyncStorage.setItem('is-location-granted', String(isLocationGranted))
 
       if (!isLocationGranted) {
-        await AsyncStorage.setItem('is-location-activated', 'false')
         if (isMountedRef.current) {
           setStatus({ isLocationEnabled: false, isLocationGranted: false })
         }
@@ -31,7 +28,6 @@ export function useLocationStatus() {
       }
 
       const isLocationEnabled = await Location.hasServicesEnabledAsync()
-      await AsyncStorage.setItem('is-location-activated', String(isLocationEnabled))
 
       if (isMountedRef.current) {
         setStatus(prev => {
