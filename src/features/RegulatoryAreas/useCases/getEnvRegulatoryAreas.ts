@@ -34,12 +34,11 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       id: area.id,
       layerName: area.layerName,
       location: area.location,
-      plan: area.plan,
+      plan: area.plan ?? null,
       polyName: area.polyName,
       prohibitionPeriods: area.prohibitionPeriods,
       refReg: area.refReg,
       resume: area.resume,
-      tags: area.tags,
       themes: area.themes,
       type: area.type,
       url: area.url

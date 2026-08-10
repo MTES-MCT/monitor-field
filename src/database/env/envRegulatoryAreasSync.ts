@@ -27,7 +27,6 @@ type ApiRow = {
   prohibition_periods: string
   additional_ref_reg: string
   themes: string
-  tags: string
 }
 
 type ApiResponse = {
@@ -57,10 +56,10 @@ async function fetchAllEnvRegulatoryAreas(facades: string[]) {
 
 function buildFeatureColorKey(row: ApiRow): string {
   const id = normalizeFeatureProperty(row.id)
-  const tags = normalizeFeatureProperty(row.tags)
-  const title = normalizeFeatureProperty(row.layer_name ?? row.resume)
+  const themes = normalizeFeatureProperty(row.themes)
+  const title = normalizeFeatureProperty(row.poly_name ?? row.resume)
 
-  return `${id}-${title}-${tags}`
+  return `${id}-${title}-${themes}`
 }
 
 export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
@@ -122,12 +121,11 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
           prohibition_periods,
           additional_ref_reg,
           themes,
-          tags,
           location,
           fill_color,
           edition,
           bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
           [
             row.id,
@@ -146,7 +144,6 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
             row.prohibition_periods,
             row.additional_ref_reg,
             row.themes,
-            row.tags,
             row.location,
             fillColor ?? null,
             row.edition === undefined ? null : row.edition,
