@@ -4,8 +4,11 @@ import { Spacing } from '@constants/theme'
 import { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { LoaderIcon } from '@components/LoaderIcon'
+import { useTheme } from '@hooks/use-theme'
 
 export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
+  const theme = useTheme()
+
   useEffect(() => {
     syncPromise.then(() => {
       storage.set('isOnBoardingFinished', true)
@@ -14,7 +17,7 @@ export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
 
   return (
     <View style={styles.wrapper}>
-      <LoaderIcon />
+      <LoaderIcon size="LARGE" tintColor={theme.white} />
 
       <ThemedText themeColor="white" type="subtitle" style={styles.title}>
         Données en cours de téléchargement

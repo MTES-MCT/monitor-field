@@ -3,10 +3,16 @@ import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import Animated from 'react-native-reanimated'
 
+const sizes = {
+  LARGE: 32,
+  NORMAL: 24,
+  SMALL: 16
+}
+
 export function LoaderIcon({ tintColor, size = 'NORMAL' }: { tintColor?: string; size?: Size }) {
   const theme = useTheme()
 
-  const iconSize = size === 'SMALL' ? 16 : 32
+  const iconSize = sizes[size]
   return (
     <Animated.View
       style={[

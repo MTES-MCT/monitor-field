@@ -9,6 +9,7 @@ import { storage } from '@storage'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import daysjs from 'dayjs'
 
 type SettingsPageProps = {
   closeSettings: () => void
@@ -26,6 +27,9 @@ export function SettingsPage({
   const theme = useTheme()
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
+  const [regulatoryAreasLastUpdate] = useMMKVString('regulatory-areas-last-update', storage)
+
+  const formattedLastUpdateDate = daysjs(regulatoryAreasLastUpdate).format('DD/MM/YYYY à HH[h]mm')
 
   const refreshDataFromSettings = () => {
     setIsRefreshingDataLocal(true)
@@ -64,7 +68,7 @@ export function SettingsPage({
           </ThemedText>
         </Pressable>
         <ThemedText themeColor="slateGray" type="small" style={styles.refreshDate}>
-          Dernière mise à jour le XX/XX/XXXX à XXhXX
+          Dernière mise à jour le {formattedLastUpdateDate}
         </ThemedText>
       </View>
       <View style={[styles.separator, { backgroundColor: theme.lightGray }]} />
@@ -87,7 +91,7 @@ export function SettingsPage({
           </View>
           <Image
             source={require('@assets/icons/chevron.svg')}
-            style={{ height: 20, tintColor: theme.slateGray, transform: [{ rotate: '180deg' }], width: 20 }}
+            style={[styles.chevronIcon, { tintColor: theme.slateGray }]}
           />
         </Pressable>
       </View>
@@ -113,6 +117,12 @@ export function SettingsPage({
 }
 
 const styles = StyleSheet.create({
+  chevronIcon: {
+    height: 20,
+
+    transform: [{ rotate: '180deg' }],
+    width: 20
+  },
   header: {
     alignItems: 'center',
     flexDirection: 'row',

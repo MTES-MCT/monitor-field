@@ -69,7 +69,7 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
 
   if (selectedFacades.length === 0) {
     await db.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
-    storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+    storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD HH:mm')))
     return
   }
 
@@ -190,5 +190,5 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
     throw error
   }
 
-  storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+  storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD HH:mm')))
 }

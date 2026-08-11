@@ -121,5 +121,5 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
     throw error
   }
 
-  storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+  storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD HH:mm')))
 }

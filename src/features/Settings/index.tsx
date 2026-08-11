@@ -57,18 +57,12 @@ export function Settings() {
     <>
       {isRefreshingData && (
         <View
-          style={{
-            alignItems: 'center',
-            backgroundColor: theme.blueGray,
-            borderRadius: 10,
-            height: 20,
-            justifyContent: 'center',
-            position: 'absolute',
-            right: -5,
-            top: -5,
-            width: 20,
-            zIndex: 2
-          }}
+          style={[
+            styles.dot,
+            {
+              backgroundColor: theme.blueGray
+            }
+          ]}
         >
           <LoaderIcon tintColor={theme.white} size="SMALL" />
         </View>
@@ -122,6 +116,17 @@ export const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     width: 48
+  },
+  dot: {
+    alignItems: 'center',
+    borderRadius: 10,
+    height: 20,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: -5,
+    top: -5,
+    width: 20,
+    zIndex: 2
   },
   icon: {
     height: Spacing.five,
