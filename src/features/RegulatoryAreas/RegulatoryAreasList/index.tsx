@@ -1,15 +1,16 @@
 import type { BoundingBox } from '@/types/mapTypes'
-import { ThemedText } from '@components/Text'
+import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
 import { type RegulatoryAreaListItem, useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useTheme } from '@hooks/use-theme'
 import { useMemo, useState } from 'react'
-import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { getRegulatoryAreasByGroup } from './utils'
 import { Image } from 'expo-image'
 import { useAppContext } from '@contexts/AppContext'
+import { CloseButton } from '@components/Buttons/CloseButton'
 
 type RegulatoryAreasListProps = {
   onFocusRegulatoryArea: (bbox: BoundingBox) => void
@@ -150,9 +151,7 @@ export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: Regulato
       return (
         <View style={[styles.headerRowWithTitle, { backgroundColor: theme.lightGray }]}>
           <ThemedText type="default">{`${clickedFeaturesList?.length ?? 0} zones superposées sur ce point`}</ThemedText>
-          <Pressable accessibilityRole="button" onPress={closeModal}>
-            <Image source={require('../../../../assets/icons/close.svg')} style={styles.closeIcon} />
-          </Pressable>
+          <CloseButton onClose={closeModal} />
         </View>
       )
     }
@@ -197,10 +196,6 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two
-  },
-  closeIcon: {
-    height: Spacing.five,
-    width: Spacing.five
   },
   emptyState: {
     paddingHorizontal: Spacing.four

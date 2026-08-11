@@ -10,7 +10,7 @@ import Animated, {
   withSequence,
   withTiming
 } from 'react-native-reanimated'
-import { ThemedText } from './Text'
+import { ThemedText } from './Elements/Text'
 import { useTheme } from '@hooks/use-theme'
 import { Spacing } from '@constants/theme'
 

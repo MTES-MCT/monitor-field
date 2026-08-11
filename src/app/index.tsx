@@ -7,8 +7,8 @@ import { useAppContext } from '@contexts/AppContext'
 import { type BoundingBox } from '@/types/mapTypes'
 import { BottomBar } from '@components/BottomBar'
 import { useSearchByZoneLayer } from '@components/Layers/useSearchByZoneLayer'
-import { LocationButton } from '@components/LocationButton'
-import { SwitchContextButton } from '@components/SwitchContextButton'
+import { LocationButton } from '@components/Buttons/LocationButton'
+import { SwitchContextButton } from '@components/Buttons/SwitchContextButton'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
@@ -27,6 +27,7 @@ import { useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
+import { Settings } from '@features/Settings'
 
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
@@ -210,14 +211,16 @@ export default function App() {
         trackUserLocation={isLocationButtonEnabled ? 'default' : undefined}
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
-        <SwitchContextButton />
+        <View style={styles.boutonsWrapper}>
+          <SwitchContextButton />
+          <Settings />
+        </View>
 
         <SelectedRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
 
         <FilteredRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
 
         <RegulatoryAreaDetails />
-
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
           <BottomBar consultRegulatoryAreas={consultRegulatoryAreas} zoomToBbox={flyToBbox} />
@@ -230,6 +233,10 @@ export default function App() {
 const styles = StyleSheet.create({
   bottomWrapper: {
     gap: Spacing.five
+  },
+  boutonsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   safeArea: {
     flex: 1,

@@ -1,6 +1,5 @@
-import { ThemedText } from '@components/Text'
-import { Image } from 'expo-image'
-import { Linking, Pressable, View } from 'react-native'
+import { ThemedText } from '@components/Elements/Text'
+import { Linking, View } from 'react-native'
 import { styles } from './style'
 import { useTheme } from '@hooks/use-theme'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
@@ -8,6 +7,7 @@ import { Spacing } from '@constants/theme'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import daysjs from 'dayjs'
 import { useCallback } from 'react'
+import { CloseButton } from '@components/Buttons/CloseButton'
 
 export function EnvRegulatoryAreaDetails({
   color,
@@ -50,9 +50,7 @@ export function EnvRegulatoryAreaDetails({
             {getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
           </ThemedText>
         </View>
-        <Pressable accessibilityRole="button" onPress={onDismiss}>
-          <Image source={require('@assets/icons/close.svg')} style={styles.icon} />
-        </Pressable>
+        <CloseButton onClose={onDismiss} />
       </View>
       <View style={styles.content}>
         {regulatoryArea.edition && (

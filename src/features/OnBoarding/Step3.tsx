@@ -1,5 +1,5 @@
 import { storage } from '@storage'
-import { ThemedText } from '@components/Text'
+import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
 import { Image } from 'expo-image'
 import { useEffect } from 'react'

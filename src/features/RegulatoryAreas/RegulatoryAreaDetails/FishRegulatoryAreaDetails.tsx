@@ -1,11 +1,11 @@
-import { ThemedText } from '@components/Text'
-import { Image } from 'expo-image'
-import { Pressable, View } from 'react-native'
+import { ThemedText } from '@components/Elements/Text'
+import { View } from 'react-native'
 import { useTheme } from '@hooks/use-theme'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { Spacing } from '@constants/theme'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { styles } from './style'
+import { CloseButton } from '@components/Buttons/CloseButton'
 
 export function FishRegulatoryAreaDetails({
   color,
@@ -37,9 +37,7 @@ export function FishRegulatoryAreaDetails({
             {getRegulatoryAreaLabel(regulatoryArea, 'MONITORFISH')}
           </ThemedText>
         </View>
-        <Pressable accessibilityRole="button" onPress={onDismiss}>
-          <Image source={require('../../../../assets/icons/close.svg')} style={styles.icon} />
-        </Pressable>
+        <CloseButton onClose={onDismiss} />
       </View>
       <View style={styles.content}>
         <ThemedText type="small" style={labelStyle}>

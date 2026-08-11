@@ -1,10 +1,12 @@
-import { ThemedText } from '@components/Text'
+import { BackButton } from '@components/Buttons/BackButton'
+import { CloseButton } from '@components/Buttons/CloseButton'
+import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { useRef, useState } from 'react'
-import { StyleSheet, TextInput, Pressable, View } from 'react-native'
+import { StyleSheet, TextInput, View } from 'react-native'
 
 export function Search({ onClose }: { onClose: () => void }) {
   const inputRef = useRef<TextInput>(null)
@@ -37,9 +39,7 @@ export function Search({ onClose }: { onClose: () => void }) {
   return (
     <>
       <View style={[styles.searchBox, { borderColor: theme.lightGray }]}>
-        <Pressable onPress={onCloseSearchInput} hitSlop={8}>
-          <Image source={require('@assets/icons/chevron.svg')} style={styles.icon} />
-        </Pressable>
+        <BackButton onBack={onCloseSearchInput} />
 
         <TextInput
           ref={inputRef}
@@ -49,11 +49,7 @@ export function Search({ onClose }: { onClose: () => void }) {
           onChangeText={onChangeText}
         />
 
-        {text.length > 0 && (
-          <Pressable onPress={() => onChangeText('')} hitSlop={8}>
-            <Image source={require('@assets/icons/close.svg')} style={styles.icon} />
-          </Pressable>
-        )}
+        {text.length > 0 && <CloseButton onClose={() => onChangeText('')} />}
       </View>
       <View style={styles.informationMessage}>
         <Image source={require('@assets/icons/attention-filled.svg')} style={styles.icon} />

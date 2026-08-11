@@ -1,4 +1,4 @@
-import { ThemedText } from '@components/Text'
+import { ThemedText } from '@components/Elements/Text'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
@@ -33,7 +33,7 @@ export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
       <ThemedText themeColor="white" type="default" style={styles.text}>
         ...dites-le nous à cette adresse : {'\n'}{' '}
         <ThemedText themeColor="white" style={styles.textUnderline} type="default">
-          monitor-tech@gmail.com
+          monitor.beta.gouv@gmail.com
         </ThemedText>
       </ThemedText>
       <ThemedText themeColor="white" type="default" style={styles.text}>
