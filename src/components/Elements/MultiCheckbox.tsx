@@ -1,11 +1,11 @@
 import { ThemedText } from '@components/Elements/Text'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useTheme } from '@hooks/use-theme'
-import { Spacing } from '@constants/theme'
+import { Spacing, type Accent } from '@constants/theme'
 import { Image } from 'expo-image'
 
 type MultiCheckboxProps = {
-  accent?: 'PRIMARY' | 'SECONDARY'
+  accent?: Accent
   label: string
   isChecked: boolean
   onToggle: () => void
@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     gap: Spacing.two,
+    height: 48,
     paddingVertical: Spacing.two
   }
 })

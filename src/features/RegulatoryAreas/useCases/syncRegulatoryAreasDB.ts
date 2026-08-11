@@ -2,12 +2,37 @@ import { getDatabase } from '@database/db'
 import { syncEnvRegulatoryAreas } from '@database/env/envRegulatoryAreasSync'
 import { syncFishRegulatoryAreas } from '@database/fish/fishRegulatoryAreasSync'
 
-export async function syncRegulatoryAreasDB(facades: string[]) {
+export type SyncRegulatoryAreasOptions = {
+  forceRefresh?: boolean
+  syncEnv?: boolean
+  syncFish?: boolean
+}
+
+export async function syncRegulatoryAreasDB(facades: string[], options?: SyncRegulatoryAreasOptions) {
   const database = await getDatabase()
-  await Promise.allSettled([
-    // oxlint-disable-next-line no-console
-    syncFishRegulatoryAreas(database, facades).catch(e => console.warn('Unable to sync fish regulatory areas', e)),
-    // oxlint-disable-next-line no-console
-    syncEnvRegulatoryAreas(database, facades).catch(e => console.warn('Unable to sync env regulatory areas', e))
-  ])
+  const forceRefresh = options?.forceRefresh === true
+  const shouldSyncEnv = options?.syncEnv !== false
+  const shouldSyncFish = options?.syncFish !== false
+
+  const syncPromises: Promise<unknown>[] = []
+
+  if (shouldSyncFish) {
+    syncPromises.push(
+      syncFishRegulatoryAreas(database, facades, forceRefresh).catch(e => {
+        // oxlint-disable-next-line no-console
+        console.warn('Unable to sync fish regulatory areas', e)
+      })
+    )
+  }
+
+  if (shouldSyncEnv) {
+    syncPromises.push(
+      syncEnvRegulatoryAreas(database, facades, forceRefresh).catch(e => {
+        // oxlint-disable-next-line no-console
+        console.warn('Unable to sync env regulatory areas', e)
+      })
+    )
+  }
+
+  await Promise.allSettled(syncPromises)
 }

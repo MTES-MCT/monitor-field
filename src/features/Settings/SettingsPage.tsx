@@ -6,23 +6,37 @@ import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
+import { LoaderIcon } from '@components/LoaderIcon'
+import { useState } from 'react'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
+type SettingsPageProps = {
+  closeSettings: () => void
+  openSeaFrontsSelector: () => void
+  setIsRefreshingData: (value: boolean) => void
+  refreshData: () => Promise<void>
+}
 
 export function SettingsPage({
   closeSettings,
-  openSeaFrontsSelector
-}: {
-  closeSettings: () => void
-  openSeaFrontsSelector: () => void
-}) {
+  openSeaFrontsSelector,
+  setIsRefreshingData,
+  refreshData
+}: SettingsPageProps) {
   const theme = useTheme()
+  const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
 
-  const refreshData = () => {
-    // Logic to refresh data goes here
+  const refreshDataFromSettings = () => {
+    setIsRefreshingDataLocal(true)
+    setIsRefreshingData(true)
+    refreshData().finally(() => {
+      setIsRefreshingDataLocal(false)
+    })
   }
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: theme.white }]}>
+    <SafeAreaView style={[styles.wrapper, { backgroundColor: theme.white }]}>
       <View style={styles.header}>
         <ThemedText type="default">Paramètres</ThemedText>
         <CloseButton onClose={closeSettings} />
@@ -31,16 +45,23 @@ export function SettingsPage({
         <ThemedText type="small">Mise à jour des données</ThemedText>
         <ThemedText type="default">Les données sont mises à jour automatiquement chaque semaine</ThemedText>
         <Pressable
-          onPress={refreshData}
+          onPress={refreshDataFromSettings}
           accessibilityRole="button"
-          accessibilityState={{ disabled: false }}
+          accessibilityState={{ disabled: isRefreshingDataLocal }}
           style={[styles.refreshButton, { borderColor: theme.lightGray }]}
+          disabled={isRefreshingDataLocal}
         >
-          <Image
-            source={require('@assets/icons/recurring.svg')}
-            style={{ height: 24, tintColor: theme.gunMetal, width: 24 }}
-          />
-          <ThemedText type="defaultSans">Mise à jour manuelle des données</ThemedText>
+          {isRefreshingDataLocal ? (
+            <LoaderIcon />
+          ) : (
+            <Image
+              source={require('@assets/icons/recurring.svg')}
+              style={{ height: 24, tintColor: theme.gunMetal, width: 24 }}
+            />
+          )}
+          <ThemedText type="defaultSans">
+            {isRefreshingDataLocal ? 'Mise à jour en cours...' : 'Mise à jour manuelle des données'}
+          </ThemedText>
         </Pressable>
         <ThemedText themeColor="slateGray" type="small" style={styles.refreshDate}>
           Dernière mise à jour le XX/XX/XXXX à XXhXX
@@ -58,9 +79,9 @@ export function SettingsPage({
           accessibilityState={{ disabled: false }}
           style={[styles.seaFrontsSelector, { borderColor: theme.lightGray }]}
         >
-          <View style={{}}>
+          <View style={{ flex: 1 }}>
             <ThemedText type="default">Façades</ThemedText>
-            <ThemedText type="small" themeColor="slateGray">
+            <ThemedText type="small" themeColor="slateGray" style={{ flexWrap: 'wrap' }}>
               {selectedSeaFronts}
             </ThemedText>
           </View>
@@ -87,7 +108,7 @@ export function SettingsPage({
           </ThemedText>
         </ThemedText>
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

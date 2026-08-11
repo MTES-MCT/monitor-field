@@ -1,7 +1,9 @@
 import { ScrollView } from 'react-native-gesture-handler'
 import { MultiCheckbox } from './Elements/MultiCheckbox'
 import { StyleSheet } from 'react-native'
-import type { ThemeColor } from '@constants/theme'
+import { normalizeText } from '@/utils/normalizeText'
+import type { Accent } from '@constants/theme'
+import { useMemo } from 'react'
 
 const seaFrontOptions = [
   { label: 'Clipperton', value: 'Clipperton' },
@@ -25,16 +27,24 @@ const seaFrontOptions = [
 ]
 
 type SeaFrontsSelectorProps = {
-  accent?: 'PRIMARY' | 'SECONDARY'
-  labelColor?: ThemeColor
+  accent?: Accent
   selectedSeaFronts: string[]
+  searchQuery?: string
   onToggle: (seaFront: string) => void
 }
 
-export function SeaFrontsSelector({ accent, selectedSeaFronts, onToggle }: SeaFrontsSelectorProps) {
+export function SeaFrontsSelector({ accent, selectedSeaFronts, onToggle, searchQuery }: SeaFrontsSelectorProps) {
+  const filteredSeaFrontOptions = useMemo(
+    () =>
+      seaFrontOptions.filter(option =>
+        searchQuery ? normalizeText(option.label).includes(normalizeText(searchQuery)) : true
+      ),
+    [searchQuery]
+  )
+
   return (
-    <ScrollView style={styles.checkboxWrapper}>
-      {seaFrontOptions.map(option => (
+    <ScrollView style={styles.checkboxWrapper} contentContainerStyle={styles.checkboxContent}>
+      {filteredSeaFrontOptions.map(option => (
         <MultiCheckbox
           key={option.value}
           label={option.label}
@@ -48,6 +58,9 @@ export function SeaFrontsSelector({ accent, selectedSeaFronts, onToggle }: SeaFr
 }
 
 const styles = StyleSheet.create({
+  checkboxContent: {
+    paddingBottom: 100
+  },
   checkboxWrapper: {
     flex: 1
   }

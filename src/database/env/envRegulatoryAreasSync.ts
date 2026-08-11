@@ -39,6 +39,7 @@ type ApiResponse = {
 async function fetchAllEnvRegulatoryAreas(facades: string[]) {
   const rows: ApiRow[] = []
   let nextUrl: string | undefined = `${ENV_REGULATORY_AREAS_API_URL}?facade__in=${facades.join(',')}`
+
   while (nextUrl) {
     const response = await fetch(nextUrl)
 
@@ -62,20 +63,27 @@ function buildFeatureColorKey(row: ApiRow): string {
   return `${id}-${title}-${themes}`
 }
 
-export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
+export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRefresh = false) {
   const palette = monitorEnvConfig?.colors
+  const selectedFacades = facades.filter(Boolean)
+
+  if (selectedFacades.length === 0) {
+    await db.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
+    storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+    return
+  }
 
   const existingCountResult = await db.execute(`SELECT COUNT(*) AS count FROM ${ENV_REGULATORY_AREAS_TABLE}`)
   const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0)
-  const lastUpdate = storage.getString('env-regulatory-areas-last-update')
+  const lastUpdate = storage.getString('regulatory-areas-last-update')
   const sevenDaysAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
-  const shouldSkipFetch = existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
+  const shouldSkipFetch = !forceRefresh && existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
 
   if (shouldSkipFetch) {
     return
   }
 
-  const rows = await fetchAllEnvRegulatoryAreas(facades)
+  const rows = await fetchAllEnvRegulatoryAreas(selectedFacades)
 
   if (!rows || rows.length === 0) {
     // oxlint-disable-next-line no-console
@@ -85,7 +93,28 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
 
   try {
     await db.transaction(async tx => {
-      await tx.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
+      await tx.execute('CREATE TEMP TABLE IF NOT EXISTS tmp_env_synced_ids (id INTEGER PRIMARY KEY)')
+      await tx.execute('DELETE FROM tmp_env_synced_ids')
+
+      for (let idx = 0; idx < rows.length; idx++) {
+        const row = rows[idx]
+        if (row) {
+          await tx.execute('INSERT OR IGNORE INTO tmp_env_synced_ids (id) VALUES (?)', [row.id])
+        }
+      }
+
+      const selectedFacadePlaceholders = selectedFacades.map(() => '?').join(',')
+
+      await tx.execute(
+        `DELETE FROM ${ENV_REGULATORY_AREAS_TABLE} WHERE facade NOT IN (${selectedFacadePlaceholders})`,
+        selectedFacades
+      )
+      await tx.execute(
+        `DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}
+         WHERE facade IN (${selectedFacadePlaceholders})
+         AND id NOT IN (SELECT id FROM tmp_env_synced_ids)`,
+        selectedFacades
+      )
 
       for (let idx = 0; idx < rows.length; idx++) {
         const row = rows[idx]
@@ -104,7 +133,7 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
 
         await tx.execute(
           `
-        INSERT INTO ${ENV_REGULATORY_AREAS_TABLE} (
+        INSERT OR REPLACE INTO ${ENV_REGULATORY_AREAS_TABLE} (
           id,
           url,
           layer_name,
@@ -161,5 +190,5 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[]) {
     throw error
   }
 
-  storage.set('env-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+  storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
 }

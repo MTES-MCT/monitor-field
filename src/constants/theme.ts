@@ -183,5 +183,8 @@ export const Spacing = {
   six: 32
 } as const
 
+export type Size = 'SMALL' | 'NORMAL' | 'LARGE'
+
+export type Accent = 'PRIMARY' | 'SECONDARY'
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0
 export const MaxContentWidth = 800

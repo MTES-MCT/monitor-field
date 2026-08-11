@@ -5,19 +5,74 @@ import { useState } from 'react'
 import { SettingsPage } from './SettingsPage'
 import { Spacing } from '@constants/theme'
 import { SeaFronts } from './SeaFronts'
+import { LoaderIcon } from '@components/LoaderIcon'
+import { parseSeaFronts } from '@utils/parseSeaFronts'
+import { useMMKVString } from 'react-native-mmkv'
+import { storage } from '@storage'
+import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
 
 export function Settings() {
   const theme = useTheme()
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSeaFrontsSelectorOpen, setIsSeaFrontsSelectorOpen] = useState(false)
+  const [isRefreshingData, setIsRefreshingData] = useState(false)
+  const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
+
+  const refreshData = async () => {
+    if (isRefreshingData) {
+      return
+    }
+
+    const facades = parseSeaFronts(selectedSeaFronts)
+
+    setIsRefreshingData(true)
+    try {
+      await syncRegulatoryAreasDB(facades, { forceRefresh: true })
+    } finally {
+      setIsRefreshingData(false)
+    }
+  }
+
+  const closeSettings = () => {
+    setIsSettingsOpen(false)
+    setIsSeaFrontsSelectorOpen(false)
+  }
 
   const closeAll = () => {
     setIsSettingsOpen(false)
     setIsSeaFrontsSelectorOpen(false)
+
+    if (!isRefreshingData) {
+      return
+    }
+
+    refreshData().catch(e => {
+      // oxlint-disable-next-line no-console
+      console.warn('Unable to sync regulatory areas', e)
+    })
   }
+
   return (
     <>
+      {isRefreshingData && (
+        <View
+          style={{
+            alignItems: 'center',
+            backgroundColor: theme.blueGray,
+            borderRadius: 10,
+            height: 20,
+            justifyContent: 'center',
+            position: 'absolute',
+            right: -5,
+            top: -5,
+            width: 20,
+            zIndex: 2
+          }}
+        >
+          <LoaderIcon tintColor={theme.white} size="SMALL" />
+        </View>
+      )}
       <Pressable
         onPress={() => setIsSettingsOpen(true)}
         accessibilityRole="button"
@@ -35,7 +90,9 @@ export function Settings() {
         <View style={styles.modalContainer}>
           {isSettingsOpen && (
             <SettingsPage
-              closeSettings={closeAll}
+              refreshData={refreshData}
+              setIsRefreshingData={(value: boolean) => setIsRefreshingData(value)}
+              closeSettings={closeSettings}
               openSeaFrontsSelector={() => {
                 setIsSettingsOpen(false)
                 setIsSeaFrontsSelectorOpen(true)
@@ -44,6 +101,8 @@ export function Settings() {
           )}
           {isSeaFrontsSelectorOpen && (
             <SeaFronts
+              refreshData={refreshData}
+              setIsRefreshingData={(value: boolean) => setIsRefreshingData(value)}
               closeSettings={closeAll}
               closeSeaFrontSelector={() => {
                 setIsSeaFrontsSelectorOpen(false)
@@ -73,5 +132,14 @@ export const styles = StyleSheet.create({
     marginTop: 90,
     position: 'absolute',
     width: '100%'
+  },
+  syncBanner: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
+    position: 'absolute',
+    top: 48,
+    zIndex: 2
   }
 })

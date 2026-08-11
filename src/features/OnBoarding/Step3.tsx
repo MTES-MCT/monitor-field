@@ -1,10 +1,9 @@
 import { storage } from '@storage'
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
-import { Image } from 'expo-image'
 import { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
-import Animated from 'react-native-reanimated'
+import { LoaderIcon } from '@components/LoaderIcon'
 
 export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
   useEffect(() => {
@@ -15,20 +14,7 @@ export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
 
   return (
     <View style={styles.wrapper}>
-      <Animated.View
-        style={{
-          animationDuration: '2s',
-          animationIterationCount: 'infinite',
-          animationName: {
-            '100%': {
-              transform: [{ rotate: '360deg' }]
-            }
-          },
-          animationTimingFunction: 'linear'
-        }}
-      >
-        <Image source={require('@assets/icons/recurring.svg')} style={{ height: 32, width: 32 }} />
-      </Animated.View>
+      <LoaderIcon />
 
       <ThemedText themeColor="white" type="subtitle" style={styles.title}>
         Données en cours de téléchargement
