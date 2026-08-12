@@ -1,0 +1,20 @@
+{
+  "layers": [
+    {
+      "id": "cartoLight",
+      "source": "cartoLight",
+      "type": "raster"
+    }
+  ],
+  "sources": {
+    "cartoLight": {
+      "attribution": "&copy OpenStreetMap contributors &copy CARTO",
+      "tileSize": 256,
+      "tiles": [
+        "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+      ],
+      "type": "raster"
+    }
+  },
+  "version": 8
+}
