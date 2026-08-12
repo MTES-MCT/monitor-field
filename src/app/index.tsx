@@ -29,6 +29,7 @@ import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaD
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 import { Settings } from '@features/Settings'
 import * as Sentry from '@sentry/react-native'
+import { BASE_MAP_STYLE } from '@hooks/useOfflineMap'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -45,24 +46,7 @@ Sentry.init({
 
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
-const baseMapStyle: StyleSpecification = {
-  layers: [
-    {
-      id: 'cartoLight',
-      source: 'cartoLight',
-      type: 'raster'
-    }
-  ],
-  sources: {
-    cartoLight: {
-      attribution: '&copy OpenStreetMap contributors &copy CARTO',
-      tileSize: 256,
-      tiles: ['https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
-      type: 'raster'
-    }
-  },
-  version: 8
-}
+const baseMapStyle = BASE_MAP_STYLE
 
 const LOCATION_FOCUS_ZOOM = 35
 
