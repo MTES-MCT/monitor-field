@@ -15,6 +15,7 @@ export type ThemedTextProps = TextProps & {
     | 'subtitle'
     | 'link'
     | 'code'
+    | 'large'
   themeColor?: ThemeColor
 }
 
@@ -29,6 +30,7 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
         type === 'defaultBold' && styles.defaultBold,
         type === 'defaultItalic' && styles.defaultItalic,
         type === 'defaultSans' && styles.defaultSans,
+        type === 'large' && styles.large,
         type === 'title' && styles.title,
         type === 'small' && styles.small,
         type === 'smallBold' && styles.smallBold,
@@ -68,6 +70,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.sans,
     fontSize: 16,
     lineHeight: 24
+  },
+  large: {
+    fontFamily: Fonts.sansMedium,
+    fontSize: 20,
+    lineHeight: 20
   },
   link: {
     color: '#295EDB',

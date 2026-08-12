@@ -6,6 +6,7 @@ import { Spacing } from '@constants/theme'
 
 export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
   const theme = useTheme()
+  const email = process.env.EXPO_PUBLIC_EMAIL
 
   return (
     <View style={styles.wrapper}>
@@ -33,7 +34,7 @@ export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
       <ThemedText themeColor="white" type="default" style={styles.text}>
         ...dites-le nous à cette adresse : {'\n'}{' '}
         <ThemedText themeColor="white" style={styles.textUnderline} type="default">
-          monitor.beta.gouv@gmail.com
+          {email}
         </ThemedText>
       </ThemedText>
       <ThemedText themeColor="white" type="default" style={styles.text}>

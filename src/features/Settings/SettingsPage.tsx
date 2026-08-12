@@ -11,6 +11,8 @@ import { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import daysjs from 'dayjs'
 
+const email = process.env.EXPO_PUBLIC_EMAIL
+
 type SettingsPageProps = {
   closeSettings: () => void
   openSeaFrontsSelector: () => void
@@ -42,7 +44,7 @@ export function SettingsPage({
   return (
     <SafeAreaView style={[styles.wrapper, { backgroundColor: theme.white }]}>
       <View style={styles.header}>
-        <ThemedText type="default">Paramètres</ThemedText>
+        <ThemedText type="large">Paramètres</ThemedText>
         <CloseButton onClose={closeSettings} />
       </View>
       <View style={styles.section}>
@@ -103,12 +105,8 @@ export function SettingsPage({
         </ThemedText>
         <ThemedText type="default">
           Vous pouvez également nous contacter à l’adresse suivante : {'\n'}
-          <ThemedText
-            style={styles.textUnderline}
-            type="default"
-            onPress={() => Linking.openURL('mailto:monitor.beta.gouv@gmail.com')}
-          >
-            monitor.beta.gouv@gmail.com
+          <ThemedText style={styles.textUnderline} type="default" onPress={() => Linking.openURL(`mailto:${email}`)}>
+            {email}
           </ThemedText>
         </ThemedText>
       </View>

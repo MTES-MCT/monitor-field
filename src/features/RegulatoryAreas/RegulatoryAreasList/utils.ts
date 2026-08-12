@@ -53,7 +53,7 @@ export function getRegulatoryAreasByGroup(
     }
   } else {
     for (const area of regulatoryAreas as EnvRegulatoryArea[]) {
-      const groupKey = area.layerName || 'Couche inconnue'
+      const groupKey = `${area.layerName} - ${area.location}` || 'Couche inconnue'
       if (!groupedAreas[groupKey]) {
         groupedAreas[groupKey] = []
       }

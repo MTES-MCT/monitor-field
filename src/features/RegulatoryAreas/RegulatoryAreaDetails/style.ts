@@ -23,8 +23,7 @@ export const styles = StyleSheet.create({
     width: 10
   },
   content: {
-    paddingBottom: 64,
-    paddingHorizontal: Spacing.four,
+    paddingBottom: 80,
     paddingTop: Spacing.two
   },
   emptyState: {
@@ -42,16 +41,27 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: Spacing.two
   },
+  horizontalPadding: {
+    paddingHorizontal: Spacing.four
+  },
+  labelStyle: {
+    color: 'slategray',
+    marginTop: Spacing.three,
+    paddingHorizontal: Spacing.four
+  },
   labelWithCircle: {
     alignItems: 'baseline',
-    borderTopColor: 'lightgray',
-    borderTopWidth: 1,
     flexDirection: 'row',
     gap: Spacing.two,
-    marginTop: Spacing.three
+    paddingHorizontal: Spacing.four
   },
   listContent: {
     paddingBottom: Spacing.four
+  },
+  separator: {
+    backgroundColor: 'lightgray',
+    height: 1,
+    marginVertical: Spacing.four
   },
   square: {
     borderWidth: 1,
