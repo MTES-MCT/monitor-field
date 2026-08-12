@@ -175,7 +175,7 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
             row.themes,
             row.location,
             fillColor ?? null,
-            row.edition === undefined ? null : row.edition,
+            row.edition ?? null,
             bbox?.minLon ?? null,
             bbox?.minLat ?? null,
             bbox?.maxLon ?? null,

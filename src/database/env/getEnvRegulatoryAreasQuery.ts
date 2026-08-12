@@ -27,6 +27,7 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
           env.themes,
           env.geojson,
           env.location,
+          env.edition,
           env.bbox_min_lon,
           env.bbox_min_lat,
           env.bbox_max_lon,
