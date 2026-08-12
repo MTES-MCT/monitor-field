@@ -5,13 +5,7 @@ import type {
   FishRegulatoryArea,
   FishRegulatoryAreaFromDatabase
 } from '@/types/regulatoryAreasTypes'
-
-export function normalizeText(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-}
+import { normalizeText } from '@/utils/normalizeText'
 
 export function matchesRegulatoryAreaSearch(
   area: FishRegulatoryAreaFromDatabase | EnvRegulatoryAreaFromDatabase,

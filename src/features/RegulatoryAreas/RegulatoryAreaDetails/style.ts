@@ -42,10 +42,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: Spacing.two
   },
-  icon: {
-    height: Spacing.five,
-    width: Spacing.five
-  },
   labelWithCircle: {
     alignItems: 'baseline',
     borderTopColor: 'lightgray',

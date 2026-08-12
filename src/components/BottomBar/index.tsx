@@ -4,7 +4,7 @@ import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { Pressable, StyleSheet, View } from 'react-native'
-import { ThemedText } from '../Text'
+import { ThemedText } from '../Elements/Text'
 
 type BottomBarProps = {
   consultRegulatoryAreas: () => void

@@ -51,14 +51,14 @@ function buildFeatureColorKey(row: ApiRow): string {
   return `${id}-${type}-${regulatoryAreaTheme}`
 }
 
-export async function syncFishRegulatoryAreas(db: DB, facades: string[]) {
+export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRefresh = false) {
   const palette = monitorFishConfig?.colors
 
   const existingCountResult = await db.execute(`SELECT COUNT(*) AS count FROM ${FISH_REGULATORY_AREAS_TABLE}`)
   const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0)
-  const lastUpdate = storage.getString('fish-regulatory-areas-last-update')
+  const lastUpdate = storage.getString('regulatory-areas-last-update')
   const sevenDaysAgo = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
-  const shouldSkipFetch = existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
+  const shouldSkipFetch = !forceRefresh && existingCount > 0 && !!lastUpdate && dayjs(lastUpdate) > dayjs(sevenDaysAgo)
 
   if (shouldSkipFetch) {
     return
@@ -121,5 +121,5 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[]) {
     throw error
   }
 
-  storage.set('fish-regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD')))
+  storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD HH:mm')))
 }
