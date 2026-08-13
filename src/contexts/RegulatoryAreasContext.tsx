@@ -6,6 +6,8 @@ export type RegulatoryAreaListItem = FishRegulatoryArea | EnvRegulatoryArea
 
 export type Filters = {
   searchQuery: string | undefined
+  recentlyAddedOrModified: boolean
+  themesAndSubThemes: string[]
 }
 
 const RegulatoryAreasContext = createContext<
@@ -54,7 +56,9 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
 
   const [filters, setFilters] = useState<Filters>({
-    searchQuery: undefined
+    recentlyAddedOrModified: false,
+    searchQuery: undefined,
+    themesAndSubThemes: []
   })
 
   const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false)
@@ -68,7 +72,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     setTotalCount(undefined)
     setLocalRegulatoryAreas([])
     setSelectedRegulatoryArea(undefined)
-    setFilters({ searchQuery: undefined })
+    setFilters({ recentlyAddedOrModified: false, searchQuery: undefined, themesAndSubThemes: [] })
     setIsSearchByQueryActive(false)
     setClickedFeaturesList(undefined)
     setIsListVisible(false)

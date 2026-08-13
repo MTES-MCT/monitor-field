@@ -3,10 +3,13 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
+import { useGlobalStyle } from '@globalStyle'
+
+const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 
 export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
   const theme = useTheme()
-  const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
+  const globalStyle = useGlobalStyle()
 
   return (
     <View style={styles.wrapper}>
@@ -33,7 +36,7 @@ export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
       </ThemedText>
       <ThemedText themeColor="white" type="default" style={styles.text}>
         ...dites-le nous à cette adresse : {'\n'}{' '}
-        <ThemedText themeColor="white" style={styles.textUnderline} type="default">
+        <ThemedText themeColor="white" style={globalStyle.textUnderline} type="default">
           {MONITOR_EMAIL}
         </ThemedText>
       </ThemedText>
@@ -82,9 +85,6 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center'
-  },
-  textUnderline: {
-    textDecorationLine: 'underline'
   },
   title: {
     marginBottom: Spacing.four,

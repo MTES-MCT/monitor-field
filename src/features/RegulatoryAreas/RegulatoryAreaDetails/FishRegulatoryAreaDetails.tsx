@@ -9,6 +9,7 @@ import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useCallback } from 'react'
 import { logToSentry } from '@utils/sentryLogger'
+import { useGlobalStyle } from '@globalStyle'
 
 const CNSP_TEL_NUMBER = process.env.EXPO_PUBLIC_CNSP_NUMBER
 
@@ -22,6 +23,7 @@ export function FishRegulatoryAreaDetails({
   onDismiss: () => void
 }) {
   const theme = useTheme()
+  const globalStyle = useGlobalStyle()
 
   const callCnsp = useCallback(async () => {
     const supported = await Linking.canOpenURL(`tel:${CNSP_TEL_NUMBER}`)
@@ -70,7 +72,7 @@ export function FishRegulatoryAreaDetails({
         <ThemedText type="default" style={styles.horizontalPadding}>
           {regulatoryArea.zone}
         </ThemedText>
-        <View style={styles.separator} />
+        <View style={globalStyle.separator} />
 
         <View style={[styles.horizontalPadding, { alignItems: 'center', flexDirection: 'row', gap: Spacing.two }]}>
           <Image

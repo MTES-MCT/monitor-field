@@ -1,7 +1,7 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
 import { EnvRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
-import { matchesRegulatoryAreaSearch } from '../RegulatoryAreasList/utils'
+import { filterEnvRegulatoryAreas } from '../RegulatoryAreasList/utils'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
@@ -20,7 +20,7 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
   const listItems: EnvRegulatoryArea[] = []
 
   for (const area of fetchedAreas) {
-    if (!matchesRegulatoryAreaSearch(area, filters.searchQuery, 'MONITORENV ')) {
+    if (!filterEnvRegulatoryAreas(area, filters)) {
       continue
     }
 

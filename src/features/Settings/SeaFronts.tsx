@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     flex: 1,
-    flexGrow: 1,
     gap: Spacing.four,
     padding: Spacing.four
   }

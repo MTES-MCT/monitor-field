@@ -5,6 +5,8 @@ import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from '../Elements/Text'
+import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/EnvFilters'
+import { useGlobalStyle } from '@globalStyle'
 
 type BottomBarProps = {
   consultRegulatoryAreas: () => void
@@ -13,6 +15,9 @@ type BottomBarProps = {
 
 export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps) {
   const { config } = useAppContext()
+  const globalStyle = useGlobalStyle()
+  const theme = useTheme()
+
   const {
     committedSearchBbox,
     committedSearchZoom,
@@ -29,7 +34,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
     setIsSearchByQueryActive,
     filters
   } = useRegulatoryAreasContext()
-  const theme = useTheme()
 
   const searchByBbox = async () => {
     setIsSearchZoneActive(!isSearchZoneActive)
@@ -156,21 +160,13 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             }}
             style={[styles.buttonBase, { backgroundColor: theme.white }]}
           >
-            {filters.searchQuery && <View style={[styles.dot, { backgroundColor: theme.blueGray }]} />}
-            <Image source={require('@assets/icons/search.svg')} style={styles.icon} />
+            {filters.searchQuery && <View style={globalStyle.dot} />}
+            <Image
+              source={require('@assets/icons/search.svg')}
+              style={[styles.icon, { tintColor: filters.searchQuery ? theme.blueGray : theme.slateGray }]}
+            />
           </Pressable>
-          {config.features.hasRegulatoryAreasFilters && (
-            <Pressable
-              onPress={searchByQuery}
-              accessibilityRole="button"
-              accessibilityState={{
-                disabled: false
-              }}
-              style={[styles.buttonBase, { backgroundColor: theme.white, zIndex: -1 }]}
-            >
-              <Image source={require('@assets/icons/filter.svg')} style={styles.icon} />
-            </Pressable>
-          )}
+          {config.features.hasRegulatoryAreasFilters && <EnvFilters />}
         </View>
       </View>
     </View>
@@ -180,7 +176,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
 const styles = StyleSheet.create({
   buttonBase: {
     alignItems: 'center',
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     padding: Spacing.three,
@@ -191,23 +186,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.half
   },
-  dot: {
-    borderRadius: '50%',
-    height: 20,
-    left: 35,
-    position: 'absolute',
-    top: -10,
-    width: 20
-  },
   icon: {
     height: Spacing.five,
     width: Spacing.five
   },
   searchAndFilterWrapper: {
+    alignItems: 'baseline',
     flexDirection: 'row',
     gap: Spacing.half
   },
   wrapper: {
+    alignItems: 'baseline',
     flexDirection: 'row',
     gap: Spacing.two
   }

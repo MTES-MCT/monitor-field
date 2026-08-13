@@ -58,11 +58,6 @@ export const styles = StyleSheet.create({
   listContent: {
     paddingBottom: Spacing.four
   },
-  separator: {
-    backgroundColor: 'lightgray',
-    height: 1,
-    marginVertical: Spacing.four
-  },
   square: {
     borderWidth: 1,
     height: 20,
