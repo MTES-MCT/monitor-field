@@ -191,12 +191,10 @@ const styles = StyleSheet.create({
     width: Spacing.five
   },
   searchAndFilterWrapper: {
-    alignItems: 'baseline',
     flexDirection: 'row',
     gap: Spacing.half
   },
   wrapper: {
-    alignItems: 'baseline',
     flexDirection: 'row',
     gap: Spacing.two
   }

@@ -143,7 +143,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       alignItems: 'center',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      padding: 16
+      padding: Spacing.four
     },
     icon: {
       height: Spacing.five,

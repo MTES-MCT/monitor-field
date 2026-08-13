@@ -1,3 +1,4 @@
+import { Spacing } from '@constants/theme'
 import { useTheme } from '@hooks/use-theme'
 import { useEffect, useRef } from 'react'
 import { Animated, Pressable, StyleSheet } from 'react-native'
@@ -51,10 +52,10 @@ const styles = StyleSheet.create({
     width: 20
   },
   switchTrack: {
-    borderRadius: 16,
+    borderRadius: Spacing.four,
     height: 32,
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: Spacing.one,
     width: 52
   }
 })

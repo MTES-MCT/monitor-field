@@ -48,7 +48,7 @@ function matchesRecentlyAddedOrModified(
   return dayjs(regulatoryArea.edition).isAfter(dayjs().subtract(30, 'day'))
 }
 
-export function filterEnvRegulatoryAreas(regulatoryArea: EnvRegulatoryAreaFromDatabase, filters: Filters): boolean {
+export function filterEnvRegulatoryArea(regulatoryArea: EnvRegulatoryAreaFromDatabase, filters: Filters): boolean {
   const matchesSearchQuery = matchesRegulatoryAreaSearch(regulatoryArea, filters.searchQuery, 'MONITORENV ')
   const matchesRecentlyAddedOrModifiedResult = matchesRecentlyAddedOrModified(
     regulatoryArea,
