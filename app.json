@@ -81,9 +81,6 @@
         "projectId": "30661d74-0725-4cc0-a925-ce9a6a42b88d"
       }
     },
-    "owner": "monitorfield",
-    "ios": {
-      "bundleIdentifier": "com.anonymous.monitorfield"
-    }
+    "owner": "monitorfield"
   }
 }
