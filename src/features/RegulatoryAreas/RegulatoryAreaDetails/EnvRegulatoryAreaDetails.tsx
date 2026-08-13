@@ -10,6 +10,7 @@ import { useCallback } from 'react'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { Image } from 'expo-image'
 import { logToSentry } from '@utils/sentryLogger'
+import { useGlobalStyle } from '@globalStyle'
 
 const CACEM_TEL_NUMBER = process.env.EXPO_PUBLIC_CACEM_NUMBER
 
@@ -23,6 +24,7 @@ export function EnvRegulatoryAreaDetails({
   onDismiss: () => void
 }) {
   const theme = useTheme()
+  const globalStyle = useGlobalStyle()
 
   const goToLegicem = useCallback(async (url: string) => {
     const supported = await Linking.canOpenURL(url)
@@ -50,7 +52,7 @@ export function EnvRegulatoryAreaDetails({
   return (
     <>
       <View style={styles.titleWrapper}>
-        <View style={{ alignItems: 'center', flex: 1 }}>
+        <View style={{ flex: 1 }}>
           <ThemedText
             type="default"
             style={styles.titleText}
@@ -104,7 +106,7 @@ export function EnvRegulatoryAreaDetails({
         </ThemedText>
         {regulatoryArea.authorizationPeriods && (
           <>
-            <View style={styles.separator} />
+            <View style={globalStyle.separator} />
             <View style={styles.labelWithCircle}>
               <View
                 style={{
@@ -124,7 +126,7 @@ export function EnvRegulatoryAreaDetails({
 
         {regulatoryArea.prohibitionPeriods && (
           <>
-            <View style={styles.separator} />
+            <View style={globalStyle.separator} />
             <View style={styles.labelWithCircle}>
               <View style={{ ...styles.circle, backgroundColor: theme.maximumRed }} />
               <ThemedText type="small" themeColor="slateGray">
@@ -136,7 +138,7 @@ export function EnvRegulatoryAreaDetails({
             </ThemedText>
           </>
         )}
-        <View style={styles.separator} />
+        <View style={globalStyle.separator} />
         <View>
           <ThemedText type="small" style={{ ...styles.labelStyle, marginTop: Spacing.two }}>
             Résumé réglementaire sur Légicem
@@ -148,7 +150,7 @@ export function EnvRegulatoryAreaDetails({
             {regulatoryArea.url}
           </ThemedText>
         </View>
-        <View style={styles.separator} />
+        <View style={globalStyle.separator} />
         <View style={[styles.horizontalPadding, { alignItems: 'center', flexDirection: 'row', gap: Spacing.two }]}>
           <Image
             source={require('@assets/icons/info.svg')}

@@ -1,4 +1,4 @@
-import type { RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
+import type { Filters, RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
 import type {
   EnvRegulatoryArea,
   EnvRegulatoryAreaFromDatabase,
@@ -6,6 +6,7 @@ import type {
   FishRegulatoryAreaFromDatabase
 } from '@/types/regulatoryAreasTypes'
 import { normalizeText } from '@/utils/normalizeText'
+import dayjs from 'dayjs'
 
 export function matchesRegulatoryAreaSearch(
   area: FishRegulatoryAreaFromDatabase | EnvRegulatoryAreaFromDatabase,
@@ -35,6 +36,26 @@ export function matchesRegulatoryAreaSearch(
   }
 
   return searchableFields.some(field => normalizeText(field).includes(normalizedQuery))
+}
+
+function matchesRecentlyAddedOrModified(
+  regulatoryArea: EnvRegulatoryAreaFromDatabase,
+  recentlyAddedOrModified: boolean
+): boolean {
+  if (!recentlyAddedOrModified) {
+    return true
+  }
+  return dayjs(regulatoryArea.edition).isAfter(dayjs().subtract(30, 'day'))
+}
+
+export function filterEnvRegulatoryArea(regulatoryArea: EnvRegulatoryAreaFromDatabase, filters: Filters): boolean {
+  const matchesSearchQuery = matchesRegulatoryAreaSearch(regulatoryArea, filters.searchQuery, 'MONITORENV ')
+  const matchesRecentlyAddedOrModifiedResult = matchesRecentlyAddedOrModified(
+    regulatoryArea,
+    filters.recentlyAddedOrModified
+  )
+
+  return matchesSearchQuery && matchesRecentlyAddedOrModifiedResult
 }
 
 export function getRegulatoryAreasByGroup(

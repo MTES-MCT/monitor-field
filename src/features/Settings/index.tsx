@@ -11,10 +11,11 @@ import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
 import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
+import { useGlobalStyle } from '@globalStyle'
 
 export function Settings() {
   const theme = useTheme()
-
+  const globalStyle = useGlobalStyle()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSeaFrontsSelectorOpen, setIsSeaFrontsSelectorOpen] = useState(false)
   const [isRefreshingData, setIsRefreshingData] = useState(false)
@@ -57,24 +58,17 @@ export function Settings() {
 
   return (
     <>
-      {isRefreshingData && (
-        <View
-          style={[
-            styles.dot,
-            {
-              backgroundColor: theme.blueGray
-            }
-          ]}
-        >
-          <LoaderIcon tintColor={theme.white} size="SMALL" />
-        </View>
-      )}
       <Pressable
         onPress={() => setIsSettingsOpen(true)}
         accessibilityRole="button"
         accessibilityState={{ disabled: false }}
         style={() => [styles.buttonWrapper, { backgroundColor: theme.white }]}
       >
+        {isRefreshingData && (
+          <View style={globalStyle.dot}>
+            <LoaderIcon tintColor={theme.white} size="SMALL" />
+          </View>
+        )}
         <Image source={require('@assets/icons/settings.svg')} style={styles.icon} />
       </Pressable>
       <Modal
@@ -83,7 +77,7 @@ export function Settings() {
         animationType="slide"
         onRequestClose={closeAll}
       >
-        <View style={styles.modalContainer}>
+        <View style={globalStyle.modalContainer}>
           {isSettingsOpen && (
             <SettingsPage
               refreshData={refreshData}
@@ -119,34 +113,8 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 48
   },
-  dot: {
-    alignItems: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: -5,
-    top: -5,
-    width: 20,
-    zIndex: 2
-  },
   icon: {
     height: Spacing.five,
     width: Spacing.five
-  },
-  modalContainer: {
-    height: '100%',
-    marginTop: 90,
-    position: 'absolute',
-    width: '100%'
-  },
-  syncBanner: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-    paddingVertical: Spacing.two,
-    position: 'absolute',
-    top: 48,
-    zIndex: 2
   }
 })
