@@ -7,6 +7,7 @@ import { parseWktToGeojson } from '@utils/parseWktToGeojson'
 import dayjs from 'dayjs'
 import { FISH_REGULATORY_AREAS_API_URL, FISH_REGULATORY_AREAS_TABLE } from '../db.schema'
 import { storage } from '@storage'
+import { logSentryError, logToSentry } from '@utils/sentryLogger'
 
 type ApiRow = {
   id: number
@@ -66,8 +67,6 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
 
   const rows = await fetchAllFishRegulatoryAreas(facades)
   if (!rows || rows.length === 0) {
-    // oxlint-disable-next-line no-console
-    console.warn('No fish regulatory areas to sync')
     return
   }
 
@@ -79,8 +78,10 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
         const row = rows[idx]
 
         if (!row) {
-          // oxlint-disable-next-line no-console
-          console.warn(`Skipping null row at index ${idx}`)
+          logToSentry(`Skipping null row at index ${idx}`, 'info', {
+            extra: { label: 'syncFishRegulatoryAreas' }
+          })
+
           continue
         }
 
@@ -116,8 +117,8 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
       }
     })
   } catch (error) {
-    // oxlint-disable-next-line no-console
-    console.error('Transaction failed during fish sync:', error)
+    logSentryError(error, 'Transaction failed during fish sync')
+
     throw error
   }
 

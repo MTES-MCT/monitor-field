@@ -7,6 +7,7 @@ import { parseWktToGeojson } from '@utils/parseWktToGeojson'
 import dayjs from 'dayjs'
 import { ENV_REGULATORY_AREAS_API_URL, ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 import { storage } from '@storage'
+import { logSentryError, logToSentry } from '@utils/sentryLogger'
 
 type ApiRow = {
   id: number
@@ -86,8 +87,6 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
   const rows = await fetchAllEnvRegulatoryAreas(selectedFacades)
 
   if (!rows || rows.length === 0) {
-    // oxlint-disable-next-line no-console
-    console.warn('No env regulatory areas to sync')
     return
   }
 
@@ -119,8 +118,9 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
       for (let idx = 0; idx < rows.length; idx++) {
         const row = rows[idx]
         if (!row) {
-          // oxlint-disable-next-line no-console
-          console.warn(`Skipping null row at index ${idx}`)
+          logToSentry(`Skipping null row at index ${idx}`, 'info', {
+            extra: { label: 'syncEnvRegulatoryAreas' }
+          })
           continue
         }
 
@@ -185,8 +185,7 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
       }
     })
   } catch (error) {
-    // oxlint-disable-next-line no-console
-    console.error('Transaction failed during env sync:', error)
+    logSentryError(error, 'Transaction failed during env sync')
     throw error
   }
 

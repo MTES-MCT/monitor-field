@@ -1,6 +1,7 @@
 import { getDatabase } from '@database/db'
 import { syncEnvRegulatoryAreas } from '@database/env/envRegulatoryAreasSync'
 import { syncFishRegulatoryAreas } from '@database/fish/fishRegulatoryAreasSync'
+import { logSentryError } from '@utils/sentryLogger'
 
 export type SyncRegulatoryAreasOptions = {
   forceRefresh?: boolean
@@ -19,8 +20,7 @@ export async function syncRegulatoryAreasDB(facades: string[], options?: SyncReg
   if (shouldSyncFish) {
     syncPromises.push(
       syncFishRegulatoryAreas(database, facades, forceRefresh).catch(e => {
-        // oxlint-disable-next-line no-console
-        console.warn('Unable to sync fish regulatory areas', e)
+        logSentryError(e, 'Unable to sync fish regulatory areas')
       })
     )
   }
@@ -28,8 +28,7 @@ export async function syncRegulatoryAreasDB(facades: string[], options?: SyncReg
   if (shouldSyncEnv) {
     syncPromises.push(
       syncEnvRegulatoryAreas(database, facades, forceRefresh).catch(e => {
-        // oxlint-disable-next-line no-console
-        console.warn('Unable to sync env regulatory areas', e)
+        logSentryError(e, 'Unable to sync env regulatory areas')
       })
     )
   }

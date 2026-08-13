@@ -1,3 +1,4 @@
+import { logSentryError } from '@utils/sentryLogger'
 import * as Location from 'expo-location'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -38,8 +39,7 @@ export function useLocationStatus() {
         })
       }
     } catch (error) {
-      // oxlint-disable-next-line no-console
-      console.warn('Unable to refresh location status', error)
+      logSentryError(error, 'Unable to refresh location status')
       if (isMountedRef.current) {
         setStatus(prev => ({ ...prev }))
       }
@@ -50,8 +50,7 @@ export function useLocationStatus() {
     try {
       await Location.requestForegroundPermissionsAsync()
     } catch (error) {
-      // oxlint-disable-next-line no-console
-      console.warn('Unable to request location permission', error)
+      logSentryError(error, 'Unable to request location permission')
     } finally {
       await refreshLocationStatus()
     }

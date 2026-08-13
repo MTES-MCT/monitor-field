@@ -6,6 +6,7 @@ import { Image } from 'expo-image'
 import * as Location from 'expo-location'
 import { useEffect } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
+import { logSentryError } from '@utils/sentryLogger'
 
 type LocationButtonProps = {
   onLocate: (coordinates: { longitude: number; latitude: number }) => void
@@ -43,8 +44,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
           longitude: position.coords.longitude
         })
       } catch (error) {
-        // oxlint-disable-next-line no-console
-        console.warn('Unable to retrieve current location', error)
+        logSentryError(error, 'Unable to retrieve current location')
       }
     }
     setIsLocationButtonEnabled(!isLocationButtonEnabled)

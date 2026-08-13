@@ -1,4 +1,5 @@
 import { useTheme } from '@hooks/use-theme'
+import { logSentryError } from '@utils/sentryLogger'
 import { Image } from 'expo-image'
 import { Modal, Pressable, StyleSheet, View } from 'react-native'
 import { useState } from 'react'
@@ -29,6 +30,8 @@ export function Settings() {
     setIsRefreshingData(true)
     try {
       await syncRegulatoryAreasDB(facades, { forceRefresh: true })
+    } catch (e) {
+      logSentryError(e, 'Unable to sync regulatory areas')
     } finally {
       setIsRefreshingData(false)
     }
@@ -48,8 +51,7 @@ export function Settings() {
     }
 
     refreshData().catch(e => {
-      // oxlint-disable-next-line no-console
-      console.warn('Unable to sync regulatory areas', e)
+      logSentryError(e, 'Unable to sync regulatory areas')
     })
   }
 

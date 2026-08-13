@@ -2,6 +2,7 @@ import type { DB } from '@op-engineering/op-sqlite'
 import type { BoundingBox } from '@/types/mapTypes'
 import { FISH_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { FishRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
+import { logSentryError } from '@utils/sentryLogger'
 
 export async function getFishRegulatoryAreasQuery(
   db: DB,
@@ -36,8 +37,7 @@ export async function getFishRegulatoryAreasQuery(
 
     return result.rows as FishRegulatoryAreaFromDatabase[]
   } catch (error) {
-    // oxlint-disable-next-line no-console
-    console.warn('Error fetching areas', error)
+    logSentryError(error, 'Error fetching Env areas')
     return []
   }
 }
