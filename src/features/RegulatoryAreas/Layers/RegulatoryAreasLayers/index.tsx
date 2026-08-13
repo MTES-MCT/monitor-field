@@ -6,6 +6,7 @@ import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
 import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
 import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
+import { logSentryError } from '@utils/sentryLogger'
 
 export const regulatoryAreasIds = {
   fillLayer: 'regulatory-areas-fill',
@@ -137,8 +138,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       setRegulatoryAreas(result.listItems)
       setGeoJSON(result.geoJSON)
     } catch (error) {
-      // oxlint-disable-next-line no-console
-      console.warn('Failed to load regulatory areas', error)
+      logSentryError(error, 'Failed to load regulatory areas')
     } finally {
       if (requestIdRef.current === requestId) {
         setIsLoading(false)

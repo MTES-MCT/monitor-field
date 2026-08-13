@@ -6,6 +6,7 @@ import type { Filters } from '@contexts/RegulatoryAreasContext'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
+import { logToSentry } from '@utils/sentryLogger'
 
 export type EnvRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
@@ -68,8 +69,9 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
     const validatedFeature = EnvRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
 
     if (!validatedFeature.success) {
-      // oxlint-disable-next-line no-console
-      console.warn('Invalid feature for area', area.id, validatedFeature.error)
+      logToSentry(`Invalid feature for area ${area.id}: ${validatedFeature.error}`, 'warning', {
+        extra: { label: 'getEnvRegulatoryAreas' }
+      })
       continue
     }
 

@@ -28,6 +28,19 @@ import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegul
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 import { Settings } from '@features/Settings'
+import * as Sentry from '@sentry/react-native'
+
+const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
+
+Sentry.init({
+  attachStacktrace: false,
+  dsn: SENTRY_DSN,
+  enableAutoSessionTracking: false,
+  enableLogs: false,
+  environment: ENV,
+  sendDefaultPii: false
+})
 
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
@@ -52,7 +65,7 @@ const baseMapStyle: StyleSpecification = {
 
 const LOCATION_FOCUS_ZOOM = 35
 
-export default function App() {
+function App() {
   const mapRef = useRef<MapRef>(null)
   const cameraRef = useRef<CameraRef>(null)
   const { isLocationButtonEnabled } = useAppContext()
@@ -229,6 +242,8 @@ export default function App() {
     </MapLibreMap>
   )
 }
+
+export default Sentry.wrap(App)
 
 const styles = StyleSheet.create({
   bottomWrapper: {

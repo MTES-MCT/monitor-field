@@ -2,6 +2,7 @@ import type { DB } from '@op-engineering/op-sqlite'
 import type { BoundingBox } from '@/types/mapTypes'
 import { ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { EnvRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
+import { logSentryError } from '@utils/sentryLogger'
 
 export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Promise<EnvRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
@@ -45,8 +46,7 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
 
     return result.rows as EnvRegulatoryAreaFromDatabase[]
   } catch (error) {
-    // oxlint-disable-next-line no-console
-    console.warn('Error fetching areas', error)
+    logSentryError(error, 'Error fetching Env areas')
     return []
   }
 }

@@ -11,7 +11,7 @@ import { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import daysjs from 'dayjs'
 
-const email = process.env.EXPO_PUBLIC_EMAIL
+const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 
 type SettingsPageProps = {
   closeSettings: () => void
@@ -105,8 +105,12 @@ export function SettingsPage({
         </ThemedText>
         <ThemedText type="default">
           Vous pouvez également nous contacter à l’adresse suivante : {'\n'}
-          <ThemedText style={styles.textUnderline} type="default" onPress={() => Linking.openURL(`mailto:${email}`)}>
-            {email}
+          <ThemedText
+            style={styles.textUnderline}
+            type="default"
+            onPress={() => Linking.openURL(`mailto:${MONITOR_EMAIL}`)}
+          >
+            {MONITOR_EMAIL}
           </ThemedText>
         </ThemedText>
       </View>

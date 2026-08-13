@@ -8,8 +8,9 @@ import { CloseButton } from '@components/Buttons/CloseButton'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useCallback } from 'react'
+import { logToSentry } from '@utils/sentryLogger'
 
-const cnspTel = process.env.EXPO_PUBLIC_CNSP_NUMBER
+const CNSP_TEL_NUMBER = process.env.EXPO_PUBLIC_CNSP_NUMBER
 
 export function FishRegulatoryAreaDetails({
   color,
@@ -22,8 +23,15 @@ export function FishRegulatoryAreaDetails({
 }) {
   const theme = useTheme()
 
-  const callCnsp = useCallback(() => {
-    Linking.openURL(`tel:${cnspTel}`)
+  const callCnsp = useCallback(async () => {
+    const supported = await Linking.canOpenURL(`tel:${CNSP_TEL_NUMBER}`)
+    if (supported) {
+      Linking.openURL(`tel:${CNSP_TEL_NUMBER}`)
+    } else {
+      logToSentry(`Don't know how to open this URL: tel:${CNSP_TEL_NUMBER}`, 'info', {
+        extra: { label: 'FishRegulatoryAreaDetails' }
+      })
+    }
   }, [])
 
   return (
@@ -73,7 +81,7 @@ export function FishRegulatoryAreaDetails({
           <ThemedText type="small">
             Pour plus d’informations, {' \n'}appeler le CNSP au{' '}
             <ThemedText type="link" onPress={callCnsp} style={{ textDecorationLine: 'underline' }}>
-              {cnspTel}
+              {CNSP_TEL_NUMBER}
             </ThemedText>
           </ThemedText>
         </View>

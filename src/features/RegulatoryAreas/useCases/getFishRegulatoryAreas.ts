@@ -6,6 +6,7 @@ import type { Filters } from '@contexts/RegulatoryAreasContext'
 import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import { logToSentry } from '@utils/sentryLogger'
 
 export type FishRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
@@ -57,8 +58,9 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
     const validatedFeature = FishRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
 
     if (!validatedFeature.success) {
-      // oxlint-disable-next-line no-console
-      console.warn('Invalid feature for area', area.id, validatedFeature.error)
+      logToSentry(`Invalid feature for area ${area.id}: ${validatedFeature.error}`, 'warning', {
+        extra: { label: 'getFishRegulatoryAreas' }
+      })
       continue
     }
 

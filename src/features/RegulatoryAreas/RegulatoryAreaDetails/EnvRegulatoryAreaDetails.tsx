@@ -9,8 +9,9 @@ import daysjs from 'dayjs'
 import { useCallback } from 'react'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { Image } from 'expo-image'
+import { logToSentry } from '@utils/sentryLogger'
 
-const cacemTel = process.env.EXPO_PUBLIC_CACEM_NUMBER
+const CACEM_TEL_NUMBER = process.env.EXPO_PUBLIC_CACEM_NUMBER
 
 export function EnvRegulatoryAreaDetails({
   color,
@@ -29,13 +30,21 @@ export function EnvRegulatoryAreaDetails({
     if (supported) {
       await Linking.openURL(url)
     } else {
-      // oxlint-disable-next-line no-console
-      console.warn(`Don't know how to open this URL: ${url}`)
+      logToSentry(`Don't know how to open this URL: ${url}`, 'info', {
+        extra: { label: 'EnvRegulatoryAreaDetails' }
+      })
     }
   }, [])
 
-  const callCacem = useCallback(() => {
-    Linking.openURL(`tel:${cacemTel}`)
+  const callCacem = useCallback(async () => {
+    const supported = await Linking.canOpenURL(`tel:${CACEM_TEL_NUMBER}`)
+    if (supported) {
+      Linking.openURL(`tel:${CACEM_TEL_NUMBER}`)
+    } else {
+      logToSentry(`Don't know how to open this URL: tel:${CACEM_TEL_NUMBER}`, 'info', {
+        extra: { label: 'EnvRegulatoryAreaDetails' }
+      })
+    }
   }, [])
 
   return (
@@ -149,7 +158,7 @@ export function EnvRegulatoryAreaDetails({
           <ThemedText type="small">
             Pour plus d’informations, {' \n'}appeler le CACEM au{' '}
             <ThemedText type="link" onPress={callCacem} style={{ textDecorationLine: 'underline' }}>
-              {cacemTel}
+              {CACEM_TEL_NUMBER}
             </ThemedText>
           </ThemedText>
         </View>
