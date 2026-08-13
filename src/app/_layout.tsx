@@ -11,19 +11,6 @@ import { Appearance, StatusBar } from 'react-native'
 import { OnBoarding } from '@features/OnBoarding'
 import App from '.'
 import { useMMKVBoolean } from 'react-native-mmkv'
-import * as Sentry from '@sentry/react-native'
-
-const env = process.env.EXPO_PUBLIC_SENTRY_ENV
-
-Sentry.init({
-  attachStacktrace: false,
-  debug: true,
-  dsn: 'https://4362da132f59d3710152c4a45ae703a7@sentry.incubateur.net/313',
-  enableAutoSessionTracking: false,
-  enableLogs: false,
-  environment: env,
-  sendDefaultPii: false
-})
 
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()

@@ -30,6 +30,18 @@ import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/Regula
 import { Settings } from '@features/Settings'
 import * as Sentry from '@sentry/react-native'
 
+const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
+
+Sentry.init({
+  attachStacktrace: false,
+  dsn: SENTRY_DSN,
+  enableAutoSessionTracking: false,
+  enableLogs: false,
+  environment: ENV,
+  sendDefaultPii: false
+})
+
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
 const baseMapStyle: StyleSpecification = {
