@@ -3,14 +3,17 @@ import { CloseButton } from '@components/Buttons/CloseButton'
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useTheme } from '@hooks/use-theme'
+import { useGlobalStyle } from '@globalStyle'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { useRef, useState } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 
 export function Search({ onClose }: { onClose: () => void }) {
   const inputRef = useRef<TextInput>(null)
-  const theme = useTheme()
+
+  const styles = useThemedStyles(createStyles)
+  const globalStyle = useGlobalStyle()
   const { filters, setFilters, isSearchByQueryActive } = useRegulatoryAreasContext()
 
   const [text, setText] = useState(filters.searchQuery ?? '')
@@ -38,7 +41,7 @@ export function Search({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <View style={[styles.searchBox, { borderColor: theme.lightGray }]}>
+      <View style={styles.searchBox}>
         <BackButton onBack={onCloseSearchInput} />
 
         <TextInput
@@ -52,7 +55,7 @@ export function Search({ onClose }: { onClose: () => void }) {
         {text.length > 0 && <CloseButton onClose={() => onChangeText('')} />}
       </View>
       <View style={styles.informationMessage}>
-        <Image source={require('@assets/icons/attention-filled.svg')} style={styles.icon} />
+        <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
         <ThemedText type="small" themeColor="slateGray">
           La recherche se fait dans la zone en pointillés
         </ThemedText>
@@ -61,30 +64,28 @@ export function Search({ onClose }: { onClose: () => void }) {
   )
 }
 
-const styles = StyleSheet.create({
-  icon: {
-    height: 20,
-    width: 20
-  },
-  informationMessage: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-    marginHorizontal: Spacing.two,
-    marginVertical: Spacing.two
-  },
-  input: {
-    color: '#2b3a4a',
-    flex: 1,
-    fontSize: 17,
-    paddingVertical: 0
-  },
-  searchBox: {
-    alignItems: 'center',
-    borderWidth: 1,
-    flexDirection: 'row',
-    height: 48,
-    marginHorizontal: Spacing.two,
-    paddingHorizontal: Spacing.one
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    informationMessage: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: Spacing.two,
+      marginHorizontal: Spacing.two,
+      marginVertical: Spacing.two
+    },
+    input: {
+      color: '#2b3a4a',
+      flex: 1,
+      fontSize: 17,
+      paddingVertical: 0
+    },
+    searchBox: {
+      alignItems: 'center',
+      borderColor: theme.lightGray,
+      borderWidth: 1,
+      flexDirection: 'row',
+      height: 48,
+      marginHorizontal: Spacing.two,
+      paddingHorizontal: Spacing.one
+    }
+  })

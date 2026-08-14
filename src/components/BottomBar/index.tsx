@@ -78,7 +78,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
           >
             <Image
               source={require('@assets/icons/select-rectangle.svg')}
-              style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.slateGray }]}
+              style={[globalStyle.iconNormal, { marginRight: Spacing.two, tintColor: theme.slateGray }]}
             />
             <ThemedText themeColor="slateGray" type="small">
               Recentrer
@@ -98,7 +98,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
           >
             <Image
               source={require('@assets/icons/display.svg')}
-              style={[styles.icon, { marginRight: Spacing.two, tintColor: theme.white }]}
+              style={[globalStyle.iconNormal, { marginRight: Spacing.two, tintColor: theme.white }]}
             />
             <ThemedText themeColor="white" type="small">
               Afficher les reg. ici
@@ -119,7 +119,10 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
               }
             ]}
           >
-            <Image source={require('@assets/icons/display.svg')} style={[styles.icon, { tintColor: theme.white }]} />
+            <Image
+              source={require('@assets/icons/display.svg')}
+              style={[globalStyle.iconNormal, { tintColor: theme.white }]}
+            />
             {!isSearchZoneActive && (
               <ThemedText type="small" themeColor="white" style={{ marginLeft: Spacing.two }}>
                 Afficher les reg.ici
@@ -163,7 +166,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
             {filters.searchQuery && <View style={globalStyle.dot} />}
             <Image
               source={require('@assets/icons/search.svg')}
-              style={[styles.icon, { tintColor: filters.searchQuery ? theme.blueGray : theme.slateGray }]}
+              style={[globalStyle.iconNormal, { tintColor: filters.searchQuery ? theme.blueGray : theme.slateGray }]}
             />
           </Pressable>
           {config.features.hasRegulatoryAreasFilters && <EnvFilters />}
@@ -185,10 +188,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     gap: Spacing.half
-  },
-  icon: {
-    height: Spacing.five,
-    width: Spacing.five
   },
   searchAndFilterWrapper: {
     flexDirection: 'row',

@@ -59,7 +59,9 @@
           ]
         }
       ],
-      ["@maplibre/maplibre-react-native"],
+      [
+        "@maplibre/maplibre-react-native"
+      ],
       [
         "@sentry/react-native/expo",
         {

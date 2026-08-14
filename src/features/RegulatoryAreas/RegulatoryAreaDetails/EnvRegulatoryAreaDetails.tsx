@@ -58,13 +58,7 @@ export function EnvRegulatoryAreaDetails({
             style={styles.titleText}
           >{`${regulatoryArea.layerName} - ${regulatoryArea.location}`}</ThemedText>
           <View style={styles.title}>
-            <View
-              style={{
-                ...styles.square,
-                backgroundColor: color,
-                borderColor: theme.lightGray
-              }}
-            />
+            <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
             <ThemedText type="default" style={styles.titleText}>
               {getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
             </ThemedText>
@@ -108,12 +102,7 @@ export function EnvRegulatoryAreaDetails({
           <>
             <View style={globalStyle.separator} />
             <View style={styles.labelWithCircle}>
-              <View
-                style={{
-                  ...styles.circle,
-                  backgroundColor: theme.mediumSeaGreen
-                }}
-              />
+              <View style={[styles.circle, { backgroundColor: theme.mediumSeaGreen }]} />
               <ThemedText type="small" themeColor="slateGray">
                 Période d&apos;autorisation
               </ThemedText>
@@ -128,7 +117,7 @@ export function EnvRegulatoryAreaDetails({
           <>
             <View style={globalStyle.separator} />
             <View style={styles.labelWithCircle}>
-              <View style={{ ...styles.circle, backgroundColor: theme.maximumRed }} />
+              <View style={[styles.circle, { backgroundColor: theme.maximumRed }]} />
               <ThemedText type="small" themeColor="slateGray">
                 Période d&apos;interdiction
               </ThemedText>
@@ -152,14 +141,10 @@ export function EnvRegulatoryAreaDetails({
         </View>
         <View style={globalStyle.separator} />
         <View style={[styles.horizontalPadding, { alignItems: 'center', flexDirection: 'row', gap: Spacing.two }]}>
-          <Image
-            source={require('@assets/icons/info.svg')}
-            tintColor={theme.slateGray}
-            style={{ height: 20, width: 20 }}
-          />
+          <Image source={require('@assets/icons/info.svg')} tintColor={theme.slateGray} style={globalStyle.iconSmall} />
           <ThemedText type="small">
             Pour plus d’informations, {' \n'}appeler le CACEM au{' '}
-            <ThemedText type="link" onPress={callCacem} style={{ textDecorationLine: 'underline' }}>
+            <ThemedText type="link" onPress={callCacem} style={globalStyle.textUnderline}>
               {CACEM_TEL_NUMBER}
             </ThemedText>
           </ThemedText>

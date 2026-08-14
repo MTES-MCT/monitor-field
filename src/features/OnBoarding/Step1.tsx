@@ -1,6 +1,6 @@
 import { ThemedText } from '@components/Elements/Text'
 import { Pressable, StyleSheet, View } from 'react-native'
-import { useTheme } from '@hooks/use-theme'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useGlobalStyle } from '@globalStyle'
@@ -8,7 +8,7 @@ import { useGlobalStyle } from '@globalStyle'
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 
 export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
-  const theme = useTheme()
+  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
 
   return (
@@ -43,62 +43,57 @@ export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
       <ThemedText themeColor="white" type="default" style={styles.text}>
         ...ou à tout moment dans l’application {'\n'} à l’aide du bouton suivant :
       </ThemedText>
-      <View style={[styles.messageWrapper, { backgroundColor: theme.white }]}>
-        <Image source={require('@assets/icons/message.svg')} style={styles.messageIcon} />
+      <View style={styles.messageWrapper}>
+        <Image source={require('@assets/icons/message.svg')} style={globalStyle.iconNormal} />
       </View>
       <ThemedText themeColor="white" type="defaultItalic" style={[styles.text, styles.verticalMargin]}>
         (Retrouvez l’adresse de contact {'\n'} dans le menu paramètres)
       </ThemedText>
 
-      <Pressable onPress={setCurrentStep} style={[styles.button, { backgroundColor: theme.blueGray }]}>
+      <Pressable onPress={setCurrentStep} style={styles.button}>
         <ThemedText type="default" themeColor="white">
           Suivant
         </ThemedText>
-        <Image source={require('@assets/icons/arrow-right.svg')} style={styles.arrowIcon} />
+        <Image source={require('@assets/icons/arrow-right.svg')} style={globalStyle.iconNormal} />
       </Pressable>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
-  arrowIcon: {
-    height: 24,
-    width: 24
-  },
-  button: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-    height: 48,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.six
-  },
-  messageIcon: {
-    height: 26,
-    width: 26
-  },
-  messageWrapper: {
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    width: 48
-  },
-  text: {
-    textAlign: 'center'
-  },
-  title: {
-    marginBottom: Spacing.four,
-    textAlign: 'center'
-  },
-  verticalMargin: {
-    marginVertical: Spacing.six
-  },
-  wrapper: {
-    alignItems: 'center',
-    flex: 1,
-    gap: Spacing.four,
-    justifyContent: 'center',
-    padding: Spacing.six,
-    textAlign: 'center'
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.blueGray,
+      flexDirection: 'row',
+      gap: Spacing.two,
+      height: 48,
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.six
+    },
+    messageWrapper: {
+      alignItems: 'center',
+      backgroundColor: theme.white,
+      height: 48,
+      justifyContent: 'center',
+      width: 48
+    },
+    text: {
+      textAlign: 'center'
+    },
+    title: {
+      marginBottom: Spacing.four,
+      textAlign: 'center'
+    },
+    verticalMargin: {
+      marginVertical: Spacing.six
+    },
+    wrapper: {
+      alignItems: 'center',
+      flex: 1,
+      gap: Spacing.four,
+      justifyContent: 'center',
+      padding: Spacing.six,
+      textAlign: 'center'
+    }
+  })

@@ -40,13 +40,7 @@ export function FishRegulatoryAreaDetails({
     <>
       <View style={styles.titleWrapper}>
         <View style={styles.title}>
-          <View
-            style={{
-              ...styles.square,
-              backgroundColor: color,
-              borderColor: theme.lightGray
-            }}
-          />
+          <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
           <ThemedText type="default" style={styles.titleText}>
             {getRegulatoryAreaLabel(regulatoryArea, 'MONITORFISH')}
           </ThemedText>
@@ -82,7 +76,7 @@ export function FishRegulatoryAreaDetails({
           />
           <ThemedText type="small">
             Pour plus d’informations, {' \n'}appeler le CNSP au{' '}
-            <ThemedText type="link" onPress={callCnsp} style={{ textDecorationLine: 'underline' }}>
+            <ThemedText type="link" onPress={callCnsp} style={globalStyle.textUnderline}>
               {CNSP_TEL_NUMBER}
             </ThemedText>
           </ThemedText>

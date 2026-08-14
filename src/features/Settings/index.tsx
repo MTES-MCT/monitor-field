@@ -1,10 +1,8 @@
-import { useTheme } from '@hooks/use-theme'
 import { logSentryError } from '@utils/sentryLogger'
 import { Image } from 'expo-image'
 import { Modal, Pressable, StyleSheet, View } from 'react-native'
 import { useState } from 'react'
 import { SettingsPage } from './SettingsPage'
-import { Spacing } from '@constants/theme'
 import { SeaFronts } from './SeaFronts'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
@@ -12,9 +10,10 @@ import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
 import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
 import { useGlobalStyle } from '@globalStyle'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 
 export function Settings() {
-  const theme = useTheme()
+  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSeaFrontsSelectorOpen, setIsSeaFrontsSelectorOpen] = useState(false)
@@ -62,14 +61,14 @@ export function Settings() {
         onPress={() => setIsSettingsOpen(true)}
         accessibilityRole="button"
         accessibilityState={{ disabled: false }}
-        style={() => [styles.buttonWrapper, { backgroundColor: theme.white }]}
+        style={styles.buttonWrapper}
       >
         {isRefreshingData && (
           <View style={globalStyle.dot}>
-            <LoaderIcon tintColor={theme.white} size="SMALL" />
+            <LoaderIcon tintColor="white" size="SMALL" />
           </View>
         )}
-        <Image source={require('@assets/icons/settings.svg')} style={styles.icon} />
+        <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
       </Pressable>
       <Modal
         transparent
@@ -106,15 +105,13 @@ export function Settings() {
   )
 }
 
-export const styles = StyleSheet.create({
-  buttonWrapper: {
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    width: 48
-  },
-  icon: {
-    height: Spacing.five,
-    width: Spacing.five
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    buttonWrapper: {
+      alignItems: 'center',
+      backgroundColor: theme.white,
+      height: 48,
+      justifyContent: 'center',
+      width: 48
+    }
+  })

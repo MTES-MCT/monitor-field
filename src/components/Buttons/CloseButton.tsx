@@ -1,18 +1,12 @@
-import { Spacing } from '@constants/theme'
+import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
-import { Pressable, StyleSheet } from 'react-native'
+import { Pressable } from 'react-native'
 
 export function CloseButton({ onClose }: { onClose: () => void }) {
+  const globalStyle = useGlobalStyle()
   return (
     <Pressable accessibilityRole="button" onPress={onClose} hitSlop={8}>
-      <Image source={require('@assets/icons/close.svg')} style={styles.icon} />
+      <Image source={require('@assets/icons/close.svg')} style={globalStyle.iconNormal} />
     </Pressable>
   )
 }
-
-const styles = StyleSheet.create({
-  icon: {
-    height: Spacing.five,
-    width: Spacing.five
-  }
-})

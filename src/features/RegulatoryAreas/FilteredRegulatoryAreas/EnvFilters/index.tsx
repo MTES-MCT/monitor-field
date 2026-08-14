@@ -3,7 +3,6 @@ import { ThemedText } from '@components/Elements/Text'
 import { Switch } from '@components/Elements/Switch'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { useState } from 'react'
 import { Modal, Pressable, StyleSheet, View } from 'react-native'
@@ -44,7 +43,7 @@ export function EnvFilters() {
         accessibilityState={{
           disabled: false
         }}
-        style={[styles.buttonBase, { zIndex: -1 }]}
+        style={styles.buttonBase}
       >
         {filtersCount > 0 && (
           <View style={globalStyle.dot}>
@@ -53,7 +52,7 @@ export function EnvFilters() {
             </ThemedText>
           </View>
         )}
-        <Image source={require('@assets/icons/filter.svg')} style={styles.icon} />
+        <Image source={require('@assets/icons/filter.svg')} style={globalStyle.iconNormal} />
       </Pressable>
 
       <Modal transparent visible={isOpen} animationType="slide" onRequestClose={closeEnvFilters}>
@@ -109,14 +108,15 @@ export function EnvFilters() {
   )
 }
 
-const createStyles = (theme: ReturnType<typeof useTheme>) =>
+const createStyles = theme =>
   StyleSheet.create({
     buttonBase: {
       backgroundColor: theme.white,
       flexDirection: 'row',
       justifyContent: 'center',
       padding: Spacing.three,
-      position: 'relative'
+      position: 'relative',
+      zIndex: -1
     },
     buttonsWrapper: {
       gap: Spacing.two,
@@ -144,10 +144,6 @@ const createStyles = (theme: ReturnType<typeof useTheme>) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       padding: Spacing.four
-    },
-    icon: {
-      height: Spacing.five,
-      width: Spacing.five
     },
     primaryButton: {
       alignItems: 'center',

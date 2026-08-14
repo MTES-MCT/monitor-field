@@ -11,8 +11,9 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated'
 import { ThemedText } from './Elements/Text'
-import { useTheme } from '@hooks/use-theme'
 import { Spacing } from '@constants/theme'
+import { useGlobalStyle } from '@globalStyle'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 
 const ICON_SIZE = 48
 const FISH_MOVE_DURATION = 1500
@@ -22,7 +23,8 @@ const FISH_PAUSE_DURATION = 1000
 SplashScreen.preventAutoHideAsync()
 
 export function CustomSplashScreen() {
-  const theme = useTheme()
+  const globalStyle = useGlobalStyle()
+  const styles = useThemedStyles(createStyles)
   const { width: screenWidth } = useWindowDimensions()
   const fishTranslateX = useSharedValue(0)
 
@@ -54,19 +56,16 @@ export function CustomSplashScreen() {
     <View style={styles.container}>
       <View />
       <View style={[styles.iconContainer, { width: screenWidth }]}>
-        <Image
-          source={require('@assets/icons/algae.svg')}
-          style={[styles.icon, styles.algaeIcon, { tintColor: theme.mediumSeaGreen }]}
-        />
+        <Image source={require('@assets/icons/algae.svg')} style={[globalStyle.iconLarge, styles.algaeIcon]} />
         <Animated.View style={[styles.fishWrapper, fishAnimatedStyle]}>
-          <Image source={require('@assets/icons/fish.svg')} style={styles.icon} />
+          <Image source={require('@assets/icons/fish.svg')} style={globalStyle.iconLarge} />
         </Animated.View>
       </View>
       <View style={styles.textContainer}>
-        <ThemedText type="subtitle" style={{ color: theme.white }}>
+        <ThemedText type="subtitle" themeColor="white">
           Monitorfield
         </ThemedText>
-        <ThemedText type="default" style={{ color: theme.white }}>
+        <ThemedText type="default" themeColor="white">
           version de test
         </ThemedText>
       </View>
@@ -74,36 +73,37 @@ export function CustomSplashScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  algaeIcon: {
-    left: '50%',
-    marginLeft: -(ICON_SIZE / 2),
-    position: 'absolute',
-    top: Spacing.five,
-    zIndex: 1
-  },
-  container: {
-    alignItems: 'center',
-    backgroundColor: '#282F3E',
-    flex: 1,
-    justifyContent: 'space-between'
-  },
-  fishWrapper: {
-    // centered in the full-width container; translateX moves it left/right across the screen
-    left: '45%',
-    marginLeft: -(ICON_SIZE / 2),
-    position: 'absolute',
-    top: 0,
-    zIndex: 0
-  },
-  icon: { height: ICON_SIZE, width: ICON_SIZE },
-  iconContainer: {
-    height: ICON_SIZE + Spacing.five,
-    overflow: 'hidden'
-  },
-  textContainer: {
-    alignItems: 'center',
-    flexDirection: 'column',
-    paddingBottom: 56
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    algaeIcon: {
+      left: '50%',
+      marginLeft: -(ICON_SIZE / 2),
+      position: 'absolute',
+      tintColor: theme.mediumSeaGreen,
+      top: Spacing.five,
+      zIndex: 1
+    },
+    container: {
+      alignItems: 'center',
+      backgroundColor: theme.gunMetal,
+      flex: 1,
+      justifyContent: 'space-between'
+    },
+    fishWrapper: {
+      // centered in the full-width container; translateX moves it left/right across the screen
+      left: '45%',
+      marginLeft: -(ICON_SIZE / 2),
+      position: 'absolute',
+      top: 0,
+      zIndex: 0
+    },
+    iconContainer: {
+      height: ICON_SIZE + Spacing.five,
+      overflow: 'hidden'
+    },
+    textContainer: {
+      alignItems: 'center',
+      flexDirection: 'column',
+      paddingBottom: 56
+    }
+  })

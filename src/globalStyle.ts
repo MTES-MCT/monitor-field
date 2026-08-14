@@ -17,6 +17,18 @@ export function useGlobalStyle() {
       top: -10,
       width: 20
     },
+    iconLarge: {
+      height: 48,
+      width: 48
+    },
+    iconNormal: {
+      height: 24,
+      width: 24
+    },
+    iconSmall: {
+      height: 20,
+      width: 20
+    },
     modalContainer: {
       backgroundColor: theme.white,
       height: '90%',
