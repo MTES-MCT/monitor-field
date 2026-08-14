@@ -1,7 +1,6 @@
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet, TextInput, View } from 'react-native'
-import { useTheme } from '@hooks/use-theme'
 import { BackButton } from '@components/Buttons/BackButton'
 import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
 import { type SyncRegulatoryAreasOptions } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
@@ -12,6 +11,8 @@ import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useGlobalStyle } from '@globalStyle'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 
 type SeaFrontsProps = {
   closeSettings: () => void
@@ -25,7 +26,8 @@ export const SeaFronts = ({
   setIsRefreshingData,
   refreshData
 }: SeaFrontsProps) => {
-  const theme = useTheme()
+  const styles = useThemedStyles(createStyles)
+  const globalStyle = useGlobalStyle()
   const [selectedSeaFronts, setSelectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const initialSelectionRef = useRef<string>(selectedSeaFronts)
 
@@ -64,16 +66,19 @@ export const SeaFronts = ({
   }
 
   return (
-    <SafeAreaView style={[styles.wrapper, { backgroundColor: theme.white }]}>
+    <SafeAreaView style={styles.wrapper}>
       <View style={styles.header}>
         <BackButton onBack={onCloseSeaFrontSelector} />
         <ThemedText type="default">Façades</ThemedText>
         <CloseButton onClose={onCloseSettings} />
       </View>
-      <View style={[styles.searchBox, { backgroundColor: theme.gainsboro, borderColor: theme.lightGray }]}>
+      <View style={styles.searchBox}>
         <TextInput style={styles.input} value={searchQuery} onChangeText={setSearchQuery} />
 
-        <Image source={require('@assets/icons/search.svg')} style={styles.icon} />
+        <Image
+          source={require('@assets/icons/search.svg')}
+          style={[globalStyle.iconNormal, { paddingLeft: Spacing.two }]}
+        />
       </View>
       <SeaFrontsSelector
         searchQuery={searchQuery}
@@ -84,35 +89,34 @@ export const SeaFronts = ({
   )
 }
 
-const styles = StyleSheet.create({
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingBottom: Spacing.four
-  },
-  icon: {
-    height: 20,
-    paddingLeft: Spacing.two,
-    width: 20
-  },
-  input: {
-    color: '#2b3a4a',
-    flex: 1,
-    fontSize: 17,
-    paddingVertical: 0
-  },
-  searchBox: {
-    alignItems: 'center',
-    borderWidth: 1,
-    flexDirection: 'row',
-    height: 48,
-    marginBottom: Spacing.four,
-    paddingRight: Spacing.two
-  },
-  wrapper: {
-    flex: 1,
-    gap: Spacing.four,
-    padding: Spacing.four
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    header: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingBottom: Spacing.four
+    },
+    input: {
+      color: '#2b3a4a',
+      flex: 1,
+      fontSize: 17,
+      paddingVertical: 0
+    },
+    searchBox: {
+      alignItems: 'center',
+      backgroundColor: theme.gainsboro,
+      borderColor: theme.lightGray,
+      borderWidth: 1,
+      flexDirection: 'row',
+      height: 48,
+      marginBottom: Spacing.four,
+      paddingRight: Spacing.two
+    },
+    wrapper: {
+      backgroundColor: theme.white,
+      flex: 1,
+      gap: Spacing.four,
+      padding: Spacing.four
+    }
+  })

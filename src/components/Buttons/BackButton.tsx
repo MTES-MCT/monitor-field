@@ -1,17 +1,13 @@
+import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
-import { Pressable, StyleSheet } from 'react-native'
+import { Pressable } from 'react-native'
 
 export const BackButton = ({ onBack }: { onBack: () => void }) => {
+  const globalStyle = useGlobalStyle()
+
   return (
     <Pressable onPress={onBack} hitSlop={8}>
-      <Image source={require('@assets/icons/chevron.svg')} style={styles.icon} />
+      <Image source={require('@assets/icons/chevron.svg')} style={globalStyle.iconSmall} />
     </Pressable>
   )
 }
-
-const styles = StyleSheet.create({
-  icon: {
-    height: 20,
-    width: 20
-  }
-})

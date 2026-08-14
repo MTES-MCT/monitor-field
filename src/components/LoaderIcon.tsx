@@ -32,7 +32,7 @@ export function LoaderIcon({ tintColor, size = 'NORMAL' }: { tintColor?: string;
         source={require('@assets/icons/recurring.svg')}
         style={{
           height: iconSize,
-          tintColor: tintColor ?? theme.gunMetal,
+          tintColor: theme[tintColor ?? 'gunMetal'],
           width: iconSize
         }}
       />

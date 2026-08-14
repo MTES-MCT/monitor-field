@@ -111,7 +111,10 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         }
       })
     }
-  }, [geoJSON, theme])
+    // added config.mode to prevent features of the previous context
+    // from being displayed before the new ones are generated
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoJSON, theme, config.mode])
 
   const fetch = useCallback(async () => {
     const bbox = committedSearchBbox ?? searchBbox

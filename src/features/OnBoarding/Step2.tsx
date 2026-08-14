@@ -2,12 +2,14 @@ import { ThemedText } from '@components/Elements/Text'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useState } from 'react'
 import { useTheme } from '@hooks/use-theme'
+import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
 
 export function Step2({ onNext }: { onNext: (facades: string[]) => void }) {
   const theme = useTheme()
+  const globalStyle = useGlobalStyle()
   const [selectedSeaFronts, setSelectedSeaFronts] = useState<string[]>([])
 
   const isButtonDisabled = selectedSeaFronts.length === 0
@@ -50,17 +52,13 @@ export function Step2({ onNext }: { onNext: (facades: string[]) => void }) {
         <ThemedText type="default" themeColor="white">
           Suivant
         </ThemedText>
-        <Image source={require('@assets/icons/arrow-right.svg')} style={styles.arrowIcon} />
+        <Image source={require('@assets/icons/arrow-right.svg')} style={globalStyle.iconNormal} />
       </Pressable>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  arrowIcon: {
-    height: 24,
-    width: 24
-  },
   button: {
     alignItems: 'center',
     flexDirection: 'row',

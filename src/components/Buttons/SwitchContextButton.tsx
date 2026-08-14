@@ -1,6 +1,7 @@
 import type { AppMode } from '@config/appModes'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -27,6 +28,7 @@ export function SwitchContextButton() {
   const { config, setMode } = useAppContext()
   const { resetContext } = useRegulatoryAreasContext()
   const theme = useTheme()
+  const globalStyle = useGlobalStyle()
 
   const switchContext = (mode: AppMode) => {
     setMode(mode)
@@ -54,7 +56,7 @@ export function SwitchContextButton() {
         <Image
           source={require('@assets/icons/algae.svg')}
           style={[
-            styles.icon,
+            globalStyle.iconNormal,
             getVisualState({
               mode: 'MONITORENV',
               selected: config.mode === 'MONITORENV',
@@ -82,7 +84,7 @@ export function SwitchContextButton() {
         <Image
           source={require('@assets/icons/fish.svg')}
           style={[
-            styles.icon,
+            globalStyle.iconNormal,
             getVisualState({
               mode: 'MONITORFISH',
               selected: config.mode === 'MONITORFISH',
@@ -101,10 +103,6 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     width: 48
-  },
-  icon: {
-    height: 24,
-    width: 24
   },
   wrapper: {
     display: 'flex',

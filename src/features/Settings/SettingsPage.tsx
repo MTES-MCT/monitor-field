@@ -2,7 +2,6 @@ import { CloseButton } from '@components/Buttons/CloseButton'
 import { ThemedText } from '@components/Elements/Text'
 import { ScrollView } from 'react-native-gesture-handler'
 import { Linking, Pressable, StyleSheet, View } from 'react-native'
-import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useMMKVString } from 'react-native-mmkv'
@@ -12,6 +11,7 @@ import { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import daysjs from 'dayjs'
 import { useGlobalStyle } from '@globalStyle'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 
@@ -28,7 +28,7 @@ export function SettingsPage({
   setIsRefreshingData,
   refreshData
 }: SettingsPageProps) {
-  const theme = useTheme()
+  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
@@ -58,7 +58,7 @@ export function SettingsPage({
             onPress={refreshDataFromSettings}
             accessibilityRole="button"
             accessibilityState={{ disabled: isRefreshingDataLocal }}
-            style={[styles.refreshButton, { borderColor: theme.lightGray }]}
+            style={styles.refreshButton}
             disabled={isRefreshingDataLocal}
           >
             {isRefreshingDataLocal ? (
@@ -66,7 +66,7 @@ export function SettingsPage({
             ) : (
               <Image
                 source={require('@assets/icons/recurring.svg')}
-                style={{ height: 24, tintColor: theme.gunMetal, width: 24 }}
+                style={[globalStyle.iconNormal, styles.recurringIcon]}
               />
             )}
             <ThemedText type="defaultSans">
@@ -87,7 +87,7 @@ export function SettingsPage({
             onPress={openSeaFrontsSelector}
             accessibilityRole="button"
             accessibilityState={{ disabled: false }}
-            style={[styles.seaFrontsSelector, { borderColor: theme.lightGray }]}
+            style={styles.seaFrontsSelector}
           >
             <View style={{ flex: 1 }}>
               <ThemedText type="default">Façades</ThemedText>
@@ -95,10 +95,7 @@ export function SettingsPage({
                 {selectedSeaFronts}
               </ThemedText>
             </View>
-            <Image
-              source={require('@assets/icons/chevron.svg')}
-              style={[styles.chevronIcon, { tintColor: theme.slateGray }]}
-            />
+            <Image source={require('@assets/icons/chevron.svg')} style={[styles.chevronIcon, globalStyle.iconSmall]} />
           </Pressable>
         </View>
         <View style={globalStyle.separator} />
@@ -123,47 +120,52 @@ export function SettingsPage({
   )
 }
 
-const styles = StyleSheet.create({
-  chevronIcon: {
-    height: 20,
-    transform: [{ rotate: '180deg' }],
-    width: 20
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: Spacing.four
-  },
-  refreshButton: {
-    alignItems: 'center',
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: Spacing.two,
-    justifyContent: 'center',
-    marginTop: Spacing.two,
-    paddingVertical: Spacing.two
-  },
-  refreshDate: {
-    fontStyle: 'italic'
-  },
-  seaFrontsSelector: {
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.two
-  },
-  seaFrontsSelectorText: {
-    alignItems: 'center',
-    flexDirection: 'column',
-    gap: Spacing.two,
-    justifyContent: 'space-between',
-    marginLeft: Spacing.two
-  },
-  section: {
-    gap: Spacing.two,
-    padding: Spacing.four
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    chevronIcon: {
+      tintColor: theme.slateGray,
+      transform: [{ rotate: '180deg' }]
+    },
+    header: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: Spacing.four
+    },
+    recurringIcon: {
+      tintColor: theme.gunMetal
+    },
+    refreshButton: {
+      alignItems: 'center',
+      borderColor: theme.lightGray,
+      borderWidth: 1,
+      flexDirection: 'row',
+      gap: Spacing.two,
+      justifyContent: 'center',
+      marginTop: Spacing.two,
+      paddingVertical: Spacing.two
+    },
+    refreshDate: {
+      fontStyle: 'italic'
+    },
+    seaFrontsSelector: {
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderColor: theme.lightGray,
+      borderTopWidth: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: Spacing.two
+    },
+    seaFrontsSelectorText: {
+      alignItems: 'center',
+      flexDirection: 'column',
+      gap: Spacing.two,
+      justifyContent: 'space-between',
+      marginLeft: Spacing.two
+    },
+    section: {
+      gap: Spacing.two,
+      padding: Spacing.four
+    }
+  })

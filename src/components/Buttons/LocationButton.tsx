@@ -1,6 +1,7 @@
 import { Spacing } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
 import { useTheme } from '@hooks/use-theme'
+import { useGlobalStyle } from '@globalStyle'
 import { useLocationStatus } from '@hooks/useLocationStatus'
 import { Image } from 'expo-image'
 import * as Location from 'expo-location'
@@ -17,6 +18,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
   const { isLocationButtonEnabled, setIsLocationButtonEnabled } = useAppContext()
 
   const theme = useTheme()
+  const globalStyle = useGlobalStyle()
 
   const isButtonDisabled = !isLocationEnabled || !isLocationGranted
   const iconTintColor = isLocationButtonEnabled && !isButtonDisabled ? theme.blueGray : theme.slateGray
@@ -58,7 +60,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
         accessibilityState={{
           disabled: isButtonDisabled
         }}
-        style={() => [styles.buttonBase, { backgroundColor: theme.white }]}
+        style={[styles.buttonBase, { backgroundColor: theme.white }]}
       >
         <Image
           key={`${isLocationGranted}-${isLocationEnabled}`}
@@ -70,7 +72,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
           cachePolicy="none"
           transition={0}
           style={[
-            styles.icon,
+            globalStyle.iconNormal,
             {
               tintColor: iconTintColor
             }
@@ -87,10 +89,6 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     width: 48
-  },
-  icon: {
-    height: Spacing.five,
-    width: Spacing.five
   },
   wrapper: {
     alignItems: 'flex-end',
