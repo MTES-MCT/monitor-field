@@ -48,3 +48,5 @@ yarn-error.*
 
 # local files
 .vscode/
+
+.env.local

@@ -37,8 +37,9 @@ Sentry.init({
   attachStacktrace: false,
   dsn: SENTRY_DSN,
   enableAutoSessionTracking: false,
-  enableLogs: false,
+  enableLogs: true,
   environment: ENV,
+  integrations: [Sentry.mobileReplayIntegration()],
   sendDefaultPii: false
 })
 
