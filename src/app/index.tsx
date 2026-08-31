@@ -31,6 +31,7 @@ import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/Regula
 import { Settings } from '@features/Settings'
 import * as Sentry from '@sentry/react-native'
 import { SearchPage } from '@features/RegulatoryAreas/Search'
+import { UserFeedback } from '@features/UserFeedback'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -277,7 +278,10 @@ function App() {
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>
           <SwitchContextButton />
-          <Settings />
+          <View>
+            <Settings />
+            <UserFeedback />
+          </View>
         </View>
 
         <SelectedRegulatoryAreas focusAndSetOrgin={onFocusRegulatoryArea} isLoading={regulatoryAreaLayer.isLoading} />
