@@ -3,11 +3,13 @@ on:
   repository_dispatch:
     types: [feedback]
   workflow_dispatch:
-       inputs:
-         title:
-           required: true
-         description:
-           required: true
+    inputs:
+      title:
+        required: true
+      description:
+        required: true
+      type:
+        required: true
 
 permissions:
   issues: write
@@ -26,13 +28,13 @@ jobs:
               ? context.payload.inputs
               : context.payload.client_payload;
 
-            const { title, description, os, version } = payload;
+            const { title, description, os, version, type } = payload;
             const { data } = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: `[Beta] ${title}`,
               body: `${description}\n\n---\n${os ? `OS: ${os}\n` : ''}${version ? `Version: ${version}` : ''}`,
-              labels: ['beta-feedback'],
+              labels: ['beta-feedback', type === 'bug' ? 'bug' : 'enhancement'],
             });
             core.setOutput('node_id', data.node_id);
 
@@ -41,6 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
+        env:
+          PROJECT_ID_USER_FEEDBACK: ${{ secrets.PROJECT_ID_USER_FEEDBACK }}
+          ISSUE_NODE_ID: ${{ needs.create-issue.outputs.issue_node_id }}
         with:
           github-token: ${{ secrets.FEEDBACK_ACCESS_TOKEN }}
           script: |
@@ -51,6 +56,6 @@ jobs:
                 }
               }
             `, {
-              project: ${{ secrets.PROJECT_ID_USER_FEEDBACK }},
-              issue: ${{ needs.create-issue.outputs.issue_node_id }},
+              project: process.env.PROJECT_ID_USER_FEEDBACK,
+              issue: process.env.ISSUE_NODE_ID,
             });
