@@ -4,7 +4,7 @@ on:
     types: [feedback]
   workflow_dispatch:
        inputs:
-         titre:
+         title:
            required: true
          description:
            required: true
@@ -22,11 +22,11 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { titre, description, os, version } = context.payload.client_payload;
+            const { title, description, os, version } = context.payload.client_payload;
             const { data } = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `[Beta] ${titre}`,
+              title: `[Beta] ${title}`,
               body: `${description}\n\n---\n${os ? `OS: ${os}\n` : ''}${version ? `Version: ${version}` : ''}`,
               labels: ['beta-feedback'],
             });
