@@ -6,6 +6,7 @@ type Statut = 'idle' | 'sending' | 'success' | 'error'
 export function useFeedbackForm() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [type, setType] = useState<'bug' | 'suggestion'>('bug')
   const [statut, setStatut] = useState<Statut>('idle')
 
   const canSend = title.trim().length > 0 && description.trim().length > 0
@@ -14,10 +15,11 @@ export function useFeedbackForm() {
     if (!canSend || statut === 'sending') return
     setStatut('sending')
     try {
-      await sendFeedback({ description, title })
+      await sendFeedback({ description, title, type })
       setStatut('success')
       setTitle('')
       setDescription('')
+      setType('bug')
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error(e)
@@ -29,5 +31,5 @@ export function useFeedbackForm() {
     setStatut('idle')
   }
 
-  return { canSend, description, reset, setDescription, setTitle, statut, submitFeedback, title }
+  return { canSend, description, reset, setDescription, setTitle, setType, statut, submitFeedback, title, type }
 }
