@@ -1,29 +1,30 @@
 import { getBuildNumber, getSystemName, getSystemVersion, getVersion } from 'react-native-device-info'
 
-const GITHUB_DISPATCH_TOKEN = process.env.EXPO_PUBLIC_GITHUB_FEEDBACK_TOKEN!
+const FEEDBACK_ACCESS_TOKEN = process.env.EXPO_PUBLIC_FEEDBACK_ACCESS_TOKEN!
 const REPO_OWNER = 'MTES-MCT'
 const REPO_FEEDBACK = 'monitor-field'
 
 export type FeedbackPayload = {
   title: string
   description: string
+  type: 'bug' | 'suggestion'
 }
 
 export class FeedbackError extends Error {}
 
-export async function sendFeedback({ title, description }: FeedbackPayload): Promise<void> {
+export async function sendFeedback({ title, description, type }: FeedbackPayload): Promise<void> {
   const os = `${getSystemName()} ${getSystemVersion()}`
   const version = getVersion()
   const build = getBuildNumber()
 
   const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_FEEDBACK}/dispatches`, {
     body: JSON.stringify({
-      client_payload: { description, os, title, version: `${version} (${build})` },
+      client_payload: { description, os, title, type, version: `${version} (${build})` },
       event_type: 'feedback'
     }),
     headers: {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${GITHUB_DISPATCH_TOKEN}`,
+      Authorization: `Bearer ${FEEDBACK_ACCESS_TOKEN}`,
       'Content-Type': 'application/json'
     },
     method: 'POST'

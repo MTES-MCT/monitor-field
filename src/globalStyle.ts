@@ -6,6 +6,13 @@ export function useGlobalStyle() {
   const theme = useTheme()
 
   return StyleSheet.create({
+    buttonBase: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      padding: Spacing.three,
+      position: 'relative'
+    },
     dot: {
       alignItems: 'center',
       backgroundColor: theme.blueGray,
@@ -40,6 +47,13 @@ export function useGlobalStyle() {
       backgroundColor: theme.lightGray,
       height: 1,
       marginVertical: Spacing.four
+    },
+    textInput: {
+      alignItems: 'center',
+      borderColor: theme.lightGray,
+      borderWidth: 1,
+      flexDirection: 'row',
+      height: 48
     },
     textUnderline: {
       textDecorationLine: 'underline'
