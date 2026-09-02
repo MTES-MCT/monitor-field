@@ -25,7 +25,7 @@ import {
   type PressEventWithFeatures,
   type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -47,6 +47,7 @@ import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { useLocationStatus } from '@hooks/useLocationStatus'
 import { useRegulatoryAreaByIdLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreaByIdLayer'
+import useMatomo from '@matomo/useMatomo'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -209,6 +210,12 @@ function App() {
   const onSwitchContext = () => {
     setRegulatoryAreaDetailsOrigin(undefined)
   }
+
+  const { trackAppStart } = useMatomo()
+
+  useEffect(() => {
+    trackAppStart({})
+  }, [])
 
   return (
     <MapLibreMap

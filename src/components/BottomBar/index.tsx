@@ -9,6 +9,7 @@ import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/En
 import { useGlobalStyle } from '@globalStyle'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useMemo } from 'react'
+import useMatomo from '@matomo/useMatomo'
 
 type BottomBarProps = {
   searchByQuery: () => void
@@ -18,6 +19,7 @@ export function BottomBar({ searchByQuery }: BottomBarProps) {
   const { config, setActiveModal } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
+  const { trackEvent } = useMatomo()
 
   const { isLoading, totalCount, filters, areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible } =
     useRegulatoryAreasContext()
