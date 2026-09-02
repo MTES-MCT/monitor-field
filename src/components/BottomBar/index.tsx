@@ -10,6 +10,7 @@ import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/En
 import { useGlobalStyle } from '@globalStyle'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useMemo } from 'react'
+import useMatomo from '@matomo/useMatomo'
 
 type BottomBarProps = {
   isLoading: boolean
@@ -20,6 +21,7 @@ export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
   const { config, setActiveModal } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
+  const { trackEvent } = useMatomo()
 
   const { zoomToBbox } = useCameraContext()
 
@@ -60,6 +62,7 @@ export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
   const searchByNewBbox = async () => {
     setCommittedSearchBbox(searchBbox)
     setCommittedSearchZoom(currentZoom)
+    trackEvent({ action: 'search_by_bbox', category: 'search', name: undefined, url: undefined, value: undefined })
   }
 
   const centerOnSearchBox = () => {

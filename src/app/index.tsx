@@ -24,7 +24,7 @@ import {
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
@@ -34,6 +34,7 @@ import { LoaderIcon } from '@components/LoaderIcon'
 import { useGlobalStyle } from '@globalStyle'
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
+import useMatomo from '@matomo/useMatomo'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -234,6 +235,12 @@ function App() {
       router.navigate('/search')
     }, 1000)
   }
+
+  const { trackAppStart } = useMatomo()
+
+  useEffect(() => {
+    trackAppStart({})
+  }, [])
 
   return (
     <MapLibreMap
