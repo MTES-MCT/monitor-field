@@ -23,12 +23,13 @@ import {
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 import { Settings } from '@features/Settings'
 import * as Sentry from '@sentry/react-native'
+import useMatomo from '@matomo/useMatomo'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -196,6 +197,12 @@ function App() {
     setIsListVisible(true)
     setIsSearchByQueryActive(false)
   }
+
+  const { trackAppStart } = useMatomo()
+
+  useEffect(() => {
+    trackAppStart({})
+  }, [])
 
   return (
     <MapLibreMap

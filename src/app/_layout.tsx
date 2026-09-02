@@ -14,6 +14,13 @@ import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
+import MatomoProvider from '@matomo/MatomoProvider'
+import MatomoTracker from '@matomo'
+
+const tracker = new MatomoTracker({
+  siteId: 283,
+  urlBase: 'https://stats.beta.gouv.fr/'
+})
 
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()
@@ -48,16 +55,18 @@ export default function TabLayout() {
 
   return (
     <GestureHandlerRootView>
-      <AppProvider>
-        <RegulatoryAreasProvider>
-          <BottomSheetModalProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <StatusBar barStyle="dark-content" />
-              {!!isOnBoardingFinished ? <App /> : <OnBoarding />}
-            </ThemeProvider>
-          </BottomSheetModalProvider>
-        </RegulatoryAreasProvider>
-      </AppProvider>
+      <MatomoProvider instance={tracker}>
+        <AppProvider>
+          <RegulatoryAreasProvider>
+            <BottomSheetModalProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <StatusBar barStyle="dark-content" />
+                {!!isOnBoardingFinished ? <App /> : <OnBoarding />}
+              </ThemeProvider>
+            </BottomSheetModalProvider>
+          </RegulatoryAreasProvider>
+        </AppProvider>
+      </MatomoProvider>
     </GestureHandlerRootView>
   )
 }

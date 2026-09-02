@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from '../Elements/Text'
 import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/EnvFilters'
 import { useGlobalStyle } from '@globalStyle'
+import useMatomo from '@matomo/useMatomo'
 
 type BottomBarProps = {
   consultRegulatoryAreas: () => void
@@ -17,6 +18,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
   const { config } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
+  const { trackEvent } = useMatomo()
 
   const {
     committedSearchBbox,
@@ -45,6 +47,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
     setCommittedSearchZoom(currentZoom)
     setHasSearchZoneChanged(false)
     setIsSearchByQueryActive(false)
+    trackEvent({ action: 'search_by_bbox', category: 'search', name: undefined, url: undefined, value: undefined })
   }
 
   const centerOnSearchBox = () => {
