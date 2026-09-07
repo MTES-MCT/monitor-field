@@ -8,6 +8,7 @@ export function useFeedbackForm() {
   const [description, setDescription] = useState('')
   const [type, setType] = useState<'bug' | 'suggestion'>('bug')
   const [statut, setStatut] = useState<Statut>('idle')
+  const [email, setEmail] = useState('')
 
   const canSend = title.trim().length > 0 && description.trim().length > 0
 
@@ -15,7 +16,7 @@ export function useFeedbackForm() {
     if (!canSend || statut === 'sending') return
     setStatut('sending')
     try {
-      await sendFeedback({ description, title, type })
+      await sendFeedback({ description, email, title, type })
       setStatut('success')
       setTitle('')
       setDescription('')
@@ -31,5 +32,18 @@ export function useFeedbackForm() {
     setStatut('idle')
   }
 
-  return { canSend, description, reset, setDescription, setTitle, setType, statut, submitFeedback, title, type }
+  return {
+    canSend,
+    description,
+    email,
+    reset,
+    setDescription,
+    setEmail,
+    setTitle,
+    setType,
+    statut,
+    submitFeedback,
+    title,
+    type
+  }
 }

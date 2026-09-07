@@ -8,7 +8,16 @@ import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useFeedbackForm } from '@hooks/useFeedBackForm'
 import { Image } from 'expo-image'
 import { useState } from 'react'
-import { Pressable, StyleSheet, Modal, View, TextInput, ActivityIndicator, KeyboardAvoidingView } from 'react-native'
+import {
+  Pressable,
+  StyleSheet,
+  Modal,
+  View,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  ScrollView
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export function UserFeedback() {
@@ -16,8 +25,20 @@ export function UserFeedback() {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
-  const { title, setTitle, description, setDescription, setType, type, statut, canSend, submitFeedback, reset } =
-    useFeedbackForm()
+  const {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    setType,
+    type,
+    statut,
+    canSend,
+    submitFeedback,
+    reset,
+    email,
+    setEmail
+  } = useFeedbackForm()
 
   function close() {
     reset()
@@ -36,7 +57,7 @@ export function UserFeedback() {
       </Pressable>
       <Modal visible={isFeedbackModalOpen} animationType="slide" transparent onRequestClose={close}>
         <SafeAreaView style={styles.overlay}>
-          <KeyboardAvoidingView style={styles.modalWrapper} behavior="padding">
+          <KeyboardAvoidingView behavior="padding">
             {statut === 'success' ? (
               <View style={{ alignItems: 'center', gap: Spacing.five, justifyContent: 'space-between' }}>
                 <ThemedText type="large">Merci pour votre retour !</ThemedText>
@@ -47,15 +68,19 @@ export function UserFeedback() {
                 </Pressable>
               </View>
             ) : (
-              <>
+              <ScrollView
+                style={styles.modalScroll}
+                contentContainerStyle={styles.modalWrapper}
+                keyboardShouldPersistTaps="handled"
+              >
                 <View style={styles.titleWrapper}>
                   <View style={{ flex: 1 }}>
-                    <ThemedText type="large">Retour utilisateurs</ThemedText>
+                    <ThemedText type="large">Retours utilisateurs</ThemedText>
                   </View>
                   <CloseButton onClose={close} />
                 </View>
 
-                <View style={{ flexDirection: 'row', gap: Spacing.five }}>
+                <View style={styles.radioButtonsWrapper}>
                   <RadioButton label="Bug" isSelected={type === 'bug'} onPress={() => setType('bug')} />
                   <RadioButton
                     label="Suggestion"
@@ -63,23 +88,47 @@ export function UserFeedback() {
                     onPress={() => setType('suggestion')}
                   />
                 </View>
-                <TextInput
-                  style={globalStyle.textInput}
-                  placeholder="Titre"
-                  autoFocus
-                  value={title}
-                  onChangeText={setTitle}
-                  editable={statut !== 'sending'}
-                />
-                <TextInput
-                  style={[globalStyle.textInput, styles.textarea]}
-                  placeholder="Description"
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  editable={statut !== 'sending'}
-                />
-                <View style={{ gap: Spacing.two, justifyContent: 'space-between', paddingBottom: 60 }}>
+                <View style={styles.inputWrapper}>
+                  <ThemedText type="label">Email</ThemedText>
+                  <TextInput
+                    style={globalStyle.textInputGray}
+                    value={email}
+                    onChangeText={setEmail}
+                    editable={statut !== 'sending'}
+                    keyboardType="email-address"
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <ThemedText type="label">
+                    Objet{' '}
+                    <ThemedText type="label" style={globalStyle.requiredField}>
+                      *
+                    </ThemedText>
+                  </ThemedText>
+                  <TextInput
+                    style={globalStyle.textInputGray}
+                    value={title}
+                    onChangeText={setTitle}
+                    editable={statut !== 'sending'}
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <ThemedText type="label">
+                    Description{' '}
+                    <ThemedText type="label" style={globalStyle.requiredField}>
+                      *
+                    </ThemedText>
+                  </ThemedText>
+                  <TextInput
+                    style={[globalStyle.textInputGray, styles.textarea]}
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    editable={statut !== 'sending'}
+                  />
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.buttonsWrapper}>
                   <Pressable onPress={close} style={globalStyle.buttonBase}>
                     <ThemedText type="default">Annuler</ThemedText>
                   </Pressable>
@@ -89,7 +138,7 @@ export function UserFeedback() {
                     disabled={!canSend || statut === 'sending'}
                   >
                     {statut === 'sending' ? (
-                      <ActivityIndicator color="#fff" />
+                      <ActivityIndicator color={theme.white} />
                     ) : (
                       <ThemedText type="default" themeColor="white">
                         Envoyer
@@ -97,7 +146,7 @@ export function UserFeedback() {
                     )}
                   </Pressable>
                 </View>
-              </>
+              </ScrollView>
             )}
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -108,12 +157,22 @@ export function UserFeedback() {
 
 const createStyles = theme =>
   StyleSheet.create({
-    modalWrapper: {
+    buttonsWrapper: {
+      gap: Spacing.two,
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.four
+    },
+    inputWrapper: {
+      gap: Spacing.one,
+      paddingHorizontal: Spacing.four
+    },
+    modalScroll: {
       backgroundColor: theme.white,
-      flexShrink: 1,
+      flexGrow: 0
+    },
+    modalWrapper: {
       gap: Spacing.four,
       paddingBottom: Spacing.three,
-      paddingHorizontal: Spacing.four,
       paddingTop: Spacing.three
     },
     overlay: {
@@ -122,13 +181,24 @@ const createStyles = theme =>
       justifyContent: 'flex-end',
       paddingBottom: 0
     },
+    radioButtonsWrapper: {
+      flexDirection: 'row',
+      gap: Spacing.five,
+      paddingHorizontal: Spacing.four
+    },
+    separator: {
+      backgroundColor: theme.lightGray,
+      height: 1,
+      marginTop: 48
+    },
     textarea: {
-      minHeight: 100,
+      height: 120,
       textAlignVertical: 'top'
     },
     titleWrapper: {
       alignItems: 'center',
       flexDirection: 'row',
-      justifyContent: 'space-between'
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.four
     }
   })

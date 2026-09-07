@@ -43,6 +43,9 @@ export function useGlobalStyle() {
       paddingBottom: BottomTabInset,
       width: '100%'
     },
+    requiredField: {
+      color: theme.maximumRed
+    },
     separator: {
       backgroundColor: theme.lightGray,
       height: 1,
@@ -52,6 +55,12 @@ export function useGlobalStyle() {
       alignItems: 'center',
       borderColor: theme.lightGray,
       borderWidth: 1,
+      flexDirection: 'row',
+      height: 48
+    },
+    textInputGray: {
+      alignItems: 'center',
+      backgroundColor: theme.gainsboro,
       flexDirection: 'row',
       height: 48
     },
