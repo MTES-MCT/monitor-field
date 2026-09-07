@@ -25,11 +25,11 @@ export function Settings() {
       return
     }
 
-    const facades = parseSeaFronts(selectedSeaFronts)
+    const seaFronts = parseSeaFronts(selectedSeaFronts)
 
     setIsRefreshingData(true)
     try {
-      await syncRegulatoryAreasDB(facades, { forceRefresh: true })
+      await syncRegulatoryAreasDB(seaFronts, { forceRefresh: true })
     } catch (e) {
       logSentryError(e, 'Unable to sync regulatory areas')
     } finally {

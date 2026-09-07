@@ -13,9 +13,9 @@ export function OnBoarding() {
   const [currentStep, setCurrentStep] = useState(1)
   const [syncPromise, setSyncPromise] = useState<Promise<void> | null>(null)
 
-  const handleStep2Next = (facades: string[]) => {
-    storage.set('selectedSeaFronts', facades.join(','))
-    setSyncPromise(syncRegulatoryAreasDB(facades))
+  const handleStep2Next = (seaFronts: string[]) => {
+    storage.set('selectedSeaFronts', seaFronts.join(','))
+    setSyncPromise(syncRegulatoryAreasDB(seaFronts))
     setCurrentStep(3)
   }
 

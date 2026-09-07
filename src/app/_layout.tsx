@@ -27,8 +27,8 @@ export default function TabLayout() {
 
   useEffect(() => {
     async function refreshData() {
-      const facades = parseSeaFronts(selectedSeaFronts)
-      await syncRegulatoryAreasDB(facades)
+      const seaFronts = parseSeaFronts(selectedSeaFronts)
+      await syncRegulatoryAreasDB(seaFronts)
       setIsAppReady(true)
     }
 
