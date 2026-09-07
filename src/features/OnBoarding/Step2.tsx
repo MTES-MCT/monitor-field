@@ -7,7 +7,7 @@ import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
 
-export function Step2({ onNext }: { onNext: (facades: string[]) => void }) {
+export function Step2({ onNext }: { onNext: (seaFronts: string[]) => void }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
   const [selectedSeaFronts, setSelectedSeaFronts] = useState<string[]>([])

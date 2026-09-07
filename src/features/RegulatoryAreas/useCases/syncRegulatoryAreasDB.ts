@@ -9,7 +9,7 @@ export type SyncRegulatoryAreasOptions = {
   syncFish?: boolean
 }
 
-export async function syncRegulatoryAreasDB(facades: string[], options?: SyncRegulatoryAreasOptions) {
+export async function syncRegulatoryAreasDB(seaFronts: string[], options?: SyncRegulatoryAreasOptions) {
   const database = await getDatabase()
   const forceRefresh = options?.forceRefresh === true
   const shouldSyncEnv = options?.syncEnv !== false
@@ -19,7 +19,7 @@ export async function syncRegulatoryAreasDB(facades: string[], options?: SyncReg
 
   if (shouldSyncFish) {
     syncPromises.push(
-      syncFishRegulatoryAreas(database, facades, forceRefresh).catch(e => {
+      syncFishRegulatoryAreas(database, seaFronts, forceRefresh).catch(e => {
         logSentryError(e, 'Unable to sync fish regulatory areas')
       })
     )
@@ -27,7 +27,7 @@ export async function syncRegulatoryAreasDB(facades: string[], options?: SyncReg
 
   if (shouldSyncEnv) {
     syncPromises.push(
-      syncEnvRegulatoryAreas(database, facades, forceRefresh).catch(e => {
+      syncEnvRegulatoryAreas(database, seaFronts, forceRefresh).catch(e => {
         logSentryError(e, 'Unable to sync env regulatory areas')
       })
     )

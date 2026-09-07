@@ -25,10 +25,12 @@ type ApiResponse = {
   }
 }
 
-// TODO: add facade filter once the fish API exposes a facade column
-async function fetchAllFishRegulatoryAreas(_facades: string[]) {
+async function fetchAllFishRegulatoryAreas(seaFronts: string[]) {
   const rows: ApiRow[] = []
-  let nextUrl: string | undefined = FISH_REGULATORY_AREAS_API_URL
+  const formattedSeaFronts = seaFronts.map(seaFront => `Reg. ${seaFront}`).join(',')
+
+  let nextUrl: string | undefined = `${FISH_REGULATORY_AREAS_API_URL}?type_de_reglementation__in=${formattedSeaFronts}`
+
   while (nextUrl) {
     const response = await fetch(nextUrl)
 
@@ -52,8 +54,15 @@ function buildFeatureColorKey(row: ApiRow): string {
   return `${id}-${type}-${regulatoryAreaTheme}`
 }
 
-export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRefresh = false) {
+export async function syncFishRegulatoryAreas(db: DB, seaFronts: string[], forceRefresh = false) {
   const palette = monitorFishConfig?.colors
+  const selectedSeaFronts = seaFronts.filter(Boolean)
+
+  if (selectedSeaFronts.length === 0) {
+    await db.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}`)
+    storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD HH:mm')))
+    return
+  }
 
   const existingCountResult = await db.execute(`SELECT COUNT(*) AS count FROM ${FISH_REGULATORY_AREAS_TABLE}`)
   const existingCount = Number(existingCountResult.rows?.[0]?.count ?? 0)
@@ -65,23 +74,41 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
     return
   }
 
-  const rows = await fetchAllFishRegulatoryAreas(facades)
+  const rows = await fetchAllFishRegulatoryAreas(selectedSeaFronts)
   if (!rows || rows.length === 0) {
     return
   }
 
   try {
     await db.transaction(async tx => {
-      await tx.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}`)
+      await tx.execute('CREATE TEMP TABLE IF NOT EXISTS tmp_fish_synced_ids (id INTEGER PRIMARY KEY)')
+      await tx.execute('DELETE FROM tmp_fish_synced_ids')
 
       for (let idx = 0; idx < rows.length; idx++) {
         const row = rows[idx]
+        if (row) {
+          await tx.execute('INSERT OR IGNORE INTO tmp_fish_synced_ids (id) VALUES (?)', [row.id])
+        }
+      }
 
+      const selectedSeaFrontPlaceholders = selectedSeaFronts.map(() => `?`).join(',')
+
+      await tx.execute(
+        `DELETE FROM ${FISH_REGULATORY_AREAS_TABLE} WHERE type NOT IN (${selectedSeaFrontPlaceholders})`,
+        selectedSeaFronts.map(seaFront => `Reg. ${seaFront}`)
+      )
+      await tx.execute(
+        `DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}
+           WHERE type IN (${selectedSeaFrontPlaceholders})
+           AND id NOT IN (SELECT id FROM tmp_fish_synced_ids)`,
+        selectedSeaFronts
+      )
+      for (let idx = 0; idx < rows.length; idx++) {
+        const row = rows[idx]
         if (!row) {
           logToSentry(`Skipping null row at index ${idx}`, 'info', {
             extra: { label: 'syncFishRegulatoryAreas' }
           })
-
           continue
         }
 
@@ -94,12 +121,12 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
 
         await tx.execute(
           `
-        INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
-          id, type, theme, zone, fill_color,
-          regulations, geojson,
-          bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
+            INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
+              id, type, theme, zone, fill_color,
+              regulations, geojson,
+              bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
           [
             row.id,
             row.type_de_reglementation,
@@ -118,7 +145,6 @@ export async function syncFishRegulatoryAreas(db: DB, facades: string[], forceRe
     })
   } catch (error) {
     logSentryError(error, 'Transaction failed during fish sync')
-
     throw error
   }
 

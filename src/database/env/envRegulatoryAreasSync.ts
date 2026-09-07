@@ -64,11 +64,11 @@ function buildFeatureColorKey(row: ApiRow): string {
   return `${id}-${title}-${themes}`
 }
 
-export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRefresh = false) {
+export async function syncEnvRegulatoryAreas(db: DB, seaFronts: string[], forceRefresh = false) {
   const palette = monitorEnvConfig?.colors
-  const selectedFacades = facades.filter(Boolean)
+  const selectedSeaFronts = seaFronts.filter(Boolean)
 
-  if (selectedFacades.length === 0) {
+  if (selectedSeaFronts.length === 0) {
     await db.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
     storage.set('regulatory-areas-last-update', String(dayjs().format('YYYY-MM-DD HH:mm')))
     return
@@ -84,7 +84,7 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
     return
   }
 
-  const rows = await fetchAllEnvRegulatoryAreas(selectedFacades)
+  const rows = await fetchAllEnvRegulatoryAreas(selectedSeaFronts)
 
   if (!rows || rows.length === 0) {
     return
@@ -102,17 +102,17 @@ export async function syncEnvRegulatoryAreas(db: DB, facades: string[], forceRef
         }
       }
 
-      const selectedFacadePlaceholders = selectedFacades.map(() => '?').join(',')
+      const selectedSeaFrontPlaceholders = selectedSeaFronts.map(() => '?').join(',')
 
       await tx.execute(
-        `DELETE FROM ${ENV_REGULATORY_AREAS_TABLE} WHERE facade NOT IN (${selectedFacadePlaceholders})`,
-        selectedFacades
+        `DELETE FROM ${ENV_REGULATORY_AREAS_TABLE} WHERE facade NOT IN (${selectedSeaFrontPlaceholders})`,
+        selectedSeaFronts
       )
       await tx.execute(
         `DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}
-         WHERE facade IN (${selectedFacadePlaceholders})
+         WHERE facade IN (${selectedSeaFrontPlaceholders})
          AND id NOT IN (SELECT id FROM tmp_env_synced_ids)`,
-        selectedFacades
+        selectedSeaFronts
       )
 
       for (let idx = 0; idx < rows.length; idx++) {
