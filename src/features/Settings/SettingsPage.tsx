@@ -8,6 +8,7 @@ import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useState } from 'react'
+import { useOfflineMap } from '@hooks/useOfflineMap'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import daysjs from 'dayjs'
 import { useGlobalStyle } from '@globalStyle'
@@ -31,6 +32,7 @@ export function SettingsPage({
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
+  const { progress, status: offlineStatus } = useOfflineMap()
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const [regulatoryAreasLastUpdate] = useMMKVString('regulatory-areas-last-update', storage)
 
@@ -100,6 +102,23 @@ export function SettingsPage({
         </View>
         <View style={globalStyle.separator} />
         <View style={styles.section}>
+          <ThemedText type="small">Carte hors-ligne</ThemedText>
+          {offlineStatus === 'downloading' && (
+            <View style={styles.progressWrapper}>
+              <LoaderIcon />
+              <ThemedText type="defaultSans">{Math.round(progress * 100)} % téléchargé</ThemedText>
+            </View>
+          )}
+          {offlineStatus === 'complete' && <ThemedText type="default">Carte disponible hors-ligne.</ThemedText>}
+          {offlineStatus === 'error' && (
+            <ThemedText type="default" themeColor="slateGray">
+              Échec du téléchargement de la carte hors-ligne.
+            </ThemedText>
+          )}
+          {offlineStatus === 'idle' && <ThemedText type="default">Initialisation...</ThemedText>}
+        </View>
+        <View style={globalStyle.separator} />
+        <View style={styles.section}>
           <ThemedText type="small">Retours de bugs et suggestions</ThemedText>
           <ThemedText type="default">
             Cette application est en phase de test. N’hésitez pas à nous faire des retours avec le bouton dédié.
@@ -131,6 +150,12 @@ const createStyles = theme =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       padding: Spacing.four
+    },
+    progressWrapper: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: Spacing.two,
+      marginTop: Spacing.two
     },
     recurringIcon: {
       tintColor: theme.gunMetal

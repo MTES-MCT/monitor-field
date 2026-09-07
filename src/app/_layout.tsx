@@ -6,6 +6,7 @@ import { AppProvider } from '@contexts/AppContext'
 import { RegulatoryAreasProvider } from '@contexts/RegulatoryAreasContext'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
+import { useOfflineMap } from '@hooks/useOfflineMap'
 import { storage } from '@storage'
 import { Appearance, StatusBar } from 'react-native'
 import { OnBoarding } from '@features/OnBoarding'
@@ -20,6 +21,8 @@ export default function TabLayout() {
   const [isOnBoardingFinished] = useMMKVBoolean('isOnBoardingFinished', storage)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const [isAppReady, setIsAppReady] = useState(false)
+
+  useOfflineMap()
 
   useEffect(() => {
     Appearance.setColorScheme('light')
