@@ -8,18 +8,19 @@ export type FeedbackPayload = {
   title: string
   description: string
   type: 'bug' | 'suggestion'
+  email?: string
 }
 
 export class FeedbackError extends Error {}
 
-export async function sendFeedback({ title, description, type }: FeedbackPayload): Promise<void> {
+export async function sendFeedback({ title, description, type, email }: FeedbackPayload): Promise<void> {
   const os = `${getSystemName()} ${getSystemVersion()}`
   const version = getVersion()
   const build = getBuildNumber()
 
   const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_FEEDBACK}/dispatches`, {
     body: JSON.stringify({
-      client_payload: { description, os, title, type, version: `${version} (${build})` },
+      client_payload: { description, email, os, title, type, version: `${version} (${build})` },
       event_type: 'feedback'
     }),
     headers: {
@@ -29,8 +30,6 @@ export async function sendFeedback({ title, description, type }: FeedbackPayload
     },
     method: 'POST'
   })
-  // eslint-disable-next-line no-console
-  console.log('sendFeedback response', response.status, await response.text())
   // repository_dispatch renvoie 204 No Content si accepté
   if (!response.ok) {
     throw new FeedbackError(`Envoi échoué (${response.status})`)
