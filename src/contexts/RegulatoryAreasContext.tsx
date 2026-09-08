@@ -31,12 +31,8 @@ const RegulatoryAreasContext = createContext<
       setSelectedRegulatoryArea: (area: RegulatoryAreaListItem | undefined) => void
       filters: Filters
       setFilters: (filters: Filters | ((prevFilters: Filters) => Filters)) => void
-      isSearchByQueryActive: boolean
-      setIsSearchByQueryActive: (active: boolean) => void
       clickedFeaturesList: RegulatoryAreaListItem[] | undefined
       setClickedFeaturesList: (areas: RegulatoryAreaListItem[] | undefined) => void
-      isListVisible: boolean
-      setIsListVisible: (visible: boolean) => void
       resetContext: () => void
       isolatedRegulatoryAreaId: number | undefined
       setIsolatedRegulatoryAreaId: (areaId: number | undefined) => void
@@ -64,9 +60,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     themesAndSubThemes: []
   })
 
-  const [isSearchByQueryActive, setIsSearchByQueryActive] = useState(false)
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
-  const [isListVisible, setIsListVisible] = useState(false)
   const [isolatedRegulatoryAreaId, setIsolatedRegulatoryAreaId] = useState<number | undefined>(undefined)
 
   const resetContext = () => {
@@ -76,9 +70,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     setLocalRegulatoryAreas([])
     setSelectedRegulatoryArea(undefined)
     setFilters({ recentlyAddedOrModified: false, searchQuery: undefined, themesAndSubThemes: [] })
-    setIsSearchByQueryActive(false)
     setClickedFeaturesList(undefined)
-    setIsListVisible(false)
     setCurrentZoom(undefined)
   }
 
@@ -97,8 +89,6 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         currentZoom,
         filters,
         hasSearchZoneChanged,
-        isListVisible,
-        isSearchByQueryActive,
         isSearchZoneActive,
         isolatedRegulatoryAreaId,
         regulatoryAreas,
@@ -112,8 +102,6 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         setCurrentZoom,
         setFilters,
         setHasSearchZoneChanged,
-        setIsListVisible,
-        setIsSearchByQueryActive,
         setIsSearchZoneActive,
         setIsolatedRegulatoryAreaId,
         setRegulatoryAreas,

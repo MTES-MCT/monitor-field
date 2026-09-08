@@ -13,9 +13,10 @@ type BottomBarProps = {
   consultRegulatoryAreas: () => void
   zoomToBbox: (centerLat: number, centerLon: number, zoom: number | undefined) => void
   isLoading: boolean
+  searchByQuery: () => void
 }
 
-export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading }: BottomBarProps) {
+export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searchByQuery }: BottomBarProps) {
   const { config } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
@@ -33,7 +34,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading }: Bot
     setHasSearchZoneChanged,
     setSearchBbox,
     totalCount,
-    setIsSearchByQueryActive,
     filters,
     areRegulatoryAreasLayerVisible,
     setAreRegulatoryAreasLayerVisible
@@ -49,7 +49,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading }: Bot
     setCommittedSearchBbox(searchBbox)
     setCommittedSearchZoom(currentZoom)
     setHasSearchZoneChanged(false)
-    setIsSearchByQueryActive(false)
   }
 
   const centerOnSearchBox = () => {
@@ -60,10 +59,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading }: Bot
       setSearchBbox(committedSearchBbox)
       setHasSearchZoneChanged(false)
     }
-  }
-
-  const searchByQuery = () => {
-    setIsSearchByQueryActive(true)
   }
 
   const handleLayers = () => {

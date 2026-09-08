@@ -39,33 +39,27 @@ export function FishRegulatoryAreaDetails({
   return (
     <>
       <View style={styles.titleWrapper}>
-        <View style={styles.title}>
-          <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
-          <ThemedText type="default" style={styles.titleText}>
-            {getRegulatoryAreaLabel(regulatoryArea, 'MONITORFISH')}
+        <View style={{ flex: 1 }}>
+          <ThemedText type="small" style={styles.titleText}>
+            {regulatoryArea.theme}
           </ThemedText>
+          <View style={styles.title}>
+            <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
+            <ThemedText type="default" style={styles.titleText}>
+              {getRegulatoryAreaLabel(regulatoryArea, 'MONITORFISH')}
+            </ThemedText>
+          </View>
         </View>
         <CloseButton onClose={onDismiss} />
       </View>
       <View style={styles.content}>
         <ThemedText type="small" style={styles.labelStyle}>
-          Thématique(s)
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.theme}
-        </ThemedText>
-        <ThemedText type="small" style={styles.labelStyle}>
-          Type
+          Ensemble reg.
         </ThemedText>
         <ThemedText type="default" style={styles.horizontalPadding}>
           {regulatoryArea.type}
         </ThemedText>
-        <ThemedText type="small" style={styles.labelStyle}>
-          Zone
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.zone}
-        </ThemedText>
+
         <View style={globalStyle.separator} />
 
         <View style={[styles.horizontalPadding, { alignItems: 'center', flexDirection: 'row', gap: Spacing.two }]}>

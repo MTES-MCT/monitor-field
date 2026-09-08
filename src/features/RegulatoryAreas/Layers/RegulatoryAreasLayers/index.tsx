@@ -89,7 +89,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     filters,
     isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
-  const { config } = useAppContext()
+  const { config, activeModal } = useAppContext()
   const theme = useTheme()
   const requestIdRef = useRef(0)
 
@@ -151,12 +151,12 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters, config.mode])
 
   useEffect(() => {
-    if (!isSearchZoneActive || hasSearchZoneChanged) {
+    if ((!isSearchZoneActive || hasSearchZoneChanged) && activeModal !== 'SEARCH_BY_QUERY_MODAL') {
       return
     }
 
     fetch()
-  }, [filters, fetch, isSearchZoneActive, hasSearchZoneChanged])
+  }, [filters, fetch, isSearchZoneActive, hasSearchZoneChanged, activeModal])
 
   return {
     ids: regulatoryAreasIds,

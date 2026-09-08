@@ -54,7 +54,7 @@ export function EnvRegulatoryAreaDetails({
       <View style={styles.titleWrapper}>
         <View style={{ flex: 1 }}>
           <ThemedText
-            type="default"
+            type="small"
             style={styles.titleText}
           >{`${regulatoryArea.layerName} - ${regulatoryArea.location}`}</ThemedText>
           <View style={styles.title}>

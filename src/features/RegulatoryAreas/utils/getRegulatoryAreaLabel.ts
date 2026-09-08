@@ -2,8 +2,8 @@ import type { FishRegulatoryArea, EnvRegulatoryArea } from '@/types/regulatoryAr
 
 export function getRegulatoryAreaLabel(area: FishRegulatoryArea | EnvRegulatoryArea, mode: string): string {
   if (mode === 'MONITORFISH') {
-    const { zone, theme, type } = area as FishRegulatoryArea
-    return zone || theme || type || `Nom inconnu'`
+    const { zone } = area as FishRegulatoryArea
+    return zone ?? `Nom inconnu'`
   }
   const { polyName, resume } = area as EnvRegulatoryArea
   return polyName ?? resume ?? 'Nom inconnu'
