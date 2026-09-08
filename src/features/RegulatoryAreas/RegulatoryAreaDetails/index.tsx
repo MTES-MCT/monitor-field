@@ -41,7 +41,7 @@ export const RegulatoryAreaDetails = () => {
       snapPoints={snapPoints}
       index={1}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={false}
       topInset={insets?.top}
       onDismiss={onDismiss}
       handleIndicatorStyle={{

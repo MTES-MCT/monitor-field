@@ -7,9 +7,11 @@ import type { BoundingBox } from '@/types/mapTypes'
 import { useTheme } from '@hooks/use-theme'
 
 export const SelectedRegulatoryAreas = ({
-  onFocusRegulatoryArea
+  onFocusRegulatoryArea,
+  isLoading
 }: {
   onFocusRegulatoryArea: (bbox: BoundingBox) => void
+  isLoading: boolean
 }) => {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
@@ -38,14 +40,14 @@ export const SelectedRegulatoryAreas = ({
       snapPoints={snapPoints}
       index={1}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={false}
       topInset={insets.top}
       onDismiss={onDismiss}
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
     >
-      <RegulatoryAreasList onClose={onDismiss} onFocusRegulatoryArea={onFocusRegulatoryArea} />
+      <RegulatoryAreasList onClose={onDismiss} onFocusRegulatoryArea={onFocusRegulatoryArea} isLoading={isLoading} />
     </BottomSheetModal>
   )
 }

@@ -11,10 +11,12 @@ import { getRegulatoryAreasByGroup } from './utils'
 import { Image } from 'expo-image'
 import { useAppContext } from '@contexts/AppContext'
 import { CloseButton } from '@components/Buttons/CloseButton'
+import { LoaderIcon } from '@components/LoaderIcon'
 
 type RegulatoryAreasListProps = {
   onFocusRegulatoryArea: (bbox: BoundingBox) => void
   onClose: () => void
+  isLoading: boolean
 }
 
 type GroupRow = {
@@ -31,7 +33,7 @@ type AreaRow = {
 
 type RegulatoryRow = GroupRow | AreaRow
 
-export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: RegulatoryAreasListProps) => {
+export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose, isLoading }: RegulatoryAreasListProps) => {
   const {
     clickedFeaturesList,
     regulatoryAreas,
@@ -159,6 +161,7 @@ export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: Regulato
     return (
       <View style={styles.headerRow}>
         <ThemedText type="defaultBold">{`REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}</ThemedText>
+        {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
       </View>
     )
   }
@@ -210,6 +213,8 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
     justifyContent: 'center',
     paddingVertical: Spacing.two
   },

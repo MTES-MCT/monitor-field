@@ -9,9 +9,10 @@ import { useTheme } from '@hooks/use-theme'
 
 type FilteredRegulatoryAreasProps = {
   onFocusRegulatoryArea: (bbox: BoundingBox) => void
+  isLoading: boolean
 }
 
-export const FilteredRegulatoryAreas = ({ onFocusRegulatoryArea }: FilteredRegulatoryAreasProps) => {
+export const FilteredRegulatoryAreas = ({ onFocusRegulatoryArea, isLoading }: FilteredRegulatoryAreasProps) => {
   const theme = useTheme()
   const { setIsSearchByQueryActive, isSearchByQueryActive, setClickedFeaturesList, isListVisible, setIsListVisible } =
     useRegulatoryAreasContext()
@@ -44,7 +45,7 @@ export const FilteredRegulatoryAreas = ({ onFocusRegulatoryArea }: FilteredRegul
       snapPoints={snapPoints}
       index={isSearchByQueryActive ? 2 : 1}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={false}
       topInset={insets.top}
       onDismiss={onDismiss}
       handleIndicatorStyle={{
@@ -53,7 +54,7 @@ export const FilteredRegulatoryAreas = ({ onFocusRegulatoryArea }: FilteredRegul
     >
       <>
         <Search onClose={onDismiss} />
-        <RegulatoryAreasList onFocusRegulatoryArea={onFocusRegulatoryArea} onClose={onDismiss} />
+        <RegulatoryAreasList onFocusRegulatoryArea={onFocusRegulatoryArea} onClose={onDismiss} isLoading={isLoading} />
       </>
     </BottomSheetModal>
   )

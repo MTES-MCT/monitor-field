@@ -7,13 +7,15 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { ThemedText } from '../Elements/Text'
 import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/EnvFilters'
 import { useGlobalStyle } from '@globalStyle'
+import { LoaderIcon } from '@components/LoaderIcon'
 
 type BottomBarProps = {
   consultRegulatoryAreas: () => void
   zoomToBbox: (centerLat: number, centerLon: number, zoom: number | undefined) => void
+  isLoading: boolean
 }
 
-export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps) {
+export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading }: BottomBarProps) {
   const { config } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
@@ -32,11 +34,14 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
     setSearchBbox,
     totalCount,
     setIsSearchByQueryActive,
-    filters
+    filters,
+    areRegulatoryAreasLayerVisible,
+    setAreRegulatoryAreasLayerVisible
   } = useRegulatoryAreasContext()
 
   const searchByBbox = async () => {
     setIsSearchZoneActive(!isSearchZoneActive)
+    setAreRegulatoryAreasLayerVisible(true)
     searchByNewBbox()
   }
 
@@ -59,6 +64,10 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
 
   const searchByQuery = () => {
     setIsSearchByQueryActive(true)
+  }
+
+  const handleLayers = () => {
+    setAreRegulatoryAreasLayerVisible(!areRegulatoryAreasLayerVisible)
   }
 
   return (
@@ -108,27 +117,48 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
       )}
       <View style={styles.wrapper}>
         <View style={styles.displayWrapper}>
-          <Pressable
-            onPress={searchByBbox}
-            accessibilityRole="button"
-            style={[
-              styles.buttonBase,
-              {
-                backgroundColor: isSearchZoneActive ? theme.blueGray : theme.charcoal,
-                flex: !isSearchZoneActive ? 1 : 0
-              }
-            ]}
-          >
-            <Image
-              source={require('@assets/icons/display.svg')}
-              style={[globalStyle.iconNormal, { tintColor: theme.white }]}
-            />
-            {!isSearchZoneActive && (
+          {isSearchZoneActive ? (
+            <Pressable
+              onPress={handleLayers}
+              accessibilityRole="button"
+              style={[
+                styles.buttonBase,
+                {
+                  backgroundColor: areRegulatoryAreasLayerVisible ? theme.blueGray : theme.white,
+                  flex: !isSearchZoneActive ? 1 : 0
+                }
+              ]}
+            >
+              <Image
+                source={
+                  areRegulatoryAreasLayerVisible
+                    ? require('@assets/icons/display.svg')
+                    : require('@assets/icons/hide.svg')
+                }
+                style={[
+                  globalStyle.iconNormal,
+                  { tintColor: areRegulatoryAreasLayerVisible ? theme.white : theme.slateGray }
+                ]}
+              />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={searchByBbox}
+              accessibilityRole="button"
+              style={[
+                styles.buttonBase,
+                {
+                  backgroundColor: isSearchZoneActive ? theme.blueGray : theme.charcoal,
+                  flex: !isSearchZoneActive ? 1 : 0
+                }
+              ]}
+            >
               <ThemedText type="small" themeColor="white" style={{ marginLeft: Spacing.two }}>
                 Afficher les reg.ici
               </ThemedText>
-            )}
-          </Pressable>
+            </Pressable>
+          )}
+
           {isSearchZoneActive && (
             <Pressable
               onPress={consultRegulatoryAreas}
@@ -141,7 +171,8 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
                 styles.buttonBase,
                 {
                   backgroundColor: theme.white,
-                  flex: 1
+                  flex: 1,
+                  gap: Spacing.two
                 }
               ]}
             >
@@ -151,6 +182,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox }: BottomBarProps
                   ({totalCount ?? 0})
                 </ThemedText>
               </ThemedText>
+              {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
             </Pressable>
           )}
         </View>

@@ -81,6 +81,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
   const {
     isSearchZoneActive,
+    hasSearchZoneChanged,
     searchBbox,
     committedSearchBbox,
     setRegulatoryAreas,
@@ -124,19 +125,19 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       setRegulatoryAreas([])
       return
     }
-
-    const requestId = ++requestIdRef.current
     setIsLoading(true)
+    const requestId = ++requestIdRef.current
+
     try {
+      if (requestIdRef.current !== requestId) {
+        return
+      }
+
       let result
       if (config.mode === 'MONITORFISH') {
         result = await getFishRegulatoryAreas(bbox, filters)
       } else {
         result = await getEnvRegulatoryAreas(bbox, filters)
-      }
-
-      if (requestIdRef.current !== requestId) {
-        return
       }
       setRegulatoryAreas(result.listItems)
       setGeoJSON(result.geoJSON)
@@ -150,11 +151,12 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters, config.mode])
 
   useEffect(() => {
-    if (!isSearchZoneActive) {
+    if (!isSearchZoneActive || hasSearchZoneChanged) {
       return
     }
+
     fetch()
-  }, [searchBbox, filters, fetch, isSearchZoneActive])
+  }, [filters, fetch, isSearchZoneActive, hasSearchZoneChanged])
 
   return {
     ids: regulatoryAreasIds,
