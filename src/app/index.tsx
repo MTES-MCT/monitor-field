@@ -76,7 +76,6 @@ function App() {
   const {
     areRegulatoryAreasLayerVisible,
     isSearchZoneActive,
-    setHasSearchZoneChanged,
     setSearchBbox,
     setCurrentZoom,
     regulatoryAreas,
@@ -117,10 +116,6 @@ function App() {
     if (isFromFlyToBbox) {
       setIsFromFlyToBbox(false)
       return
-    }
-
-    if (isSearchZoneActive) {
-      setHasSearchZoneChanged(true)
     }
 
     const bounds = await mapRef.current?.getBounds()

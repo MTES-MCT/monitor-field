@@ -8,6 +8,7 @@ import { ThemedText } from '../Elements/Text'
 import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/EnvFilters'
 import { useGlobalStyle } from '@globalStyle'
 import { LoaderIcon } from '@components/LoaderIcon'
+import { useMemo } from 'react'
 
 type BottomBarProps = {
   consultRegulatoryAreas: () => void
@@ -30,14 +31,24 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
     searchBbox,
     setCommittedSearchBbox,
     setCommittedSearchZoom,
-    hasSearchZoneChanged,
-    setHasSearchZoneChanged,
     setSearchBbox,
     totalCount,
     filters,
     areRegulatoryAreasLayerVisible,
     setAreRegulatoryAreasLayerVisible
   } = useRegulatoryAreasContext()
+
+  const hasSearchZoneChanged = useMemo(() => {
+    if (!searchBbox || !committedSearchBbox) {
+      return false
+    }
+    return (
+      searchBbox.minLat !== committedSearchBbox.minLat ||
+      searchBbox.maxLat !== committedSearchBbox.maxLat ||
+      searchBbox.minLon !== committedSearchBbox.minLon ||
+      searchBbox.maxLon !== committedSearchBbox.maxLon
+    )
+  }, [searchBbox, committedSearchBbox])
 
   const searchByBbox = async () => {
     setIsSearchZoneActive(!isSearchZoneActive)
@@ -48,7 +59,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
   const searchByNewBbox = async () => {
     setCommittedSearchBbox(searchBbox)
     setCommittedSearchZoom(currentZoom)
-    setHasSearchZoneChanged(false)
   }
 
   const centerOnSearchBox = () => {
@@ -57,7 +67,6 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
       const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
       zoomToBbox(centerLat, centerLon, committedSearchZoom)
       setSearchBbox(committedSearchBbox)
-      setHasSearchZoneChanged(false)
     }
   }
 

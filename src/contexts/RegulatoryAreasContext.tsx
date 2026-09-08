@@ -22,8 +22,6 @@ const RegulatoryAreasContext = createContext<
       setCommittedSearchZoom: (zoom: number | undefined) => void
       isSearchZoneActive: boolean
       setIsSearchZoneActive: (active: boolean) => void
-      hasSearchZoneChanged: boolean
-      setHasSearchZoneChanged: (changed: boolean) => void
       totalCount: number | undefined
       regulatoryAreas: RegulatoryAreaListItem[]
       setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void
@@ -33,7 +31,6 @@ const RegulatoryAreasContext = createContext<
       setFilters: (filters: Filters | ((prevFilters: Filters) => Filters)) => void
       clickedFeaturesList: RegulatoryAreaListItem[] | undefined
       setClickedFeaturesList: (areas: RegulatoryAreaListItem[] | undefined) => void
-      resetContext: () => void
       isolatedRegulatoryAreaId: number | undefined
       setIsolatedRegulatoryAreaId: (areaId: number | undefined) => void
       areRegulatoryAreasLayerVisible: boolean
@@ -48,7 +45,6 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [committedSearchBbox, setCommittedSearchBbox] = useState<BoundingBox | undefined>(undefined)
   const [currentZoom, setCurrentZoom] = useState<number | undefined>(undefined)
   const [committedSearchZoom, setCommittedSearchZoom] = useState<number | undefined>(undefined)
-  const [hasSearchZoneChanged, setHasSearchZoneChanged] = useState(false)
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
   const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
@@ -62,17 +58,6 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
 
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
   const [isolatedRegulatoryAreaId, setIsolatedRegulatoryAreaId] = useState<number | undefined>(undefined)
-
-  const resetContext = () => {
-    setIsSearchZoneActive(false)
-    setHasSearchZoneChanged(false)
-    setTotalCount(undefined)
-    setLocalRegulatoryAreas([])
-    setSelectedRegulatoryArea(undefined)
-    setFilters({ recentlyAddedOrModified: false, searchQuery: undefined, themesAndSubThemes: [] })
-    setClickedFeaturesList(undefined)
-    setCurrentZoom(undefined)
-  }
 
   const setRegulatoryAreas = (areas: RegulatoryAreaListItem[]) => {
     setLocalRegulatoryAreas(areas)
@@ -88,11 +73,9 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         committedSearchZoom,
         currentZoom,
         filters,
-        hasSearchZoneChanged,
         isSearchZoneActive,
         isolatedRegulatoryAreaId,
         regulatoryAreas,
-        resetContext,
         searchBbox,
         selectedRegulatoryArea,
         setAreRegulatoryAreasLayerVisible,
@@ -101,7 +84,6 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
         setCommittedSearchZoom,
         setCurrentZoom,
         setFilters,
-        setHasSearchZoneChanged,
         setIsSearchZoneActive,
         setIsolatedRegulatoryAreaId,
         setRegulatoryAreas,

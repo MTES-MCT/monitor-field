@@ -81,7 +81,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
   const {
     isSearchZoneActive,
-    hasSearchZoneChanged,
     searchBbox,
     committedSearchBbox,
     setRegulatoryAreas,
@@ -92,6 +91,18 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const { config, activeModal } = useAppContext()
   const theme = useTheme()
   const requestIdRef = useRef(0)
+
+  const hasSearchZoneChanged = useMemo(() => {
+    if (!searchBbox || !committedSearchBbox) {
+      return false
+    }
+    return (
+      searchBbox.minLat !== committedSearchBbox.minLat ||
+      searchBbox.maxLat !== committedSearchBbox.maxLat ||
+      searchBbox.minLon !== committedSearchBbox.minLon ||
+      searchBbox.maxLon !== committedSearchBbox.maxLon
+    )
+  }, [searchBbox, committedSearchBbox])
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
     if (!geoJSON) {
@@ -139,6 +150,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       } else {
         result = await getEnvRegulatoryAreas(bbox, filters)
       }
+
       setRegulatoryAreas(result.listItems)
       setGeoJSON(result.geoJSON)
     } catch (error) {
@@ -151,12 +163,12 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters, config.mode])
 
   useEffect(() => {
-    if ((!isSearchZoneActive || hasSearchZoneChanged) && activeModal !== 'SEARCH_BY_QUERY_MODAL') {
+    if (!isSearchZoneActive && activeModal !== 'SEARCH_BY_QUERY_MODAL') {
       return
     }
 
     fetch()
-  }, [filters, fetch, isSearchZoneActive, hasSearchZoneChanged, activeModal])
+  }, [filters, fetch, isSearchZoneActive, hasSearchZoneChanged, activeModal, config.mode])
 
   return {
     ids: regulatoryAreasIds,
