@@ -81,7 +81,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
   const {
     isSearchZoneActive,
-    searchBbox,
     committedSearchBbox,
     setRegulatoryAreas,
     selectedRegulatoryArea,
@@ -91,18 +90,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const { config, activeModal } = useAppContext()
   const theme = useTheme()
   const requestIdRef = useRef(0)
-
-  const hasSearchZoneChanged = useMemo(() => {
-    if (!searchBbox || !committedSearchBbox) {
-      return false
-    }
-    return (
-      searchBbox.minLat !== committedSearchBbox.minLat ||
-      searchBbox.maxLat !== committedSearchBbox.maxLat ||
-      searchBbox.minLon !== committedSearchBbox.minLon ||
-      searchBbox.maxLon !== committedSearchBbox.maxLon
-    )
-  }, [searchBbox, committedSearchBbox])
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
     if (!geoJSON) {
@@ -129,14 +116,16 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [geoJSON, theme, config.mode])
 
   const fetch = useCallback(async () => {
-    const bbox = committedSearchBbox ?? searchBbox
+    const bbox = committedSearchBbox
 
     if (!bbox) {
       setGeoJSON(undefined)
       setRegulatoryAreas([])
       return
     }
-    setIsLoading(true)
+    if (activeModal !== 'SEARCH_BY_QUERY_MODAL') {
+      setIsLoading(true)
+    }
     const requestId = ++requestIdRef.current
 
     try {
@@ -160,7 +149,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters, config.mode])
+  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode, activeModal])
 
   useEffect(() => {
     if (!isSearchZoneActive && activeModal !== 'SEARCH_BY_QUERY_MODAL') {
@@ -168,7 +157,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     }
 
     fetch()
-  }, [filters, fetch, isSearchZoneActive, hasSearchZoneChanged, activeModal, config.mode])
+  }, [fetch, activeModal, isSearchZoneActive])
 
   return {
     ids: regulatoryAreasIds,

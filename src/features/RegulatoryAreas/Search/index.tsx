@@ -4,7 +4,7 @@ import { RegulatoryAreasList } from '../RegulatoryAreasList'
 import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useEffect, useRef } from 'react'
 import { Spacing } from '@constants/theme'
-import type { RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
+import { useRegulatoryAreasContext, type RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
 
 type SearchPageProps = {
   focusAndSetOrgin: (area: RegulatoryAreaListItem, activeModal: ModalType) => void
@@ -17,14 +17,21 @@ export function SearchPage({ focusAndSetOrgin, origin, resetOrigin, isLoading }:
   const modalRef = useRef<BottomSheetModal>(null)
 
   const { activeModal, setActiveModal } = useAppContext()
+  const { isSearchZoneActive, filters, setFilters } = useRegulatoryAreasContext()
+
+  const shouldShowResults = origin === 'REGULATORY_AREAS_LIST_MODAL' && filters.searchQuery?.trim() !== undefined
 
   const onDismiss = () => {
+    if (!shouldShowResults && !isSearchZoneActive) {
+      setFilters(currentFilters => ({
+        ...currentFilters,
+        searchQuery: undefined
+      }))
+    }
     setActiveModal(undefined)
     resetOrigin()
     modalRef.current?.dismiss()
   }
-
-  const shouldShowResults = origin === 'REGULATORY_AREAS_LIST_MODAL'
 
   useEffect(() => {
     if (activeModal === 'SEARCH_BY_QUERY_MODAL') {

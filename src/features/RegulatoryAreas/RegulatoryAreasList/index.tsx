@@ -53,7 +53,7 @@ export const RegulatoryAreasList = ({
   const isClickedFeatureList = !!clickedFeaturesList
 
   const areResultsVisible = useMemo(() => {
-    return shouldShowResults || isSearchZoneActive || searchQuery?.trim()
+    return shouldShowResults || isSearchZoneActive || searchQuery?.trim() !== undefined
   }, [shouldShowResults, isSearchZoneActive, searchQuery])
 
   const groupedRegulatoryAreas = useMemo(

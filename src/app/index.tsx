@@ -12,9 +12,11 @@ import { useRegulatoryAreasContext, type RegulatoryAreaListItem } from '@context
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
+  Images,
   Map as MapLibreMap,
   UserLocation,
   type CameraRef,
+  type LayerSpecification,
   type LngLat,
   type MapRef,
   type PressEvent,
@@ -86,6 +88,7 @@ function App() {
   const [isFromFlyToBbox, setIsFromFlyToBbox] = useState(false)
   const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
   const [searchOrigin, setSearchOrigin] = useState<ModalType>(undefined)
+  const [clickedCoordinate, setClickedCoordinate] = useState<LngLat | undefined>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const searchByZone = useSearchByZoneLayer()
@@ -97,6 +100,20 @@ function App() {
       ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
       ...((isSearchZoneActive || activeModal === 'SEARCH_BY_QUERY_MODAL') && searchByZone.layer
         ? [searchByZone.layer]
+        : []),
+      ...(clickedCoordinate
+        ? [
+            {
+              id: 'clickedPointLayer',
+              layout: {
+                'icon-allow-overlap': true,
+                'icon-image': 'cursorIcon',
+                'icon-size': 0.5
+              },
+              source: 'clickedPointSource',
+              type: 'symbol'
+            } as LayerSpecification
+          ]
         : [])
     ],
     sources: {
@@ -106,6 +123,16 @@ function App() {
       }),
       ...(regulatoryAreaLayer.source && {
         [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
+      }),
+      ...(clickedCoordinate && {
+        clickedPointSource: {
+          data: {
+            geometry: { coordinates: clickedCoordinate, type: 'Point' },
+            properties: {},
+            type: 'Feature'
+          },
+          type: 'geojson'
+        }
       })
     }
   }
@@ -157,6 +184,7 @@ function App() {
         top: 40
       }
     })
+    setClickedCoordinate(undefined)
   }
 
   const flyToBbox = (centerLat: number, centerLon: number, zoom: number | undefined) => {
@@ -175,6 +203,8 @@ function App() {
     }
 
     const position = event.nativeEvent.point
+    const coordinate = await mapRef.current?.unproject(position) // [lon, lat]
+    setClickedCoordinate(coordinate)
     const features = await mapRef.current?.queryRenderedFeatures(position, {
       layers: [regulatoryAreaLayer.ids.fillLayer]
     })
@@ -185,12 +215,16 @@ function App() {
       setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
       onFocusRegulatoryArea(clickedRegulatoryAreas[0], undefined)
       setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
-
+      setClickedCoordinate(undefined)
       return
     }
 
     const featuresToDisplay =
       clickedRegulatoryAreas && clickedRegulatoryAreas.length > 1 ? clickedRegulatoryAreas : undefined
+
+    if (!featuresToDisplay) {
+      return
+    }
     setClickedFeaturesList(featuresToDisplay)
     setActiveModal('CLICKED_FEATURES_LIST_MODAL')
   }
@@ -226,6 +260,8 @@ function App() {
       onRegionDidChange={onRegionDidChange}
       onPress={onMapPress}
     >
+      <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
+
       {isLocationButtonEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
