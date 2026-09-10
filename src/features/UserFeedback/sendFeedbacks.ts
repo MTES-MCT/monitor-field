@@ -9,18 +9,19 @@ export type FeedbackPayload = {
   description: string
   type: 'bug' | 'suggestion'
   email?: string
+  env?: string
 }
 
 export class FeedbackError extends Error {}
 
-export async function sendFeedback({ title, description, type, email }: FeedbackPayload): Promise<void> {
+export async function sendFeedback({ title, description, type, email, env }: FeedbackPayload): Promise<void> {
   const os = `${getSystemName()} ${getSystemVersion()}`
   const version = getVersion()
   const build = getBuildNumber()
 
   const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_FEEDBACK}/dispatches`, {
     body: JSON.stringify({
-      client_payload: { description, email, os, title, type, version: `${version} (${build})` },
+      client_payload: { description, email, env, os, title, type, version: `${version} (${build})` },
       event_type: 'feedback'
     }),
     headers: {
