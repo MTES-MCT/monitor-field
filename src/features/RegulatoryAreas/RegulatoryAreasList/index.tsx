@@ -1,4 +1,3 @@
-import type { BoundingBox } from '@/types/mapTypes'
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
 import { type RegulatoryAreaListItem, useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
@@ -9,12 +8,15 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { getRegulatoryAreasByGroup } from './utils'
 import { Image } from 'expo-image'
-import { useAppContext } from '@contexts/AppContext'
+import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { CloseButton } from '@components/Buttons/CloseButton'
+import { LoaderIcon } from '@components/LoaderIcon'
 
 type RegulatoryAreasListProps = {
-  onFocusRegulatoryArea: (bbox: BoundingBox) => void
   onClose: () => void
+  isLoading: boolean
+  focusAndSetOrgin: (area: RegulatoryAreaListItem, activeModal: ModalType) => void
+  shouldShowResults?: boolean
 }
 
 type GroupRow = {
@@ -31,19 +33,28 @@ type AreaRow = {
 
 type RegulatoryRow = GroupRow | AreaRow
 
-export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: RegulatoryAreasListProps) => {
+export const RegulatoryAreasList = ({
+  onClose,
+  isLoading,
+  focusAndSetOrgin,
+  shouldShowResults = true
+}: RegulatoryAreasListProps) => {
   const {
     clickedFeaturesList,
     regulatoryAreas,
-    setSelectedRegulatoryArea,
+    filters: { searchQuery },
     setIsolatedRegulatoryAreaId,
-    isolatedRegulatoryAreaId
+    isolatedRegulatoryAreaId,
+    isSearchZoneActive
   } = useRegulatoryAreasContext()
-  const { config } = useAppContext()
-
+  const { config, activeModal } = useAppContext()
   const theme = useTheme()
   const sourceRegulatoryAreas = clickedFeaturesList ?? regulatoryAreas
   const isClickedFeatureList = !!clickedFeaturesList
+
+  const areResultsVisible = useMemo(() => {
+    return shouldShowResults || isSearchZoneActive || searchQuery?.trim() !== undefined
+  }, [shouldShowResults, isSearchZoneActive, searchQuery])
 
   const groupedRegulatoryAreas = useMemo(
     () =>
@@ -60,8 +71,7 @@ export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: Regulato
       return
     }
 
-    setSelectedRegulatoryArea(area)
-    onFocusRegulatoryArea?.(area.bbox)
+    focusAndSetOrgin(area, activeModal)
   }
 
   const clickOnGroup = (group: string) => {
@@ -159,22 +169,26 @@ export const RegulatoryAreasList = ({ onFocusRegulatoryArea, onClose }: Regulato
     return (
       <View style={styles.headerRow}>
         <ThemedText type="defaultBold">{`REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}</ThemedText>
+        {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
       </View>
     )
   }
+
   return (
     <BottomSheetFlatList
       style={{ marginBottom: Spacing.six }}
-      data={flattenedRows}
+      data={areResultsVisible ? flattenedRows : []}
       extraData={expandedGroups}
       keyExtractor={item => (item.type === 'group' ? `group-${item.group}` : `area-${item.group}-${item.area.id}`)}
       renderItem={renderRow}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={renderHeader()}
       ListEmptyComponent={
-        <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
-          Aucune zone réglementaire ne correspond à cette recherche.
-        </ThemedText>
+        searchQuery?.trim() ? (
+          <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
+            Aucune zone réglementaire ne correspond à cette recherche.
+          </ThemedText>
+        ) : null
       }
       ItemSeparatorComponent={() => (
         <View
@@ -210,6 +224,8 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
     justifyContent: 'center',
     paddingVertical: Spacing.two
   },

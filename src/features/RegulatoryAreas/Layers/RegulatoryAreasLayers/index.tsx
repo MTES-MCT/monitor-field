@@ -81,14 +81,13 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
   const {
     isSearchZoneActive,
-    searchBbox,
     committedSearchBbox,
     setRegulatoryAreas,
     selectedRegulatoryArea,
     filters,
     isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
-  const { config } = useAppContext()
+  const { config, activeModal } = useAppContext()
   const theme = useTheme()
   const requestIdRef = useRef(0)
 
@@ -117,17 +116,23 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [geoJSON, theme, config.mode])
 
   const fetch = useCallback(async () => {
-    const bbox = committedSearchBbox ?? searchBbox
+    const bbox = committedSearchBbox
 
     if (!bbox) {
       setGeoJSON(undefined)
       setRegulatoryAreas([])
       return
     }
-
+    if (activeModal !== 'SEARCH_BY_QUERY_MODAL') {
+      setIsLoading(true)
+    }
     const requestId = ++requestIdRef.current
-    setIsLoading(true)
+
     try {
+      if (requestIdRef.current !== requestId) {
+        return
+      }
+
       let result
       if (config.mode === 'MONITORFISH') {
         result = await getFishRegulatoryAreas(bbox, filters)
@@ -135,9 +140,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         result = await getEnvRegulatoryAreas(bbox, filters)
       }
 
-      if (requestIdRef.current !== requestId) {
-        return
-      }
       setRegulatoryAreas(result.listItems)
       setGeoJSON(result.geoJSON)
     } catch (error) {
@@ -147,14 +149,15 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, searchBbox, setRegulatoryAreas, filters, config.mode])
+  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode, activeModal])
 
   useEffect(() => {
-    if (!isSearchZoneActive) {
+    if (!isSearchZoneActive && activeModal !== 'SEARCH_BY_QUERY_MODAL') {
       return
     }
+
     fetch()
-  }, [searchBbox, filters, fetch, isSearchZoneActive])
+  }, [fetch, activeModal, isSearchZoneActive])
 
   return {
     ids: regulatoryAreasIds,

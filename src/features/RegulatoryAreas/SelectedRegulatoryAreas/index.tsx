@@ -3,34 +3,40 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useEffect, useMemo, useRef } from 'react'
 import { RegulatoryAreasList } from '../RegulatoryAreasList'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { BoundingBox } from '@/types/mapTypes'
+import type { RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
+import { useAppContext, type ModalType } from '@contexts/AppContext'
 
 export const SelectedRegulatoryAreas = ({
-  onFocusRegulatoryArea
+  focusAndSetOrgin,
+  isLoading
 }: {
-  onFocusRegulatoryArea: (bbox: BoundingBox) => void
+  focusAndSetOrgin: (area: RegulatoryAreaListItem, activeModal: ModalType) => void
+  isLoading: boolean
 }) => {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const { setClickedFeaturesList, clickedFeaturesList, setIsolatedRegulatoryAreaId } = useRegulatoryAreasContext()
+  const { activeModal, setActiveModal } = useAppContext()
+
+  const { setClickedFeaturesList, setIsolatedRegulatoryAreaId } = useRegulatoryAreasContext()
 
   const onDismiss = () => {
     modalRef.current?.dismiss()
     setClickedFeaturesList(undefined)
     setIsolatedRegulatoryAreaId(undefined)
+    setActiveModal(undefined)
   }
 
   useEffect(() => {
-    if (clickedFeaturesList) {
+    if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
       modalRef.current?.present()
     }
-  }, [clickedFeaturesList])
+  }, [activeModal])
 
-  if (!clickedFeaturesList) return null
+  if (activeModal !== 'CLICKED_FEATURES_LIST_MODAL') return null
 
   return (
     <BottomSheetModal
@@ -38,14 +44,17 @@ export const SelectedRegulatoryAreas = ({
       snapPoints={snapPoints}
       index={1}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={false}
       topInset={insets.top}
-      onDismiss={onDismiss}
+      handleStyle={{
+        backgroundColor: theme.white,
+        borderRadius: 0
+      }}
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
     >
-      <RegulatoryAreasList onClose={onDismiss} onFocusRegulatoryArea={onFocusRegulatoryArea} />
+      <RegulatoryAreasList onClose={onDismiss} focusAndSetOrgin={focusAndSetOrgin} isLoading={isLoading} />
     </BottomSheetModal>
   )
 }

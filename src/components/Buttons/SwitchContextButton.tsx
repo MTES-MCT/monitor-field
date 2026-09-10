@@ -1,6 +1,5 @@
 import type { AppMode } from '@config/appModes'
 import { useAppContext } from '@contexts/AppContext'
-import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
@@ -26,13 +25,11 @@ function getVisualState(params: { mode: AppMode; selected: boolean; theme: Retur
 
 export function SwitchContextButton() {
   const { config, setMode } = useAppContext()
-  const { resetContext } = useRegulatoryAreasContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
 
   const switchContext = (mode: AppMode) => {
     setMode(mode)
-    resetContext()
   }
 
   return (

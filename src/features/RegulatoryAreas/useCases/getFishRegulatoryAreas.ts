@@ -7,6 +7,7 @@ import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAre
 import { getDatabase } from '@database/db'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { logToSentry } from '@utils/sentryLogger'
+import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 
 export type FishRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
@@ -22,6 +23,17 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
 
   for (const area of fetchedAreas) {
     if (!matchesRegulatoryAreaSearch(area, filters.searchQuery, 'MONITORFISH')) {
+      continue
+    }
+
+    const feature = parseGeoJSONFeature(area.geojson)
+
+    if (!feature) {
+      continue
+    }
+
+    // the area's bbox can overlap the search bbox while its actual shape doesn't
+    if (!doesGeometryIntersectBbox(feature.geometry, bbox)) {
       continue
     }
 
@@ -43,12 +55,6 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
         minLon: area.bbox_min_lon
       }
     })
-
-    const feature = parseGeoJSONFeature(area.geojson)
-
-    if (!feature) {
-      continue
-    }
 
     const featureWithProperties = {
       ...feature,

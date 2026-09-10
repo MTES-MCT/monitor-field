@@ -66,7 +66,7 @@ export function getRegulatoryAreasByGroup(
 
   if (mode === 'MONITORFISH') {
     for (const area of regulatoryAreas as FishRegulatoryArea[]) {
-      const groupKey = area.zone || 'Zone inconnue'
+      const groupKey = area.theme || 'Couche inconnue'
       if (!groupedAreas[groupKey]) {
         groupedAreas[groupKey] = []
       }

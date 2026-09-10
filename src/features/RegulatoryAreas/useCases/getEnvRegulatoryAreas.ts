@@ -7,6 +7,7 @@ import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
 import { logToSentry } from '@utils/sentryLogger'
+import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 
 export type EnvRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
@@ -21,6 +22,17 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
 
   for (const area of fetchedAreas) {
     if (!filterEnvRegulatoryArea(area, filters)) {
+      continue
+    }
+
+    const feature = parseGeoJSONFeature(area.geojson)
+
+    if (!feature) {
+      continue
+    }
+
+    // the area's bbox can overlap the search bbox while its actual shape doesn't
+    if (!doesGeometryIntersectBbox(feature.geometry, bbox)) {
       continue
     }
 
@@ -54,12 +66,6 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
         minLon: area.bbox_min_lon
       }
     })
-
-    const feature = parseGeoJSONFeature(area.geojson)
-
-    if (!feature) {
-      continue
-    }
 
     const featureWithProperties = {
       ...feature,

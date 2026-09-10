@@ -5,13 +5,13 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FishRegulatoryAreaDetails } from './FishRegulatoryAreaDetails'
 import type { FishRegulatoryArea, EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
-import { useAppContext } from '@contexts/AppContext'
+import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 
-export const RegulatoryAreaDetails = () => {
+export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
+  const { activeModal, config, setActiveModal } = useAppContext()
   const { selectedRegulatoryArea, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
   const theme = useTheme()
-  const { config } = useAppContext()
 
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
@@ -22,16 +22,18 @@ export const RegulatoryAreaDetails = () => {
 
   const onDismiss = () => {
     modalRef.current?.dismiss()
+    const nextModal = origin !== 'SEARCH_BY_QUERY_MODAL' ? origin : undefined
+    setActiveModal(nextModal)
     setSelectedRegulatoryArea(undefined)
   }
 
   useEffect(() => {
-    if (selectedRegulatoryArea) {
+    if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
       modalRef.current?.present()
     }
-  }, [selectedRegulatoryArea])
+  }, [activeModal])
 
-  if (!selectedRegulatoryArea) {
+  if (activeModal !== 'REGULATORY_AREA_DETAILS_MODAL') {
     return null
   }
 
@@ -41,9 +43,12 @@ export const RegulatoryAreaDetails = () => {
       snapPoints={snapPoints}
       index={1}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={false}
       topInset={insets?.top}
-      onDismiss={onDismiss}
+      handleStyle={{
+        backgroundColor: theme.white,
+        borderRadius: 0
+      }}
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}

@@ -2,6 +2,7 @@ import { BackButton } from '@components/Buttons/BackButton'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
+import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
@@ -9,12 +10,13 @@ import { Image } from 'expo-image'
 import { useRef, useState } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 
-export function Search({ onClose }: { onClose: () => void }) {
+export function SearchInput({ onClose, onSearchFocus }: { onClose: () => void; onSearchFocus?: () => void }) {
   const inputRef = useRef<TextInput>(null)
 
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
-  const { filters, setFilters, isSearchByQueryActive } = useRegulatoryAreasContext()
+  const { activeModal, setActiveModal } = useAppContext()
+  const { filters, setFilters } = useRegulatoryAreasContext()
 
   const [text, setText] = useState(filters.searchQuery ?? '')
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -46,10 +48,14 @@ export function Search({ onClose }: { onClose: () => void }) {
 
         <TextInput
           ref={inputRef}
-          autoFocus={isSearchByQueryActive}
+          autoFocus={activeModal === 'SEARCH_BY_QUERY_MODAL'}
           style={styles.input}
           value={text}
           onChangeText={onChangeText}
+          onFocus={() => {
+            setActiveModal('SEARCH_BY_QUERY_MODAL')
+            onSearchFocus?.()
+          }}
         />
 
         {text.length > 0 && <CloseButton onClose={() => onChangeText('')} />}
@@ -60,6 +66,7 @@ export function Search({ onClose }: { onClose: () => void }) {
           La recherche se fait dans la zone en pointillés
         </ThemedText>
       </View>
+      <View style={globalStyle.separator} />
     </>
   )
 }

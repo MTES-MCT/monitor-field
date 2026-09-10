@@ -2,20 +2,21 @@ import { StyleSheet, View, type NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
-import { useAppContext } from '@contexts/AppContext'
+import { useAppContext, type ModalType } from '@contexts/AppContext'
 
-import { type BoundingBox } from '@/types/mapTypes'
 import { BottomBar } from '@components/BottomBar'
 import { useSearchByZoneLayer } from '@components/Layers/useSearchByZoneLayer'
 import { LocationButton } from '@components/Buttons/LocationButton'
 import { SwitchContextButton } from '@components/Buttons/SwitchContextButton'
-import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { useRegulatoryAreasContext, type RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
+  Images,
   Map as MapLibreMap,
   UserLocation,
   type CameraRef,
+  type LayerSpecification,
   type LngLat,
   type MapRef,
   type PressEvent,
@@ -29,19 +30,23 @@ import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaD
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 import { Settings } from '@features/Settings'
 import * as Sentry from '@sentry/react-native'
+import { SearchPage } from '@features/RegulatoryAreas/Search'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
+const MAPBOX_KEY = process.env.EXPO_PUBLIC_MAPBOX_KEY
 
-Sentry.init({
-  attachStacktrace: false,
-  dsn: SENTRY_DSN,
-  enableAutoSessionTracking: false,
-  enableLogs: true,
-  environment: ENV,
-  integrations: [Sentry.mobileReplayIntegration()],
-  sendDefaultPii: false
-})
+if (ENV !== 'development' && SENTRY_DSN) {
+  Sentry.init({
+    attachStacktrace: false,
+    dsn: SENTRY_DSN,
+    enableAutoSessionTracking: false,
+    enableLogs: true,
+    environment: ENV,
+    integrations: [Sentry.mobileReplayIntegration()],
+    sendDefaultPii: false
+  })
+}
 
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
@@ -57,32 +62,33 @@ const baseMapStyle: StyleSpecification = {
     cartoLight: {
       attribution: '&copy OpenStreetMap contributors &copy CARTO',
       tileSize: 256,
-      tiles: ['https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+      tiles: [`https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=${MAPBOX_KEY}`],
       type: 'raster'
     }
   },
   version: 8
 }
 
-const LOCATION_FOCUS_ZOOM = 35
+const LOCATION_FOCUS_ZOOM = 12
 
 function App() {
   const mapRef = useRef<MapRef>(null)
   const cameraRef = useRef<CameraRef>(null)
-  const { isLocationButtonEnabled } = useAppContext()
+  const { isLocationButtonEnabled, setActiveModal, activeModal } = useAppContext()
   const {
+    areRegulatoryAreasLayerVisible,
     isSearchZoneActive,
-    setHasSearchZoneChanged,
     setSearchBbox,
     setCurrentZoom,
     regulatoryAreas,
     setSelectedRegulatoryArea,
-    setIsSearchByQueryActive,
-    setClickedFeaturesList,
-    setIsListVisible
+    setClickedFeaturesList
   } = useRegulatoryAreasContext()
 
   const [isFromFlyToBbox, setIsFromFlyToBbox] = useState(false)
+  const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
+  const [searchOrigin, setSearchOrigin] = useState<ModalType>(undefined)
+  const [clickedCoordinate, setClickedCoordinate] = useState<LngLat | undefined>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const searchByZone = useSearchByZoneLayer()
@@ -91,17 +97,42 @@ function App() {
     ...baseMapStyle,
     layers: [
       ...baseMapStyle.layers,
-      ...(isSearchZoneActive ? regulatoryAreaLayer.layers : []),
-      ...(isSearchZoneActive && searchByZone.layer ? [searchByZone.layer] : [])
+      ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
+      ...((isSearchZoneActive || activeModal === 'SEARCH_BY_QUERY_MODAL') && searchByZone.layer
+        ? [searchByZone.layer]
+        : []),
+      ...(clickedCoordinate
+        ? [
+            {
+              id: 'clickedPointLayer',
+              layout: {
+                'icon-allow-overlap': true,
+                'icon-image': 'cursorIcon',
+                'icon-size': 0.5
+              },
+              source: 'clickedPointSource',
+              type: 'symbol'
+            } as LayerSpecification
+          ]
+        : [])
     ],
     sources: {
       ...baseMapStyle.sources,
-      ...(isSearchZoneActive &&
-        searchByZone.source && {
-          [searchByZone.source.id]: searchByZone.source.definition
-        }),
+      ...(searchByZone.source && {
+        [searchByZone.source.id]: searchByZone.source.definition
+      }),
       ...(regulatoryAreaLayer.source && {
         [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
+      }),
+      ...(clickedCoordinate && {
+        clickedPointSource: {
+          data: {
+            geometry: { coordinates: clickedCoordinate, type: 'Point' },
+            properties: {},
+            type: 'Feature'
+          },
+          type: 'geojson'
+        }
       })
     }
   }
@@ -112,10 +143,6 @@ function App() {
     if (isFromFlyToBbox) {
       setIsFromFlyToBbox(false)
       return
-    }
-
-    if (isSearchZoneActive) {
-      setHasSearchZoneChanged(true)
     }
 
     const bounds = await mapRef.current?.getBounds()
@@ -138,10 +165,14 @@ function App() {
     })
   }
 
-  const onFocusRegulatoryArea = (bbox: BoundingBox | undefined) => {
+  const onFocusRegulatoryArea = (area: RegulatoryAreaListItem | undefined, activeModal: ModalType | undefined) => {
+    const bbox = area?.bbox
     if (!bbox) {
       return
     }
+    setRegulatoryAreaDetailsOrigin(activeModal)
+    setSelectedRegulatoryArea(area)
+    setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
 
     cameraRef.current?.fitBounds([bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat], {
       duration: 700,
@@ -153,6 +184,7 @@ function App() {
         top: 40
       }
     })
+    setClickedCoordinate(undefined)
   }
 
   const flyToBbox = (centerLat: number, centerLon: number, zoom: number | undefined) => {
@@ -171,30 +203,50 @@ function App() {
     }
 
     const position = event.nativeEvent.point
+    const coordinate = await mapRef.current?.unproject(position) // [lon, lat]
+    setClickedCoordinate(coordinate)
     const features = await mapRef.current?.queryRenderedFeatures(position, {
       layers: [regulatoryAreaLayer.ids.fillLayer]
     })
     const clickedFeaturesIds = features?.map(feature => feature.properties?.id) ?? []
     const clickedRegulatoryAreas = regulatoryAreas.filter(area => clickedFeaturesIds.includes(area.id))
 
+    if (clickedRegulatoryAreas.length === 1) {
+      setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
+      onFocusRegulatoryArea(clickedRegulatoryAreas[0], undefined)
+      setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
+      setClickedCoordinate(undefined)
+      return
+    }
+
     const featuresToDisplay =
       clickedRegulatoryAreas && clickedRegulatoryAreas.length > 1 ? clickedRegulatoryAreas : undefined
-    setClickedFeaturesList(featuresToDisplay)
 
-    const selectedFeature =
-      !clickedRegulatoryAreas || clickedRegulatoryAreas.length > 1 ? undefined : clickedRegulatoryAreas[0]
-    setSelectedRegulatoryArea(selectedFeature)
-
-    if (clickedRegulatoryAreas.length === 1) {
-      onFocusRegulatoryArea(clickedRegulatoryAreas[0]?.bbox)
+    if (!featuresToDisplay) {
+      return
     }
+    setClickedFeaturesList(featuresToDisplay)
+    setActiveModal('CLICKED_FEATURES_LIST_MODAL')
   }
 
   const consultRegulatoryAreas = () => {
-    setClickedFeaturesList(undefined)
-    setSelectedRegulatoryArea(undefined)
-    setIsListVisible(true)
-    setIsSearchByQueryActive(false)
+    setActiveModal('REGULATORY_AREAS_LIST_MODAL')
+  }
+
+  const searchByQuery = async () => {
+    setSearchOrigin(undefined)
+    setActiveModal('SEARCH_BY_QUERY_MODAL')
+
+    const bounds = await mapRef.current?.getBounds()
+    if (!bounds) return undefined
+    const [lonA, latA, lonB, latB] = bounds
+
+    setSearchBbox({
+      maxLat: Math.max(latA, latB),
+      maxLon: Math.max(lonA, lonB),
+      minLat: Math.min(latA, latB),
+      minLon: Math.min(lonA, lonB)
+    })
   }
 
   return (
@@ -210,19 +262,17 @@ function App() {
       onRegionDidChange={onRegionDidChange}
       onPress={onMapPress}
     >
+      <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
+
       {isLocationButtonEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
-        initialViewState={
-          isLocationButtonEnabled
-            ? undefined
-            : {
-                center: CENTERED_ON_FRANCE,
-                zoom: 4
-              }
-        }
+        initialViewState={{
+          center: CENTERED_ON_FRANCE,
+          zoom: 4
+        }}
         maxBounds={[-180, -90, 180, 90]}
-        trackUserLocation={isLocationButtonEnabled ? 'default' : undefined}
+        trackUserLocation="default"
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>
@@ -230,14 +280,28 @@ function App() {
           <Settings />
         </View>
 
-        <SelectedRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
+        <SelectedRegulatoryAreas focusAndSetOrgin={onFocusRegulatoryArea} isLoading={regulatoryAreaLayer.isLoading} />
+        <FilteredRegulatoryAreas
+          focusAndSetOrgin={onFocusRegulatoryArea}
+          isLoading={regulatoryAreaLayer.isLoading}
+          onSearchFocus={() => setSearchOrigin('REGULATORY_AREAS_LIST_MODAL')}
+        />
+        <RegulatoryAreaDetails origin={regulatoryAreaDetailsOrigin} />
+        <SearchPage
+          focusAndSetOrgin={onFocusRegulatoryArea}
+          origin={searchOrigin}
+          isLoading={regulatoryAreaLayer.isLoading}
+          resetOrigin={() => setSearchOrigin(undefined)}
+        />
 
-        <FilteredRegulatoryAreas onFocusRegulatoryArea={onFocusRegulatoryArea} />
-
-        <RegulatoryAreaDetails />
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
-          <BottomBar consultRegulatoryAreas={consultRegulatoryAreas} zoomToBbox={flyToBbox} />
+          <BottomBar
+            consultRegulatoryAreas={consultRegulatoryAreas}
+            zoomToBbox={flyToBbox}
+            isLoading={regulatoryAreaLayer.isLoading}
+            searchByQuery={searchByQuery}
+          />
         </View>
       </SafeAreaView>
     </MapLibreMap>
