@@ -29,7 +29,7 @@ const AppContext = createContext<
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<AppMode>('MONITORENV')
-  const [isLocationButtonEnabled, setIsLocationButtonEnabled] = useState<boolean>(false)
+  const [isLocationButtonEnabled, setIsLocationButtonEnabled] = useState<boolean>(true)
   const [activeModal, setActiveModal] = useState<ModalType>(undefined)
 
   const config = configs[mode]

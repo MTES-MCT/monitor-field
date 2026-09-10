@@ -69,7 +69,7 @@ const baseMapStyle: StyleSpecification = {
   version: 8
 }
 
-const LOCATION_FOCUS_ZOOM = 35
+const LOCATION_FOCUS_ZOOM = 12
 
 function App() {
   const mapRef = useRef<MapRef>(null)
@@ -236,9 +236,11 @@ function App() {
   const searchByQuery = async () => {
     setSearchOrigin(undefined)
     setActiveModal('SEARCH_BY_QUERY_MODAL')
+
     const bounds = await mapRef.current?.getBounds()
     if (!bounds) return undefined
     const [lonA, latA, lonB, latB] = bounds
+
     setSearchBbox({
       maxLat: Math.max(latA, latB),
       maxLon: Math.max(lonA, lonB),
@@ -265,16 +267,12 @@ function App() {
       {isLocationButtonEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
-        initialViewState={
-          isLocationButtonEnabled
-            ? undefined
-            : {
-                center: CENTERED_ON_FRANCE,
-                zoom: 4
-              }
-        }
+        initialViewState={{
+          center: CENTERED_ON_FRANCE,
+          zoom: 4
+        }}
         maxBounds={[-180, -90, 180, 90]}
-        trackUserLocation={isLocationButtonEnabled ? 'default' : undefined}
+        trackUserLocation="default"
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>

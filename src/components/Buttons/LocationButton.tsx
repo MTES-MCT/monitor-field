@@ -5,7 +5,7 @@ import { useGlobalStyle } from '@globalStyle'
 import { useLocationStatus } from '@hooks/useLocationStatus'
 import { Image } from 'expo-image'
 import * as Location from 'expo-location'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { logSentryError } from '@utils/sentryLogger'
 
@@ -16,46 +16,49 @@ type LocationButtonProps = {
 export function LocationButton({ onLocate }: LocationButtonProps) {
   const { isLocationEnabled, isLocationGranted } = useLocationStatus()
   const { isLocationButtonEnabled, setIsLocationButtonEnabled } = useAppContext()
-
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
 
   const isButtonDisabled = !isLocationEnabled || !isLocationGranted
   const iconTintColor = isLocationButtonEnabled && !isButtonDisabled ? theme.blueGray : theme.slateGray
 
-  useEffect(() => {
-    if (!isLocationEnabled) {
-      setIsLocationButtonEnabled(false)
-    }
-  }, [isLocationEnabled, setIsLocationButtonEnabled])
+  const getLocation = useCallback(async () => {
+    if (!isLocationEnabled) return
 
-  const getLocation = async () => {
-    if (!isLocationGranted) {
-      return
-    }
+    setIsLocationButtonEnabled(true)
 
-    if (!isLocationButtonEnabled) {
-      try {
-        const position = await Location.getCurrentPositionAsync({})
-        if (!position) {
-          return
-        }
+    try {
+      // Show the last known position first to hide the latency of getCurrentPositionAsync
+      const lastPosition = await Location.getLastKnownPositionAsync({})
 
+      if (lastPosition) {
         onLocate({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
+          latitude: lastPosition.coords.latitude,
+          longitude: lastPosition.coords.longitude
         })
-      } catch (error) {
-        logSentryError(error, 'Unable to retrieve current location')
       }
+
+      const currentPosition = await Location.getCurrentPositionAsync({})
+      onLocate({
+        latitude: currentPosition.coords.latitude,
+        longitude: currentPosition.coords.longitude
+      })
+    } catch (error) {
+      logSentryError(error, 'Unable to retrieve current location')
     }
-    setIsLocationButtonEnabled(!isLocationButtonEnabled)
-  }
+    if (!isLocationEnabled) return
+  }, [isLocationEnabled, onLocate, setIsLocationButtonEnabled])
+
+  useEffect(() => {
+    if (isLocationGranted) {
+      getLocation()
+    }
+  }, [isLocationGranted, getLocation])
 
   return (
     <View style={styles.wrapper}>
       <Pressable
-        onPress={getLocation}
+        onPress={isLocationButtonEnabled ? () => setIsLocationButtonEnabled(false) : getLocation}
         accessibilityRole="button"
         accessibilityState={{
           disabled: isButtonDisabled
