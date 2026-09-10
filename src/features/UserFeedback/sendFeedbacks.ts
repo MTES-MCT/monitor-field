@@ -30,7 +30,7 @@ export async function sendFeedback({ title, description, type, email }: Feedback
     },
     method: 'POST'
   })
-  // repository_dispatch renvoie 204 No Content si accepté
+  // repository_dispatch send 204 No Content if accepted
   if (!response.ok) {
     throw new FeedbackError(`Envoi échoué (${response.status})`)
   }
