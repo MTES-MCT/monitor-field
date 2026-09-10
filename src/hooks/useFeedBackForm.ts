@@ -3,6 +3,8 @@ import { useState } from 'react'
 
 type Statut = 'idle' | 'sending' | 'success' | 'error'
 
+const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
+
 export function useFeedbackForm() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -16,7 +18,7 @@ export function useFeedbackForm() {
     if (!canSend || statut === 'sending') return
     setStatut('sending')
     try {
-      await sendFeedback({ description, email, title, type })
+      await sendFeedback({ description, email, env: ENV, title, type })
       setStatut('success')
       setTitle('')
       setDescription('')

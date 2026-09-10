@@ -50,6 +50,10 @@ export function UserFeedback() {
     if (statut === 'success') {
       ToastAndroid.show('Votre retour a bien été envoyé', ToastAndroid.SHORT)
       close()
+      return
+    }
+    if (statut === 'error') {
+      ToastAndroid.show("Une erreur est survenue lors de l'envoi de votre retour", ToastAndroid.SHORT)
     }
   }, [statut, close])
 
