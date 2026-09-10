@@ -7,12 +7,13 @@ import { useTheme } from '@hooks/use-theme'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useFeedbackForm } from '@hooks/useFeedBackForm'
 import { Image } from 'expo-image'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Pressable,
   StyleSheet,
   Modal,
   View,
+  ToastAndroid,
   TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -40,10 +41,17 @@ export function UserFeedback() {
     setEmail
   } = useFeedbackForm()
 
-  function close() {
+  const close = useCallback(() => {
     reset()
     setIsFeedbackModalOpen(false)
-  }
+  }, [reset])
+
+  useEffect(() => {
+    if (statut === 'success') {
+      ToastAndroid.show('Votre retour a bien été envoyé', ToastAndroid.SHORT)
+      close()
+    }
+  }, [statut, close])
 
   return (
     <>
@@ -58,96 +66,85 @@ export function UserFeedback() {
       <Modal visible={isFeedbackModalOpen} animationType="slide" transparent onRequestClose={close}>
         <SafeAreaView style={styles.overlay}>
           <KeyboardAvoidingView behavior="padding">
-            {statut === 'success' ? (
-              <View style={{ alignItems: 'center', gap: Spacing.five, justifyContent: 'space-between' }}>
-                <ThemedText type="large">Merci pour votre retour !</ThemedText>
-                <Pressable style={[globalStyle.buttonBase, { backgroundColor: theme.charcoal }]} onPress={close}>
-                  <ThemedText type="default" themeColor="white">
-                    Fermer
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalWrapper}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.titleWrapper}>
+                <View style={{ flex: 1 }}>
+                  <ThemedText type="large">Retours utilisateurs</ThemedText>
+                </View>
+                <CloseButton onClose={close} />
+              </View>
+
+              <View style={styles.radioButtonsWrapper}>
+                <RadioButton label="Bug" isSelected={type === 'bug'} onPress={() => setType('bug')} />
+                <RadioButton
+                  label="Suggestion"
+                  isSelected={type === 'suggestion'}
+                  onPress={() => setType('suggestion')}
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <ThemedText type="label">Email</ThemedText>
+                <TextInput
+                  style={globalStyle.textInputGray}
+                  value={email}
+                  onChangeText={setEmail}
+                  editable={statut !== 'sending'}
+                  keyboardType="email-address"
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <ThemedText type="label">
+                  Objet{' '}
+                  <ThemedText type="label" style={globalStyle.requiredField}>
+                    *
                   </ThemedText>
+                </ThemedText>
+                <TextInput
+                  style={globalStyle.textInputGray}
+                  value={title}
+                  onChangeText={setTitle}
+                  editable={statut !== 'sending'}
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <ThemedText type="label">
+                  Description{' '}
+                  <ThemedText type="label" style={globalStyle.requiredField}>
+                    *
+                  </ThemedText>
+                </ThemedText>
+                <TextInput
+                  style={[globalStyle.textInputGray, styles.textarea]}
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  editable={statut !== 'sending'}
+                />
+              </View>
+              <View style={styles.separator} />
+              <View style={styles.buttonsWrapper}>
+                <Pressable onPress={close} style={globalStyle.buttonBase}>
+                  <ThemedText type="default">Annuler</ThemedText>
+                </Pressable>
+                <Pressable
+                  style={[globalStyle.buttonBase, { backgroundColor: theme.charcoal }]}
+                  onPress={submitFeedback}
+                  disabled={!canSend || statut === 'sending'}
+                >
+                  {statut === 'sending' ? (
+                    <ActivityIndicator color={theme.white} />
+                  ) : (
+                    <ThemedText type="default" themeColor="white">
+                      Envoyer
+                    </ThemedText>
+                  )}
                 </Pressable>
               </View>
-            ) : (
-              <ScrollView
-                style={styles.modalScroll}
-                contentContainerStyle={styles.modalWrapper}
-                keyboardShouldPersistTaps="handled"
-              >
-                <View style={styles.titleWrapper}>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText type="large">Retours utilisateurs</ThemedText>
-                  </View>
-                  <CloseButton onClose={close} />
-                </View>
-
-                <View style={styles.radioButtonsWrapper}>
-                  <RadioButton label="Bug" isSelected={type === 'bug'} onPress={() => setType('bug')} />
-                  <RadioButton
-                    label="Suggestion"
-                    isSelected={type === 'suggestion'}
-                    onPress={() => setType('suggestion')}
-                  />
-                </View>
-                <View style={styles.inputWrapper}>
-                  <ThemedText type="label">Email</ThemedText>
-                  <TextInput
-                    style={globalStyle.textInputGray}
-                    value={email}
-                    onChangeText={setEmail}
-                    editable={statut !== 'sending'}
-                    keyboardType="email-address"
-                  />
-                </View>
-                <View style={styles.inputWrapper}>
-                  <ThemedText type="label">
-                    Objet{' '}
-                    <ThemedText type="label" style={globalStyle.requiredField}>
-                      *
-                    </ThemedText>
-                  </ThemedText>
-                  <TextInput
-                    style={globalStyle.textInputGray}
-                    value={title}
-                    onChangeText={setTitle}
-                    editable={statut !== 'sending'}
-                  />
-                </View>
-                <View style={styles.inputWrapper}>
-                  <ThemedText type="label">
-                    Description{' '}
-                    <ThemedText type="label" style={globalStyle.requiredField}>
-                      *
-                    </ThemedText>
-                  </ThemedText>
-                  <TextInput
-                    style={[globalStyle.textInputGray, styles.textarea]}
-                    value={description}
-                    onChangeText={setDescription}
-                    multiline
-                    editable={statut !== 'sending'}
-                  />
-                </View>
-                <View style={styles.separator} />
-                <View style={styles.buttonsWrapper}>
-                  <Pressable onPress={close} style={globalStyle.buttonBase}>
-                    <ThemedText type="default">Annuler</ThemedText>
-                  </Pressable>
-                  <Pressable
-                    style={[globalStyle.buttonBase, { backgroundColor: theme.charcoal }]}
-                    onPress={submitFeedback}
-                    disabled={!canSend || statut === 'sending'}
-                  >
-                    {statut === 'sending' ? (
-                      <ActivityIndicator color={theme.white} />
-                    ) : (
-                      <ThemedText type="default" themeColor="white">
-                        Envoyer
-                      </ThemedText>
-                    )}
-                  </Pressable>
-                </View>
-              </ScrollView>
-            )}
+            </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
