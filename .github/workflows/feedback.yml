@@ -30,12 +30,12 @@ jobs:
               ? context.payload.inputs
               : context.payload.client_payload;
 
-            const { title, description, os, version, type, email } = payload;
+            const { title, description, os, version, type, email, env } = payload;
             const { data } = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `[Beta] ${title}`,
-              body: `${description}\n\n---\n${os ? `OS: ${os}\n` : ''}${version ? `Version: ${version}` : ''}${email ? `\n\nEmail: ${email}` : ''}`,
+              title: `${title}`,
+              body: `${description}\n\n---\n${os ? `OS: ${os}\n` : ''}${version ? `Version: ${version}\n` : ''}${env ? `Environment: ${env}\n` : ''}${email ? `\n\nEmail: ${email}` : ''}`,
               labels: ['beta-feedback', type === 'bug' ? 'bug' : 'enhancement'],
             });
             core.setOutput('node_id', data.node_id);
