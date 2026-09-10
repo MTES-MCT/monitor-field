@@ -122,29 +122,54 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
       <View style={styles.wrapper}>
         <View style={styles.displayWrapper}>
           {isSearchZoneActive ? (
-            <Pressable
-              onPress={handleLayers}
-              accessibilityRole="button"
-              style={[
-                styles.buttonBase,
-                {
-                  backgroundColor: areRegulatoryAreasLayerVisible ? theme.blueGray : theme.white,
-                  flex: !isSearchZoneActive ? 1 : 0
-                }
-              ]}
-            >
-              <Image
-                source={
-                  areRegulatoryAreasLayerVisible
-                    ? require('@assets/icons/display.svg')
-                    : require('@assets/icons/hide.svg')
-                }
+            <>
+              <Pressable
+                onPress={handleLayers}
+                accessibilityRole="button"
                 style={[
-                  globalStyle.iconNormal,
-                  { tintColor: areRegulatoryAreasLayerVisible ? theme.white : theme.slateGray }
+                  styles.buttonBase,
+                  {
+                    backgroundColor: areRegulatoryAreasLayerVisible ? theme.blueGray : theme.white
+                  }
                 ]}
-              />
-            </Pressable>
+              >
+                <Image
+                  source={
+                    areRegulatoryAreasLayerVisible
+                      ? require('@assets/icons/display.svg')
+                      : require('@assets/icons/hide.svg')
+                  }
+                  style={[
+                    globalStyle.iconNormal,
+                    { tintColor: areRegulatoryAreasLayerVisible ? theme.white : theme.slateGray }
+                  ]}
+                />
+              </Pressable>
+              <Pressable
+                onPress={consultRegulatoryAreas}
+                accessibilityRole="button"
+                accessibilityState={{
+                  disabled: false,
+                  selected: isSearchZoneActive
+                }}
+                style={[
+                  styles.buttonBase,
+                  {
+                    backgroundColor: theme.white,
+                    flex: 1,
+                    gap: Spacing.two
+                  }
+                ]}
+              >
+                <ThemedText type="defaultBold" themeColor="text">
+                  REG{' '}
+                  <ThemedText type="defaultBold" themeColor="slateGray">
+                    ({totalCount ?? 0})
+                  </ThemedText>
+                </ThemedText>
+                {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
+              </Pressable>
+            </>
           ) : (
             <Pressable
               onPress={searchByBbox}
@@ -152,41 +177,14 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
               style={[
                 styles.buttonBase,
                 {
-                  backgroundColor: isSearchZoneActive ? theme.blueGray : theme.charcoal,
-                  flex: !isSearchZoneActive ? 1 : 0
+                  backgroundColor: theme.charcoal,
+                  flex: 1
                 }
               ]}
             >
               <ThemedText type="small" themeColor="white" style={{ marginLeft: Spacing.two }}>
                 Afficher les reg.ici
               </ThemedText>
-            </Pressable>
-          )}
-
-          {isSearchZoneActive && (
-            <Pressable
-              onPress={consultRegulatoryAreas}
-              accessibilityRole="button"
-              accessibilityState={{
-                disabled: false,
-                selected: isSearchZoneActive
-              }}
-              style={[
-                styles.buttonBase,
-                {
-                  backgroundColor: theme.white,
-                  flex: 1,
-                  gap: Spacing.two
-                }
-              ]}
-            >
-              <ThemedText type="defaultBold" themeColor="text">
-                REG{' '}
-                <ThemedText type="defaultBold" themeColor="slateGray">
-                  ({totalCount ?? 0})
-                </ThemedText>
-              </ThemedText>
-              {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
             </Pressable>
           )}
         </View>

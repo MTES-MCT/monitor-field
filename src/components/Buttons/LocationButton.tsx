@@ -46,7 +46,6 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
     } catch (error) {
       logSentryError(error, 'Unable to retrieve current location')
     }
-    if (!isLocationEnabled) return
   }, [isLocationEnabled, onLocate, setIsLocationButtonEnabled])
 
   useEffect(() => {
