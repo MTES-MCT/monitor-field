@@ -1,7 +1,7 @@
 import { ScrollView } from 'react-native-gesture-handler'
 import { MultiCheckbox } from './Elements/MultiCheckbox'
 import { normalizeText } from '@/utils/normalizeText'
-import type { Accent } from '@constants/theme'
+import { type Accent } from '@constants/theme'
 import { useMemo } from 'react'
 
 const seaFrontOptions = [
@@ -42,7 +42,7 @@ export function SeaFrontsSelector({ accent, selectedSeaFronts, onToggle, searchQ
   )
 
   return (
-    <ScrollView>
+    <ScrollView persistentScrollbar>
       {filteredSeaFrontOptions.map(option => (
         <MultiCheckbox
           key={option.value}

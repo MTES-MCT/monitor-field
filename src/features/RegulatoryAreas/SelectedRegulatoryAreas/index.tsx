@@ -9,10 +9,12 @@ import { useAppContext, type ModalType } from '@contexts/AppContext'
 
 export const SelectedRegulatoryAreas = ({
   focusAndSetOrgin,
-  isLoading
+  isLoading,
+  zoomOnIsolatedRegulatoryArea
 }: {
   focusAndSetOrgin: (area: RegulatoryAreaListItem, activeModal: ModalType) => void
   isLoading: boolean
+  zoomOnIsolatedRegulatoryArea: (area: RegulatoryAreaListItem) => void
 }) => {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
@@ -54,7 +56,12 @@ export const SelectedRegulatoryAreas = ({
         backgroundColor: theme.lightGray
       }}
     >
-      <RegulatoryAreasList onClose={onDismiss} focusAndSetOrgin={focusAndSetOrgin} isLoading={isLoading} />
+      <RegulatoryAreasList
+        onClose={onDismiss}
+        focusAndSetOrgin={focusAndSetOrgin}
+        isLoading={isLoading}
+        zoomOnIsolatedRegulatoryArea={zoomOnIsolatedRegulatoryArea}
+      />
     </BottomSheetModal>
   )
 }

@@ -4,7 +4,7 @@ import { type RegulatoryAreaListItem, useRegulatoryAreasContext } from '@context
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useTheme } from '@hooks/use-theme'
 import { useMemo, useState } from 'react'
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Pressable, View } from 'react-native'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { getRegulatoryAreasByGroup } from './utils'
 import { Image } from 'expo-image'
@@ -17,6 +17,7 @@ type RegulatoryAreasListProps = {
   isLoading: boolean
   focusAndSetOrgin: (area: RegulatoryAreaListItem, activeModal: ModalType) => void
   shouldShowResults?: boolean
+  zoomOnIsolatedRegulatoryArea?: (area: RegulatoryAreaListItem) => void
 }
 
 type GroupRow = {
@@ -37,7 +38,8 @@ export const RegulatoryAreasList = ({
   onClose,
   isLoading,
   focusAndSetOrgin,
-  shouldShowResults = true
+  shouldShowResults = true,
+  zoomOnIsolatedRegulatoryArea
 }: RegulatoryAreasListProps) => {
   const {
     clickedFeaturesList,
@@ -95,6 +97,7 @@ export const RegulatoryAreasList = ({
     }
 
     setIsolatedRegulatoryAreaId(area.id)
+    zoomOnIsolatedRegulatoryArea?.(area)
   }
 
   const flattenedRows = useMemo<RegulatoryRow[]>(() => {
@@ -118,9 +121,9 @@ export const RegulatoryAreasList = ({
   const renderRow = ({ item }: { item: RegulatoryRow }) => {
     if (item.type === 'group') {
       return (
-        <TouchableOpacity activeOpacity={0.7} style={styles.groupButton} onPress={() => clickOnGroup(item.group)}>
+        <Pressable style={styles.groupButton} onPress={() => clickOnGroup(item.group)}>
           <ThemedText type="defaultBold">{item.group}</ThemedText>
-        </TouchableOpacity>
+        </Pressable>
       )
     }
 
@@ -129,7 +132,7 @@ export const RegulatoryAreasList = ({
 
     return (
       <View style={styles.wrapper}>
-        <TouchableOpacity activeOpacity={0.7} onPress={() => selectRegulatoryArea(item.area)} style={styles.areaRow}>
+        <Pressable onPress={() => selectRegulatoryArea(item.area)} style={[styles.areaRow]}>
           <View
             style={{
               ...styles.square,
@@ -137,10 +140,12 @@ export const RegulatoryAreasList = ({
               borderColor: theme.lightGray
             }}
           />
-          <ThemedText type="default">{getRegulatoryAreaLabel(item.area, config.mode)}</ThemedText>
-        </TouchableOpacity>
+          <ThemedText type="default" style={{ flexShrink: 1 }}>
+            {getRegulatoryAreaLabel(item.area, config.mode)}
+          </ThemedText>
+        </Pressable>
         {isClickedFeatureList && (
-          <TouchableOpacity activeOpacity={0.7} onPress={() => isolateRegulatoryArea(item.area)} style={styles.areaRow}>
+          <Pressable onPress={() => isolateRegulatoryArea(item.area)} style={styles.isolatedButton}>
             <Image
               source={require('../../../../assets/icons/target.svg')}
               style={[
@@ -150,7 +155,7 @@ export const RegulatoryAreasList = ({
                 }
               ]}
             />
-          </TouchableOpacity>
+          </Pressable>
         )}
       </View>
     )
@@ -205,9 +210,9 @@ export const RegulatoryAreasList = ({
 const styles = StyleSheet.create({
   areaRow: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
     gap: Spacing.two,
-    maxWidth: '80%',
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two
   },
@@ -233,6 +238,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.two
+  },
+  isolatedButton: {
+    alignItems: 'center',
+    flexShrink: 1,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two
   },

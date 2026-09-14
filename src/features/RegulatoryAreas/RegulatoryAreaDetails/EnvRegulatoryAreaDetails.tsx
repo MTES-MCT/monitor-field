@@ -43,7 +43,7 @@ export function EnvRegulatoryAreaDetails({
     if (supported) {
       Linking.openURL(`tel:${CACEM_TEL_NUMBER}`)
     } else {
-      logToSentry(`Don't know how to open this URL: tel:${CACEM_TEL_NUMBER}`, 'info', {
+      logToSentry("Don't know how to open this URL: tel_CACEM", 'info', {
         extra: { label: 'EnvRegulatoryAreaDetails' }
       })
     }
@@ -56,7 +56,7 @@ export function EnvRegulatoryAreaDetails({
           <ThemedText
             type="small"
             style={styles.titleText}
-          >{`${regulatoryArea.layerName} - ${regulatoryArea.location}`}</ThemedText>
+          >{`${regulatoryArea.layerName} ${!!regulatoryArea.location ? `- ${regulatoryArea.location}` : ''}`}</ThemedText>
           <View style={styles.title}>
             <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
             <ThemedText type="default" style={styles.titleText}>

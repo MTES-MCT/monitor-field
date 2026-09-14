@@ -1,4 +1,4 @@
-import { StyleSheet, View, type NativeSyntheticEvent } from 'react-native'
+import { Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
@@ -28,15 +28,18 @@ import { useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
-import { Settings } from '@features/Settings'
 import * as Sentry from '@sentry/react-native'
 import { SearchPage } from '@features/RegulatoryAreas/Search'
+import { Image } from 'expo-image'
+import { LoaderIcon } from '@components/LoaderIcon'
+import { useGlobalStyle } from '@globalStyle'
+import { Link } from 'expo-router'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
 const MAPBOX_KEY = process.env.EXPO_PUBLIC_MAPBOX_KEY
 
-if (ENV !== 'development' && SENTRY_DSN) {
+if (ENV !== 'dev' && SENTRY_DSN) {
   Sentry.init({
     attachStacktrace: false,
     dsn: SENTRY_DSN,
@@ -74,7 +77,8 @@ const LOCATION_FOCUS_ZOOM = 12
 function App() {
   const mapRef = useRef<MapRef>(null)
   const cameraRef = useRef<CameraRef>(null)
-  const { isLocationButtonEnabled, setActiveModal, activeModal } = useAppContext()
+  const globalStyle = useGlobalStyle()
+  const { isLocationButtonEnabled, setActiveModal, activeModal, isRefreshingSettingsData } = useAppContext()
   const {
     areRegulatoryAreasLayerVisible,
     isSearchZoneActive,
@@ -187,6 +191,24 @@ function App() {
     setClickedCoordinate(undefined)
   }
 
+  const zoomOnIsolatedRegulatoryArea = (area: RegulatoryAreaListItem) => {
+    const bbox = area?.bbox
+    if (!bbox) {
+      return
+    }
+
+    cameraRef.current?.fitBounds([bbox.minLon, bbox.minLat, bbox.maxLon, bbox.maxLat], {
+      duration: 700,
+      easing: 'ease',
+      padding: {
+        bottom: 540,
+        left: 40,
+        right: 40,
+        top: 40
+      }
+    })
+  }
+
   const flyToBbox = (centerLat: number, centerLon: number, zoom: number | undefined) => {
     cameraRef.current?.flyTo({
       center: [centerLon, centerLat],
@@ -273,10 +295,27 @@ function App() {
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>
           <SwitchContextButton />
-          <Settings />
+          <Link href="/settings" asChild>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityState={{ disabled: false }}
+              style={StyleSheet.flatten([globalStyle.squareButton, { backgroundColor: 'white' }])}
+            >
+              {isRefreshingSettingsData && (
+                <View style={globalStyle.dot}>
+                  <LoaderIcon tintColor="white" size="SMALL" />
+                </View>
+              )}
+              <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
+            </Pressable>
+          </Link>
         </View>
 
-        <SelectedRegulatoryAreas focusAndSetOrgin={onFocusRegulatoryArea} isLoading={regulatoryAreaLayer.isLoading} />
+        <SelectedRegulatoryAreas
+          focusAndSetOrgin={onFocusRegulatoryArea}
+          isLoading={regulatoryAreaLayer.isLoading}
+          zoomOnIsolatedRegulatoryArea={zoomOnIsolatedRegulatoryArea}
+        />
         <FilteredRegulatoryAreas
           focusAndSetOrgin={onFocusRegulatoryArea}
           isLoading={regulatoryAreaLayer.isLoading}

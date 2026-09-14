@@ -3,7 +3,6 @@ import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet, TextInput, View } from 'react-native'
 import { BackButton } from '@components/Buttons/BackButton'
 import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
-import { type SyncRegulatoryAreasOptions } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
 import { useMMKVString } from 'react-native-mmkv'
 import { useMemo, useRef, useState } from 'react'
 import { storage } from '@storage'
@@ -13,21 +12,17 @@ import { Spacing } from '@constants/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
+import { useRouter } from 'expo-router'
+import { useAppContext } from '@contexts/AppContext'
+import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
+import { logSentryError } from '@utils/sentryLogger'
 
-type SeaFrontsProps = {
-  closeSettings: () => void
-  closeSeaFrontSelector: () => void
-  setIsRefreshingData: (value: boolean) => void
-  refreshData: (options: SyncRegulatoryAreasOptions) => Promise<void>
-}
-export const SeaFronts = ({
-  closeSettings,
-  closeSeaFrontSelector,
-  setIsRefreshingData,
-  refreshData
-}: SeaFrontsProps) => {
+export default function SeaFronts() {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
+  const router = useRouter()
+  const { isRefreshingSettingsData, setIsRefreshingSettingsData } = useAppContext()
+
   const [selectedSeaFronts, setSelectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const initialSelectionRef = useRef<string>(selectedSeaFronts)
 
@@ -35,15 +30,26 @@ export const SeaFronts = ({
 
   const selectedSeaFrontsArray = useMemo(() => parseSeaFronts(selectedSeaFronts), [selectedSeaFronts])
 
-  const triggerSyncIfNeeded = () => {
+  const triggerSyncIfNeeded = async () => {
     if (selectedSeaFronts === initialSelectionRef.current) {
-      setIsRefreshingData(false)
+      setIsRefreshingSettingsData(false)
       return
     }
 
     initialSelectionRef.current = selectedSeaFronts
-    setIsRefreshingData(true)
-    refreshData({ forceRefresh: true, syncFish: false })
+
+    if (isRefreshingSettingsData) {
+      return
+    }
+    setIsRefreshingSettingsData(true)
+
+    try {
+      await syncRegulatoryAreasDB(selectedSeaFrontsArray, { forceRefresh: true })
+    } catch (e) {
+      logSentryError(e, 'Unable to sync regulatory areas')
+    } finally {
+      setIsRefreshingSettingsData(false)
+    }
   }
 
   const onToggleSeaFront = (newSelection: string) => {
@@ -57,17 +63,17 @@ export const SeaFronts = ({
 
   const onCloseSeaFrontSelector = () => {
     triggerSyncIfNeeded()
-    closeSeaFrontSelector()
+    router.back()
   }
 
   const onCloseSettings = () => {
     triggerSyncIfNeeded()
-    closeSettings()
+    router.dismissAll()
   }
 
   return (
-    <SafeAreaView style={styles.wrapper}>
-      <View style={styles.header}>
+    <SafeAreaView style={{ flex: 1, paddingBottom: Spacing.six }}>
+      <View style={globalStyle.pageHeader}>
         <BackButton onBack={onCloseSeaFrontSelector} />
         <ThemedText type="default">Façades</ThemedText>
         <CloseButton onClose={onCloseSettings} />
@@ -80,23 +86,19 @@ export const SeaFronts = ({
           style={[globalStyle.iconNormal, { paddingLeft: Spacing.two }]}
         />
       </View>
-      <SeaFrontsSelector
-        searchQuery={searchQuery}
-        selectedSeaFronts={selectedSeaFrontsArray}
-        onToggle={onToggleSeaFront}
-      />
+      <View style={{ paddingBottom: 120, paddingHorizontal: Spacing.four }}>
+        <SeaFrontsSelector
+          searchQuery={searchQuery}
+          selectedSeaFronts={selectedSeaFrontsArray}
+          onToggle={onToggleSeaFront}
+        />
+      </View>
     </SafeAreaView>
   )
 }
 
 const createStyles = theme =>
   StyleSheet.create({
-    header: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingBottom: Spacing.four
-    },
     input: {
       color: '#2b3a4a',
       flex: 1,
@@ -111,6 +113,7 @@ const createStyles = theme =>
       flexDirection: 'row',
       height: 48,
       marginBottom: Spacing.four,
+      marginHorizontal: Spacing.four,
       paddingRight: Spacing.two
     },
     wrapper: {

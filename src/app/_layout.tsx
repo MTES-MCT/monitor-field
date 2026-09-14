@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router'
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
@@ -9,7 +9,6 @@ import { useAppColorScheme } from '@hooks/use-app-color-scheme'
 import { storage } from '@storage'
 import { Appearance, StatusBar } from 'react-native'
 import { OnBoarding } from '@features/OnBoarding'
-import App from '.'
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
@@ -53,7 +52,16 @@ export default function TabLayout() {
           <BottomSheetModalProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
               <StatusBar barStyle="dark-content" />
-              {!!isOnBoardingFinished ? <App /> : <OnBoarding />}
+              {!!isOnBoardingFinished ? (
+                <Stack screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' }, headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="settings" options={{ presentation: 'modal' }}>
+                    <Stack.Screen name="sea-fronts" options={{ presentation: 'modal' }} />
+                  </Stack.Screen>
+                </Stack>
+              ) : (
+                <OnBoarding />
+              )}
             </ThemeProvider>
           </BottomSheetModalProvider>
         </RegulatoryAreasProvider>

@@ -30,7 +30,7 @@ export function FishRegulatoryAreaDetails({
     if (supported) {
       Linking.openURL(`tel:${CNSP_TEL_NUMBER}`)
     } else {
-      logToSentry(`Don't know how to open this URL: tel:${CNSP_TEL_NUMBER}`, 'info', {
+      logToSentry("Don't know how to open this URL: tel_CNSP", 'info', {
         extra: { label: 'FishRegulatoryAreaDetails' }
       })
     }

@@ -36,6 +36,12 @@ export function useGlobalStyle() {
       paddingBottom: BottomTabInset,
       width: '100%'
     },
+    pageHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: Spacing.four
+    },
     separator: {
       backgroundColor: theme.lightGray,
       height: 1,
