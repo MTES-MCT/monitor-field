@@ -62,7 +62,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
         accessibilityState={{
           disabled: isButtonDisabled
         }}
-        style={[styles.buttonBase, { backgroundColor: theme.white }]}
+        style={[globalStyle.squareButton, { backgroundColor: theme.white }]}
       >
         <Image
           key={`${isLocationGranted}-${isLocationEnabled}`}
@@ -86,12 +86,6 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
 }
 
 const styles = StyleSheet.create({
-  buttonBase: {
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    width: 48
-  },
   wrapper: {
     alignItems: 'flex-end',
     paddingTop: Spacing.two

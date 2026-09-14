@@ -7,12 +7,16 @@ import { Image } from 'expo-image'
 import { useState } from 'react'
 import { Modal, Pressable, StyleSheet, View } from 'react-native'
 import { useGlobalStyle } from '@globalStyle'
+import { useTheme } from '@hooks/use-theme'
 import { useThemedStyles } from '@hooks/use-themed-styles'
+import { useAppContext } from '@contexts/AppContext'
 
 export function EnvFilters() {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
+  const theme = useTheme()
   const { filters, setFilters, totalCount } = useRegulatoryAreasContext()
+  const { activeModal } = useAppContext()
   const [isOpen, setIsOpen] = useState(false)
   const closeEnvFilters = () => setIsOpen(false)
 
@@ -43,7 +47,18 @@ export function EnvFilters() {
         accessibilityState={{
           disabled: false
         }}
-        style={styles.buttonBase}
+        style={[
+          globalStyle.squareButton,
+          {
+            backgroundColor: theme.white,
+            zIndex: -1,
+            ...(activeModal === 'REGULATORY_AREAS_LIST_MODAL' && {
+              borderColor: theme.lightGray,
+              borderWidth: 1,
+              boxShadow: 'inherit'
+            })
+          }
+        ]}
       >
         {filtersCount > 0 && (
           <View style={globalStyle.dot}>
@@ -110,14 +125,6 @@ export function EnvFilters() {
 
 const createStyles = theme =>
   StyleSheet.create({
-    buttonBase: {
-      backgroundColor: theme.white,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      padding: Spacing.three,
-      position: 'relative',
-      zIndex: -1
-    },
     buttonsWrapper: {
       gap: Spacing.two,
       justifyContent: 'center',

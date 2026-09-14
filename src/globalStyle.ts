@@ -41,6 +41,13 @@ export function useGlobalStyle() {
       height: 1,
       marginVertical: Spacing.four
     },
+    squareButton: {
+      alignItems: 'center',
+      boxShadow: '0px 3px 6px rgba(112, 119, 133, 0.25)',
+      height: 48,
+      justifyContent: 'center',
+      width: 48
+    },
     textUnderline: {
       textDecorationLine: 'underline'
     }

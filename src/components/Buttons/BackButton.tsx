@@ -6,7 +6,7 @@ export const BackButton = ({ onBack }: { onBack: () => void }) => {
   const globalStyle = useGlobalStyle()
 
   return (
-    <Pressable onPress={onBack} hitSlop={8}>
+    <Pressable onPress={onBack} hitSlop={18}>
       <Image source={require('@assets/icons/chevron.svg')} style={globalStyle.iconSmall} />
     </Pressable>
   )

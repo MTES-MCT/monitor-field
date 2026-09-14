@@ -11,14 +11,13 @@ import { LoaderIcon } from '@components/LoaderIcon'
 import { useMemo } from 'react'
 
 type BottomBarProps = {
-  consultRegulatoryAreas: () => void
   zoomToBbox: (centerLat: number, centerLon: number, zoom: number | undefined) => void
   isLoading: boolean
   searchByQuery: () => void
 }
 
-export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searchByQuery }: BottomBarProps) {
-  const { config } = useAppContext()
+export function BottomBar({ zoomToBbox, isLoading, searchByQuery }: BottomBarProps) {
+  const { config, setActiveModal } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
 
@@ -101,12 +100,10 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
             onPress={searchByNewBbox}
             accessibilityRole="button"
             style={[
-              styles.buttonBase,
-              {
-                backgroundColor: theme.charcoal,
-                flex: 1,
-                marginBottom: Spacing.two
-              }
+              [
+                globalStyle.squareButton,
+                { backgroundColor: theme.charcoal, flex: 1, flexDirection: 'row', marginBottom: Spacing.two }
+              ]
             ]}
           >
             <Image
@@ -127,7 +124,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
                 onPress={handleLayers}
                 accessibilityRole="button"
                 style={[
-                  styles.buttonBase,
+                  globalStyle.squareButton,
                   {
                     backgroundColor: areRegulatoryAreasLayerVisible ? theme.blueGray : theme.white
                   }
@@ -146,17 +143,18 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
                 />
               </Pressable>
               <Pressable
-                onPress={consultRegulatoryAreas}
+                onPress={() => setActiveModal('REGULATORY_AREAS_LIST_MODAL')}
                 accessibilityRole="button"
                 accessibilityState={{
                   disabled: false,
                   selected: isSearchZoneActive
                 }}
                 style={[
-                  styles.buttonBase,
+                  globalStyle.squareButton,
                   {
                     backgroundColor: theme.white,
                     flex: 1,
+                    flexDirection: 'row',
                     gap: Spacing.two
                   }
                 ]}
@@ -175,7 +173,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
               onPress={searchByBbox}
               accessibilityRole="button"
               style={[
-                styles.buttonBase,
+                globalStyle.squareButton,
                 {
                   backgroundColor: theme.charcoal,
                   flex: 1
@@ -195,7 +193,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
             accessibilityState={{
               disabled: false
             }}
-            style={[styles.buttonBase, { backgroundColor: theme.white }]}
+            style={[globalStyle.squareButton, { backgroundColor: theme.white }]}
           >
             {filters.searchQuery && <View style={globalStyle.dot} />}
             <Image
@@ -213,6 +211,7 @@ export function BottomBar({ consultRegulatoryAreas, zoomToBbox, isLoading, searc
 const styles = StyleSheet.create({
   buttonBase: {
     alignItems: 'center',
+    boxShadow: '0px 3px 6px rgba(112, 119, 133, 0.25)',
     flexDirection: 'row',
     justifyContent: 'center',
     padding: Spacing.three,

@@ -1,7 +1,8 @@
 import { logSentryError } from '@utils/sentryLogger'
 import { Image } from 'expo-image'
-import { Modal, Pressable, StyleSheet, View } from 'react-native'
+import { Modal, Pressable, View } from 'react-native'
 import { useState } from 'react'
+import { useTheme } from '@hooks/use-theme'
 import { SettingsPage } from './SettingsPage'
 import { SeaFronts } from './SeaFronts'
 import { LoaderIcon } from '@components/LoaderIcon'
@@ -10,10 +11,9 @@ import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
 import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
 import { useGlobalStyle } from '@globalStyle'
-import { useThemedStyles } from '@hooks/use-themed-styles'
 
 export function Settings() {
-  const styles = useThemedStyles(createStyles)
+  const theme = useTheme()
   const globalStyle = useGlobalStyle()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSeaFrontsSelectorOpen, setIsSeaFrontsSelectorOpen] = useState(false)
@@ -61,7 +61,7 @@ export function Settings() {
         onPress={() => setIsSettingsOpen(true)}
         accessibilityRole="button"
         accessibilityState={{ disabled: false }}
-        style={styles.buttonWrapper}
+        style={[globalStyle.squareButton, { backgroundColor: theme.white }]}
       >
         {isRefreshingData && (
           <View style={globalStyle.dot}>
@@ -104,14 +104,3 @@ export function Settings() {
     </>
   )
 }
-
-const createStyles = theme =>
-  StyleSheet.create({
-    buttonWrapper: {
-      alignItems: 'center',
-      backgroundColor: theme.white,
-      height: 48,
-      justifyContent: 'center',
-      width: 48
-    }
-  })

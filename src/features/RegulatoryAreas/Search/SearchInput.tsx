@@ -9,8 +9,14 @@ import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { useRef, useState } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
+import { EnvFilters } from '../FilteredRegulatoryAreas/EnvFilters'
 
-export function SearchInput({ onClose, onSearchFocus }: { onClose: () => void; onSearchFocus?: () => void }) {
+type SearchInputProps = {
+  onClose: () => void
+  onSearchFocus?: () => void
+}
+
+export function SearchInput({ onClose, onSearchFocus }: SearchInputProps) {
   const inputRef = useRef<TextInput>(null)
 
   const styles = useThemedStyles(createStyles)
@@ -43,29 +49,40 @@ export function SearchInput({ onClose, onSearchFocus }: { onClose: () => void; o
 
   return (
     <>
-      <View style={styles.searchBox}>
-        <BackButton onBack={onCloseSearchInput} />
+      <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
+        <View style={styles.searchBox}>
+          <BackButton onBack={onCloseSearchInput} />
 
-        <TextInput
-          ref={inputRef}
-          autoFocus={activeModal === 'SEARCH_BY_QUERY_MODAL'}
-          style={styles.input}
-          value={text}
-          onChangeText={onChangeText}
-          onFocus={() => {
-            setActiveModal('SEARCH_BY_QUERY_MODAL')
-            onSearchFocus?.()
-          }}
-        />
+          <TextInput
+            ref={inputRef}
+            autoFocus={activeModal === 'SEARCH_BY_QUERY_MODAL'}
+            style={styles.input}
+            value={text}
+            onChangeText={onChangeText}
+            onFocus={() => {
+              setActiveModal('SEARCH_BY_QUERY_MODAL')
+              onSearchFocus?.()
+            }}
+            placeholder="Rechercher"
+          />
 
-        {text.length > 0 && <CloseButton onClose={() => onChangeText('')} />}
+          {text.length > 0 ? (
+            <CloseButton onClose={() => onChangeText('')} isSmall />
+          ) : (
+            <Image source={require('@assets/icons/search.svg')} style={globalStyle.iconSmall} />
+          )}
+        </View>
+
+        {activeModal !== 'SEARCH_BY_QUERY_MODAL' && <EnvFilters />}
       </View>
-      <View style={styles.informationMessage}>
-        <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
-        <ThemedText type="small" themeColor="slateGray">
-          La recherche se fait dans la zone en pointillés
-        </ThemedText>
-      </View>
+      {activeModal === 'SEARCH_BY_QUERY_MODAL' && (
+        <View style={styles.informationMessage}>
+          <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
+          <ThemedText type="small" themeColor="slateGray">
+            La recherche se fait dans la zone en pointillés
+          </ThemedText>
+        </View>
+      )}
       <View style={globalStyle.separator} />
     </>
   )
@@ -90,9 +107,10 @@ const createStyles = theme =>
       alignItems: 'center',
       borderColor: theme.lightGray,
       borderWidth: 1,
+      flex: 1,
       flexDirection: 'row',
       height: 48,
-      marginHorizontal: Spacing.two,
+      marginRight: Spacing.two,
       paddingHorizontal: Spacing.one
     }
   })

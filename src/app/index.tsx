@@ -229,10 +229,6 @@ function App() {
     setActiveModal('CLICKED_FEATURES_LIST_MODAL')
   }
 
-  const consultRegulatoryAreas = () => {
-    setActiveModal('REGULATORY_AREAS_LIST_MODAL')
-  }
-
   const searchByQuery = async () => {
     setSearchOrigin(undefined)
     setActiveModal('SEARCH_BY_QUERY_MODAL')
@@ -296,12 +292,7 @@ function App() {
 
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
-          <BottomBar
-            consultRegulatoryAreas={consultRegulatoryAreas}
-            zoomToBbox={flyToBbox}
-            isLoading={regulatoryAreaLayer.isLoading}
-            searchByQuery={searchByQuery}
-          />
+          <BottomBar zoomToBbox={flyToBbox} isLoading={regulatoryAreaLayer.isLoading} searchByQuery={searchByQuery} />
         </View>
       </SafeAreaView>
     </MapLibreMap>
