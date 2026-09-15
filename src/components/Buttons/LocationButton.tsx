@@ -15,7 +15,7 @@ type LocationButtonProps = {
 
 export function LocationButton({ onLocate }: LocationButtonProps) {
   const { isLocationEnabled, isLocationGranted } = useLocationStatus()
-  const { isLocationButtonEnabled, setIsLocationButtonEnabled } = useAppContext()
+  const { isLocationButtonEnabled, setIsLocationButtonEnabled, hasAutoLocatedRef } = useAppContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
 
@@ -49,10 +49,11 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
   }, [isLocationEnabled, onLocate, setIsLocationButtonEnabled])
 
   useEffect(() => {
-    if (isLocationGranted) {
+    if (isLocationGranted && !hasAutoLocatedRef.current) {
+      hasAutoLocatedRef.current = true
       getLocation()
     }
-  }, [isLocationGranted, getLocation])
+  }, [isLocationGranted, getLocation, hasAutoLocatedRef])
 
   return (
     <View style={styles.wrapper}>

@@ -1,5 +1,5 @@
 import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet'
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
@@ -24,17 +24,18 @@ export const FilteredRegulatoryAreas = ({
   const theme = useTheme()
   const styles = createStyles(theme)
   const router = useRouter()
-  const { activeModal, config } = useAppContext()
+  const { activeModal, config, setActiveModal } = useAppContext()
   const { filters } = useRegulatoryAreasContext()
 
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL')
+    setActiveModal(undefined)
     modalRef.current?.dismiss()
-  }
+  }, [setActiveModal, setRegulatoryAreaDetailsOrigin])
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     isLoading,
@@ -47,12 +48,10 @@ export const FilteredRegulatoryAreas = ({
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
       modalRef.current?.present()
+    } else {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
-
-  if (activeModal !== 'REGULATORY_AREAS_LIST_MODAL') {
-    return null
-  }
 
   return (
     <BottomSheetModal

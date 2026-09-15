@@ -1,5 +1,6 @@
 import { useTheme } from '@hooks/use-theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useRouter } from 'expo-router'
 import { SearchInput } from '@features/Search/SearchInput'
@@ -12,17 +13,20 @@ import { useRegulatoryAreasList } from '@features/RegulatoryAreas/hooks/useRegul
 export default function SearchPage() {
   const theme = useTheme()
   const router = useRouter()
-  const { isSearchZoneActive, filters, setFilters } = useRegulatoryAreasContext()
+  const { isSearchZoneActive, filters, setFilters, setCommittedSearchBbox } = useRegulatoryAreasContext()
+  const { setActiveModal } = useAppContext()
 
   const shouldShowResults = isSearchZoneActive || !!filters.searchQuery?.trim()
 
   const onDismiss = () => {
-    if (!shouldShowResults && !isSearchZoneActive) {
+    if (!isSearchZoneActive) {
+      setCommittedSearchBbox(undefined)
       setFilters(currentFilters => ({
         ...currentFilters,
         searchQuery: undefined
       }))
     }
+    setActiveModal(undefined)
     router.back()
   }
 

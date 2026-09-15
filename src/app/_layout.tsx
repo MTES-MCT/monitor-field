@@ -57,9 +57,7 @@ export default function TabLayout() {
                 {!!isOnBoardingFinished ? (
                   <Stack screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' }, headerShown: false }}>
                     <Stack.Screen name="index" />
-                    <Stack.Screen name="settings" options={{ presentation: 'modal' }}>
-                      <Stack.Screen name="sea-fronts" options={{ presentation: 'modal' }} />
-                    </Stack.Screen>
+                    <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="search" options={{ presentation: 'modal' }} />
                   </Stack>
                 ) : (

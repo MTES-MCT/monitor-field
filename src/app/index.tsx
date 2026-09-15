@@ -24,7 +24,7 @@ import {
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
@@ -86,7 +86,7 @@ function App() {
   } = useCameraContext()
   const globalStyle = useGlobalStyle()
 
-  const { isLocationButtonEnabled, setActiveModal, activeModal, isRefreshingSettingsData } = useAppContext()
+  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
   const {
     areRegulatoryAreasLayerVisible,
     isSearchZoneActive,
@@ -108,9 +108,7 @@ function App() {
     layers: [
       ...baseMapStyle.layers,
       ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
-      ...((isSearchZoneActive || activeModal === 'SEARCH_BY_QUERY_MODAL') && searchByZone.layer
-        ? [searchByZone.layer]
-        : []),
+      ...(searchByZone.layer ? [searchByZone.layer] : []),
       ...(clickedCoordinate
         ? [
             {
@@ -166,14 +164,16 @@ function App() {
     })
   }
 
-  const handleLocate = (coordinates: { longitude: number; latitude: number }) => {
+  const handleLocate = useCallback((coordinates: { longitude: number; latitude: number }) => {
     cameraRef.current?.flyTo({
       center: [coordinates.longitude, coordinates.latitude],
       duration: 900,
       easing: 'ease',
       zoom: LOCATION_FOCUS_ZOOM
     })
-  }
+    // not including cameraRef in the dependency array to avoid unnecessary re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const onMapPress = async (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
     if (!isSearchZoneActive) {
@@ -181,11 +181,17 @@ function App() {
     }
 
     const position = event.nativeEvent.point
-    const coordinate = await mapRef.current?.unproject(position) // [lon, lat]
+    const coordinate = await mapRef.current?.unproject(position)
+
     setClickedCoordinate(coordinate)
     const features = await mapRef.current?.queryRenderedFeatures(position, {
       layers: [regulatoryAreaLayer.ids.fillLayer]
     })
+    if (features?.length === 0) {
+      setClickedCoordinate(undefined)
+      return
+    }
+
     const clickedFeaturesIds = features?.map(feature => feature.properties?.id) ?? []
     const clickedRegulatoryAreas = regulatoryAreas.filter(area => clickedFeaturesIds.includes(area.id))
 
@@ -209,15 +215,18 @@ function App() {
 
   const searchByQuery = async () => {
     const bounds = await mapRef.current?.getBounds()
+
     if (!bounds) return undefined
     const [lonA, latA, lonB, latB] = bounds
 
-    setCommittedSearchBbox({
-      maxLat: Math.max(latA, latB),
-      maxLon: Math.max(lonA, lonB),
-      minLat: Math.min(latA, latB),
-      minLon: Math.min(lonA, lonB)
-    })
+    if (!isSearchZoneActive) {
+      setCommittedSearchBbox({
+        maxLat: Math.max(latA, latB),
+        maxLon: Math.max(lonA, lonB),
+        minLat: Math.min(latA, latB),
+        minLon: Math.min(lonA, lonB)
+      })
+    }
 
     setActiveModal(undefined)
     setTimeout(() => {
@@ -248,7 +257,6 @@ function App() {
           zoom: 4
         }}
         maxBounds={[-180, -90, 180, 90]}
-        trackUserLocation="default"
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>

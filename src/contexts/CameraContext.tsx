@@ -3,13 +3,13 @@ import { createContext, useContext, useRef, useState, type RefObject } from 'rea
 
 import type { RegulatoryAreaListItem } from './RegulatoryAreasContext'
 
-const FIT_BOUNDS_PADDING = { bottom: 540, left: 40, right: 40, top: 40 }
+export const FIT_BOUNDS_PADDING = { bottom: 540, left: 40, right: 40, top: 40 }
 
 const CameraContext = createContext<
   | {
       cameraRef: RefObject<CameraRef | null>
       zoomOnRegulatoryArea: (area: RegulatoryAreaListItem | undefined) => void
-      zoomToBbox: (centerLat: number, centerLon: number, zoom: number | undefined) => void
+      zoomToBbox: (options: ZoomToBboxOptions) => void
       clickedCoordinate: LngLat | undefined
       setClickedCoordinate: (coordinate: LngLat | undefined) => void
       isFromFlyToBbox: boolean
@@ -18,18 +18,25 @@ const CameraContext = createContext<
   | undefined
 >(undefined)
 
+type ZoomToBboxOptions = {
+  centerLat: number
+  centerLon: number
+  zoom?: number | undefined
+  withPadding?: boolean
+}
 export function CameraProvider({ children }: { children: React.ReactNode }) {
   const cameraRef = useRef<CameraRef>(null)
 
   const [clickedCoordinate, setClickedCoordinate] = useState<LngLat | undefined>(undefined)
   const [isFromFlyToBbox, setIsFromFlyToBbox] = useState(false)
 
-  const zoomToBbox = (centerLat: number, centerLon: number, zoom: number | undefined) => {
+  const zoomToBbox = ({ centerLat, centerLon, zoom = undefined, withPadding = false }: ZoomToBboxOptions): void => {
     cameraRef.current?.flyTo({
       center: [centerLon, centerLat],
       duration: 900,
       easing: 'ease',
-      ...(zoom !== undefined && { zoom })
+      ...(zoom !== undefined && { zoom }),
+      ...(withPadding && { padding: { bottom: 540, left: 40, right: 40, top: 40 } })
     })
     setIsFromFlyToBbox(true)
   }

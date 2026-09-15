@@ -79,21 +79,24 @@ export function useRegulatoryAreasList({
         return
       }
 
-      if (pathname === '/search') {
-        router.navigate('/')
-      }
-
       setSelectedRegulatoryArea(area)
       setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
       setClickedCoordinate(undefined)
-
-      // adding because of the router.navigate call above
-      // the map needs a moment to update after navigation
-      setTimeout(() => {
-        zoomOnRegulatoryArea(area)
-      }, 500)
-
+      setExpandedGroups({})
       onSelectRegulatoryArea?.()
+
+      if (pathname === '/search') {
+        router.navigate('/')
+        // adding because of the router.navigate call above
+        // the map needs a moment to update after navigation
+        setTimeout(() => {
+          zoomOnRegulatoryArea(area)
+        }, 500)
+
+        return
+      }
+
+      zoomOnRegulatoryArea(area)
     },
     [
       zoomOnRegulatoryArea,
@@ -120,7 +123,6 @@ export function useRegulatoryAreasList({
 
   const closeModal = () => {
     setExpandedGroups({})
-    setActiveModal(undefined)
     onClose()
   }
 

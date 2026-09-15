@@ -66,7 +66,7 @@ export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
     if (committedSearchBbox) {
       const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
       const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
-      zoomToBbox(centerLat, centerLon, committedSearchZoom)
+      zoomToBbox({ centerLat, centerLon, zoom: committedSearchZoom })
       setSearchBbox(committedSearchBbox)
     }
   }

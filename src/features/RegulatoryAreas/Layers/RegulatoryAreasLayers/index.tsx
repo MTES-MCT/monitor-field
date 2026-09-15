@@ -154,12 +154,12 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode])
 
   useEffect(() => {
-    if (!isSearchZoneActive && pathname === '/search') {
+    if (!isSearchZoneActive && pathname === '/search' && !filters.searchQuery?.trim()) {
       return
     }
 
     fetch()
-  }, [fetch, isSearchZoneActive, pathname])
+  }, [fetch, isSearchZoneActive, pathname, filters.searchQuery])
 
   return {
     ids: regulatoryAreasIds,

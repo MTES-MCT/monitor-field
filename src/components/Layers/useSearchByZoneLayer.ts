@@ -72,10 +72,10 @@ function createSearchByZoneLayer(sourceId: string, color: string): MapLayer {
 }
 
 export function useSearchByZoneLayer(): SearchByZoneLayerProps {
-  const { searchBbox, committedSearchBbox } = useRegulatoryAreasContext()
+  const { committedSearchBbox } = useRegulatoryAreasContext()
   const theme = useTheme()
 
-  const displayedBbox = committedSearchBbox ?? searchBbox
+  const displayedBbox = committedSearchBbox ?? undefined
 
   const geoJSON = useMemo(
     () => (displayedBbox ? bboxToGeoJSON(insetBoundingBox(displayedBbox)) : undefined),

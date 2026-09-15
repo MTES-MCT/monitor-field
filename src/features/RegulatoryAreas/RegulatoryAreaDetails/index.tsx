@@ -25,13 +25,12 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
 
   const onDismiss = () => {
     modalRef.current?.dismiss()
-    const nextModal = origin ?? undefined
-    setActiveModal(nextModal)
+    setActiveModal(origin)
     setSelectedRegulatoryArea(undefined)
     if (committedSearchBbox) {
       const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
       const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
-      zoomToBbox(centerLat, centerLon, committedSearchZoom)
+      zoomToBbox({ centerLat, centerLon, zoom: committedSearchZoom })
       setSearchBbox(committedSearchBbox)
     }
   }
@@ -39,12 +38,10 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
       modalRef.current?.present()
+    } else {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
-
-  if (activeModal !== 'REGULATORY_AREA_DETAILS_MODAL') {
-    return null
-  }
 
   return (
     <BottomSheetModal
