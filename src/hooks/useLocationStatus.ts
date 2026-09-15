@@ -1,3 +1,4 @@
+import { useAppContext } from '@contexts/AppContext'
 import { logSentryError } from '@utils/sentryLogger'
 import * as Location from 'expo-location'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -15,6 +16,7 @@ export function useLocationStatus() {
     isLocationGranted: false
   })
   const isMountedRef = useRef(true)
+  const { isLocationButtonEnabled, setIsLocationButtonEnabled } = useAppContext()
 
   const refreshLocationStatus = useCallback(async () => {
     try {
@@ -31,6 +33,9 @@ export function useLocationStatus() {
       const isLocationEnabled = await Location.hasServicesEnabledAsync()
 
       if (isMountedRef.current) {
+        if (isLocationButtonEnabled !== isLocationEnabled) {
+          setIsLocationButtonEnabled(isLocationEnabled)
+        }
         setStatus(prev => {
           if (prev.isLocationGranted === true && prev.isLocationEnabled === isLocationEnabled) {
             return prev
@@ -44,7 +49,7 @@ export function useLocationStatus() {
         setStatus(prev => ({ ...prev }))
       }
     }
-  }, [])
+  }, [isLocationButtonEnabled, setIsLocationButtonEnabled])
 
   const requestPermissionOnce = useCallback(async () => {
     try {

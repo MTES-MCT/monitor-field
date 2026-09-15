@@ -20,7 +20,11 @@ export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
         Données en cours de téléchargement
       </ThemedText>
       <ThemedText themeColor="white" type="default" style={styles.text}>
-        Veuillez patienter encore {'\n'} quelques instants.
+        Le premier téléchargement peut prendre de quelques secondes
+        {'\n'}à plusieurs minutes, {'\n'}en fonction de votre connexion.
+      </ThemedText>
+      <ThemedText themeColor="white" type="default" style={styles.text}>
+        Veuillez rester sur cet écran pour que le téléchargement fonctionne correctement.
       </ThemedText>
     </View>
   )

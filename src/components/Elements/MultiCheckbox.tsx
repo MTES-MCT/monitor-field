@@ -17,7 +17,7 @@ export function MultiCheckbox({ accent = 'PRIMARY', label, isChecked, onToggle }
   const backgroundColor = isChecked ? theme[accent === 'PRIMARY' ? 'charcoal' : 'blueGray'] : theme.gainsboro
 
   return (
-    <Pressable style={styles.row} onPress={onToggle} hitSlop={8}>
+    <Pressable style={styles.row} onPress={onToggle} hitSlop={10}>
       <View style={[styles.checkbox, { backgroundColor, borderColor: theme.lightGray }]}>
         {isChecked && <Image source={require('@assets/icons/check.svg')} style={styles.checkIcon} />}
       </View>

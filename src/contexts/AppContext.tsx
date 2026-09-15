@@ -1,7 +1,7 @@
 import type { AppMode, AppModeConfig } from '@config/appModes'
 import { monitorEnvConfig } from '@config/appModes/monitorenv.config'
 import { monitorFishConfig } from '@config/appModes/monitorfish.config'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useRef, useState } from 'react'
 
 const configs: Record<AppMode, AppModeConfig> = {
   MONITORENV: monitorEnvConfig,
@@ -9,7 +9,6 @@ const configs: Record<AppMode, AppModeConfig> = {
 }
 
 export type ModalType =
-  | 'SEARCH_BY_QUERY_MODAL'
   | 'CLICKED_FEATURES_LIST_MODAL'
   | 'REGULATORY_AREAS_LIST_MODAL'
   | 'REGULATORY_AREA_DETAILS_MODAL'
@@ -23,14 +22,20 @@ const AppContext = createContext<
       setMode: (mode: AppMode) => void
       activeModal: ModalType
       setActiveModal: (modal: ModalType) => void
+      isRefreshingSettingsData: boolean
+      hasAutoLocatedRef: React.RefObject<boolean>
+      setIsRefreshingSettingsData: (isRefreshing: boolean) => void
     }
   | undefined
 >(undefined)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const hasAutoLocatedRef = useRef(false)
+
   const [mode, setMode] = useState<AppMode>('MONITORENV')
   const [isLocationButtonEnabled, setIsLocationButtonEnabled] = useState<boolean>(true)
   const [activeModal, setActiveModal] = useState<ModalType>(undefined)
+  const [isRefreshingSettingsData, setIsRefreshingSettingsData] = useState<boolean>(false)
 
   const config = configs[mode]
 
@@ -39,9 +44,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         activeModal,
         config,
+        hasAutoLocatedRef,
         isLocationButtonEnabled,
+        isRefreshingSettingsData,
         setActiveModal,
         setIsLocationButtonEnabled,
+        setIsRefreshingSettingsData,
         setMode
       }}
     >

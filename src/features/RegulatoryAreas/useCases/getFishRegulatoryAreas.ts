@@ -1,13 +1,13 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
 import { FishRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
-import { matchesRegulatoryAreaSearch } from '../RegulatoryAreasList/utils'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { logToSentry } from '@utils/sentryLogger'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
+import { matchesRegulatoryAreaSearch } from '../utils/matchesRegulatoryAreaSearch'
 
 export type FishRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
