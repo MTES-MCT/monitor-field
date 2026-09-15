@@ -1,13 +1,13 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
 import { EnvRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
-import { filterEnvRegulatoryArea } from '../RegulatoryAreasList/utils'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
 import { logToSentry } from '@utils/sentryLogger'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
+import { filterEnvRegulatoryArea } from '../utils/matchesRecentlyAddedOrModified'
 
 export type EnvRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection

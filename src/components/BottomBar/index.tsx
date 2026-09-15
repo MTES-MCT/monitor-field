@@ -1,5 +1,6 @@
 import { Spacing } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
+import { useCameraContext } from '@contexts/CameraContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
@@ -11,15 +12,16 @@ import { LoaderIcon } from '@components/LoaderIcon'
 import { useMemo } from 'react'
 
 type BottomBarProps = {
-  zoomToBbox: (centerLat: number, centerLon: number, zoom: number | undefined) => void
   isLoading: boolean
   searchByQuery: () => void
 }
 
-export function BottomBar({ zoomToBbox, isLoading, searchByQuery }: BottomBarProps) {
+export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
   const { config, setActiveModal } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
+
+  const { zoomToBbox } = useCameraContext()
 
   const {
     committedSearchBbox,
@@ -189,7 +191,7 @@ export function BottomBar({ zoomToBbox, isLoading, searchByQuery }: BottomBarPro
         <View style={styles.searchAndFilterWrapper}>
           <Pressable
             onPress={searchByQuery}
-            accessibilityRole="button"
+            accessibilityRole="link"
             accessibilityState={{
               disabled: false
             }}
@@ -201,6 +203,7 @@ export function BottomBar({ zoomToBbox, isLoading, searchByQuery }: BottomBarPro
               style={[globalStyle.iconNormal, { tintColor: filters.searchQuery ? theme.blueGray : theme.slateGray }]}
             />
           </Pressable>
+
           {config.features.hasRegulatoryAreasFilters && <EnvFilters />}
         </View>
       </View>

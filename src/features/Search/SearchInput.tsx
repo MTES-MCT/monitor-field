@@ -2,28 +2,22 @@ import { BackButton } from '@components/Buttons/BackButton'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
-import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { useRef, useState } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
-import { EnvFilters } from '../FilteredRegulatoryAreas/EnvFilters'
 
 type SearchInputProps = {
   onClose: () => void
-  onSearchFocus?: () => void
 }
 
-export function SearchInput({ onClose, onSearchFocus }: SearchInputProps) {
+export function SearchInput({ onClose }: SearchInputProps) {
   const inputRef = useRef<TextInput>(null)
-
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
-  const { activeModal, setActiveModal } = useAppContext()
   const { filters, setFilters } = useRegulatoryAreasContext()
-
   const [text, setText] = useState(filters.searchQuery ?? '')
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -51,18 +45,14 @@ export function SearchInput({ onClose, onSearchFocus }: SearchInputProps) {
     <>
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
         <View style={styles.searchBox}>
-          <BackButton onBack={onCloseSearchInput} />
+          <BackButton onBack={onCloseSearchInput} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
             ref={inputRef}
-            autoFocus={activeModal === 'SEARCH_BY_QUERY_MODAL'}
+            autoFocus
             style={styles.input}
             value={text}
             onChangeText={onChangeText}
-            onFocus={() => {
-              setActiveModal('SEARCH_BY_QUERY_MODAL')
-              onSearchFocus?.()
-            }}
             placeholder="Rechercher"
           />
 
@@ -72,17 +62,13 @@ export function SearchInput({ onClose, onSearchFocus }: SearchInputProps) {
             <Image source={require('@assets/icons/search.svg')} style={globalStyle.iconSmall} />
           )}
         </View>
-
-        {activeModal !== 'SEARCH_BY_QUERY_MODAL' && <EnvFilters />}
       </View>
-      {activeModal === 'SEARCH_BY_QUERY_MODAL' && (
-        <View style={styles.informationMessage}>
-          <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
-          <ThemedText type="small" themeColor="slateGray">
-            La recherche se fait dans la zone en pointillés
-          </ThemedText>
-        </View>
-      )}
+      <View style={styles.informationMessage}>
+        <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
+        <ThemedText type="small" themeColor="slateGray">
+          La recherche se fait dans la zone en pointillés
+        </ThemedText>
+      </View>
       <View style={globalStyle.separator} />
     </>
   )

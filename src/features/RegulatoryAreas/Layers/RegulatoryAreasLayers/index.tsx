@@ -7,6 +7,7 @@ import { useTheme } from '@hooks/use-theme'
 import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
 import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
 import { logSentryError } from '@utils/sentryLogger'
+import { usePathname } from 'expo-router'
 
 export const regulatoryAreasIds = {
   fillLayer: 'regulatory-areas-fill',
@@ -79,6 +80,8 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const [geoJSON, setGeoJSON] = useState<GeoJSONCollection | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
 
+  const pathname = usePathname()
+
   const {
     isSearchZoneActive,
     committedSearchBbox,
@@ -87,7 +90,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     filters,
     isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
-  const { config, activeModal } = useAppContext()
+  const { config } = useAppContext()
   const theme = useTheme()
   const requestIdRef = useRef(0)
 
@@ -117,15 +120,14 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
   const fetch = useCallback(async () => {
     const bbox = committedSearchBbox
-
     if (!bbox) {
       setGeoJSON(undefined)
       setRegulatoryAreas([])
       return
     }
-    if (activeModal !== 'SEARCH_BY_QUERY_MODAL') {
-      setIsLoading(true)
-    }
+
+    setIsLoading(true)
+
     const requestId = ++requestIdRef.current
 
     try {
@@ -149,15 +151,15 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode, activeModal])
+  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode])
 
   useEffect(() => {
-    if (!isSearchZoneActive && activeModal !== 'SEARCH_BY_QUERY_MODAL') {
+    if (!isSearchZoneActive && pathname === '/search') {
       return
     }
 
     fetch()
-  }, [fetch, activeModal, isSearchZoneActive])
+  }, [fetch, isSearchZoneActive, pathname])
 
   return {
     ids: regulatoryAreasIds,

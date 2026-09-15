@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { AppProvider } from '@contexts/AppContext'
+import { CameraProvider } from '@contexts/CameraContext'
 import { RegulatoryAreasProvider } from '@contexts/RegulatoryAreasContext'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
@@ -49,21 +50,24 @@ export default function TabLayout() {
     <GestureHandlerRootView>
       <AppProvider>
         <RegulatoryAreasProvider>
-          <BottomSheetModalProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <StatusBar barStyle="dark-content" />
-              {!!isOnBoardingFinished ? (
-                <Stack screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' }, headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="settings" options={{ presentation: 'modal' }}>
-                    <Stack.Screen name="sea-fronts" options={{ presentation: 'modal' }} />
-                  </Stack.Screen>
-                </Stack>
-              ) : (
-                <OnBoarding />
-              )}
-            </ThemeProvider>
-          </BottomSheetModalProvider>
+          <CameraProvider>
+            <BottomSheetModalProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <StatusBar barStyle="dark-content" />
+                {!!isOnBoardingFinished ? (
+                  <Stack screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' }, headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="settings" options={{ presentation: 'modal' }}>
+                      <Stack.Screen name="sea-fronts" options={{ presentation: 'modal' }} />
+                    </Stack.Screen>
+                    <Stack.Screen name="search" options={{ presentation: 'modal' }} />
+                  </Stack>
+                ) : (
+                  <OnBoarding />
+                )}
+              </ThemeProvider>
+            </BottomSheetModalProvider>
+          </CameraProvider>
         </RegulatoryAreasProvider>
       </AppProvider>
     </GestureHandlerRootView>
