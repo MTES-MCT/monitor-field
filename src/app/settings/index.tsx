@@ -1,7 +1,8 @@
 import { logSentryError } from '@utils/sentryLogger'
 import { Image } from 'expo-image'
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useState } from 'react'
+import * as Linking from 'expo-linking'
 
 import { LoaderIcon } from '@components/LoaderIcon'
 import { parseSeaFronts } from '@utils/parseSeaFronts'

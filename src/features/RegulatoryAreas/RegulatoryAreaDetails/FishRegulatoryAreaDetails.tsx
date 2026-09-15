@@ -1,5 +1,5 @@
 import { ThemedText } from '@components/Elements/Text'
-import { Linking, View } from 'react-native'
+import { View } from 'react-native'
 import { useTheme } from '@hooks/use-theme'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
@@ -10,6 +10,7 @@ import { Spacing } from '@constants/theme'
 import { useCallback } from 'react'
 import { logToSentry } from '@utils/sentryLogger'
 import { useGlobalStyle } from '@globalStyle'
+import * as Linking from 'expo-linking'
 
 const CNSP_TEL_NUMBER = process.env.EXPO_PUBLIC_CNSP_NUMBER
 
@@ -26,12 +27,16 @@ export function FishRegulatoryAreaDetails({
   const globalStyle = useGlobalStyle()
 
   const callCnsp = useCallback(async () => {
-    const supported = await Linking.canOpenURL(`tel:${CNSP_TEL_NUMBER}`)
-    if (supported) {
-      Linking.openURL(`tel:${CNSP_TEL_NUMBER}`)
-    } else {
-      logToSentry("Don't know how to open this URL: tel_CNSP", 'info', {
-        extra: { label: 'FishRegulatoryAreaDetails' }
+    const url = `tel:${CNSP_TEL_NUMBER}`
+
+    try {
+      await Linking.openURL(url)
+    } catch (error) {
+      logToSentry(`Failed to open URL: ${url}`, 'error', {
+        extra: {
+          error,
+          label: 'FishRegulatoryAreaDetails'
+        }
       })
     }
   }, [])

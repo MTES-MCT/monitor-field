@@ -1,5 +1,5 @@
 import { ThemedText } from '@components/Elements/Text'
-import { Linking, View } from 'react-native'
+import { View } from 'react-native'
 import { styles } from './style'
 import { useTheme } from '@hooks/use-theme'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
@@ -11,6 +11,7 @@ import { CloseButton } from '@components/Buttons/CloseButton'
 import { Image } from 'expo-image'
 import { logToSentry } from '@utils/sentryLogger'
 import { useGlobalStyle } from '@globalStyle'
+import * as Linking from 'expo-linking'
 
 const CACEM_TEL_NUMBER = process.env.EXPO_PUBLIC_CACEM_NUMBER
 
@@ -37,14 +38,17 @@ export function EnvRegulatoryAreaDetails({
       })
     }
   }, [])
-
   const callCacem = useCallback(async () => {
-    const supported = await Linking.canOpenURL(`tel:${CACEM_TEL_NUMBER}`)
-    if (supported) {
-      Linking.openURL(`tel:${CACEM_TEL_NUMBER}`)
-    } else {
-      logToSentry("Don't know how to open this URL: tel_CACEM", 'info', {
-        extra: { label: 'EnvRegulatoryAreaDetails' }
+    const url = `tel:${CACEM_TEL_NUMBER}`
+
+    try {
+      await Linking.openURL(url)
+    } catch (error) {
+      logToSentry(`Failed to open URL: ${url}`, 'error', {
+        extra: {
+          error,
+          label: 'EnvRegulatoryAreaDetails'
+        }
       })
     }
   }, [])
