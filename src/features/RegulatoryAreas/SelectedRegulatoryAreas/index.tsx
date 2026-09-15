@@ -10,10 +10,8 @@ import { StyleSheet, View } from 'react-native'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 
 export const SelectedRegulatoryAreas = ({
-  isLoading,
   setRegulatoryAreaDetailsOrigin
 }: {
-  isLoading: boolean
   setRegulatoryAreaDetailsOrigin: (origin: ModalType) => void
 }) => {
   const theme = useTheme()
@@ -32,17 +30,13 @@ export const SelectedRegulatoryAreas = ({
   }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
-    isLoading,
     onClose,
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin('CLICKED_FEATURES_LIST_MODAL'),
     origin: 'CLICKED_FEATURES_LIST_MODAL'
   })
-
   useEffect(() => {
     if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
       modalRef.current?.present()
-    } else {
-      modalRef.current?.dismiss()
     }
   }, [activeModal])
 
@@ -61,6 +55,7 @@ export const SelectedRegulatoryAreas = ({
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
+      stackBehavior="replace"
     >
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}

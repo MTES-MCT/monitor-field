@@ -4,7 +4,7 @@ import { Switch } from '@components/Elements/Switch'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { Image } from 'expo-image'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Modal, Pressable, StyleSheet, View } from 'react-native'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
@@ -39,6 +39,17 @@ export function EnvFilters() {
 
   const consultResults = () => setIsOpen(false)
 
+  const borderStyle = useMemo(() => {
+    if (activeModal && activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
+      return {
+        borderColor: theme.lightGray,
+        borderWidth: 1,
+        boxShadow: 'inherit'
+      }
+    }
+    return {}
+  }, [activeModal, theme.lightGray])
+
   return (
     <>
       <Pressable
@@ -52,11 +63,7 @@ export function EnvFilters() {
           {
             backgroundColor: theme.white,
             zIndex: -1,
-            ...(activeModal === 'REGULATORY_AREAS_LIST_MODAL' && {
-              borderColor: theme.lightGray,
-              borderWidth: 1,
-              boxShadow: 'inherit'
-            })
+            ...borderStyle
           }
         ]}
       >

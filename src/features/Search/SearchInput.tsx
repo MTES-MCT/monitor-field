@@ -59,7 +59,7 @@ export function SearchInput({ onClose }: SearchInputProps) {
           centerLat,
           centerLon,
           withPadding: true,
-          zoom: committedSearchZoom ? committedSearchZoom * 0.8 : undefined
+          zoom: committedSearchZoom ? committedSearchZoom * 0.9 : undefined
         })
       }
     }, 1000)
@@ -83,9 +83,12 @@ export function SearchInput({ onClose }: SearchInputProps) {
           />
 
           {text.length > 0 ? (
-            <CloseButton onClose={() => onChangeText('')} isSmall />
+            <CloseButton onClose={() => onChangeText('')} isSmall style={{ marginRight: Spacing.two }} />
           ) : (
-            <Image source={require('@assets/icons/search.svg')} style={globalStyle.iconSmall} />
+            <Image
+              source={require('@assets/icons/search.svg')}
+              style={[globalStyle.iconSmall, { marginRight: Spacing.two }]}
+            />
           )}
         </View>
       </View>

@@ -11,8 +11,13 @@ import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 
 export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const { activeModal, config, setActiveModal } = useAppContext()
-  const { selectedRegulatoryArea, setSelectedRegulatoryArea, committedSearchBbox, committedSearchZoom, setSearchBbox } =
-    useRegulatoryAreasContext()
+  const {
+    selectedRegulatoryArea,
+    setSelectedRegulatoryArea,
+    committedSearchBbox,
+    committedSearchZoom,
+    setCommittedSearchBbox
+  } = useRegulatoryAreasContext()
   const { zoomToBbox } = useCameraContext()
   const theme = useTheme()
 
@@ -31,15 +36,13 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
       const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
       const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
       zoomToBbox({ centerLat, centerLon, zoom: committedSearchZoom })
-      setSearchBbox(committedSearchBbox)
+      setCommittedSearchBbox(committedSearchBbox)
     }
   }
 
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
       modalRef.current?.present()
-    } else {
-      modalRef.current?.dismiss()
     }
   }, [activeModal])
 
@@ -58,6 +61,7 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
+      stackBehavior="replace"
     >
       <BottomSheetScrollView>
         {config.mode === 'MONITORFISH' && (

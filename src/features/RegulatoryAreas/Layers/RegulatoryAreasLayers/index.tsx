@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import type { GeoJSONCollection, MapLayer } from '@/types/mapTypes'
+import type { BoundingBox, GeoJSONCollection, MapLayer } from '@/types/mapTypes'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useTheme } from '@hooks/use-theme'
@@ -8,6 +8,7 @@ import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
 import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
 import { logSentryError } from '@utils/sentryLogger'
 import { usePathname } from 'expo-router'
+import isEqual from 'lodash/isEqual'
 
 export const regulatoryAreasIds = {
   fillLayer: 'regulatory-areas-fill',
@@ -93,6 +94,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const { config } = useAppContext()
   const theme = useTheme()
   const requestIdRef = useRef(0)
+  const lastFetchParamsRef = useRef<{
+    bbox: BoundingBox
+    filters: typeof filters
+    mode: typeof config.mode
+  } | null>(null)
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
     if (!geoJSON) {
@@ -121,10 +127,23 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const fetch = useCallback(async () => {
     const bbox = committedSearchBbox
     if (!bbox) {
+      lastFetchParamsRef.current = null
       setGeoJSON(undefined)
       setRegulatoryAreas([])
       return
     }
+
+    // skip refetching when the bbox, filters and mode didn't actually change (only references may have)
+    const previous = lastFetchParamsRef.current
+    if (
+      previous &&
+      isEqual(previous.bbox, bbox) &&
+      isEqual(previous.filters, filters) &&
+      previous.mode === config.mode
+    ) {
+      return
+    }
+    lastFetchParamsRef.current = { bbox, filters, mode: config.mode }
 
     setIsLoading(true)
 
@@ -151,7 +170,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode])
+  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode, setGeoJSON])
 
   useEffect(() => {
     if (!isSearchZoneActive && pathname === '/search' && !filters.searchQuery?.trim()) {

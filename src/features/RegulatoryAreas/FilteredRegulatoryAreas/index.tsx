@@ -1,6 +1,7 @@
 import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { useCameraContext } from '@contexts/CameraContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
@@ -11,21 +12,20 @@ import { useRouter } from 'expo-router'
 import { EnvFilters } from './EnvFilters'
 import { ThemedText } from '@components/Elements/Text'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
+import { useGlobalStyle } from '@globalStyle'
 
 type FilteredRegulatoryAreasProps = {
-  isLoading: boolean
   setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
 }
 
-export const FilteredRegulatoryAreas = ({
-  isLoading,
-  setRegulatoryAreaDetailsOrigin
-}: FilteredRegulatoryAreasProps) => {
+export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: FilteredRegulatoryAreasProps) => {
   const theme = useTheme()
   const styles = createStyles(theme)
+  const globalStyle = useGlobalStyle()
   const router = useRouter()
   const { activeModal, config, setActiveModal } = useAppContext()
-  const { filters } = useRegulatoryAreasContext()
+  const { zoomToBbox } = useCameraContext()
+  const { committedSearchBbox, committedSearchZoom, setCommittedSearchBbox, filters } = useRegulatoryAreasContext()
 
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
@@ -35,10 +35,22 @@ export const FilteredRegulatoryAreas = ({
     setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL')
     setActiveModal(undefined)
     modalRef.current?.dismiss()
-  }, [setActiveModal, setRegulatoryAreaDetailsOrigin])
+    if (committedSearchBbox) {
+      const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
+      const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
+      zoomToBbox({ centerLat, centerLon, zoom: committedSearchZoom })
+      setCommittedSearchBbox(committedSearchBbox)
+    }
+  }, [
+    setActiveModal,
+    setRegulatoryAreaDetailsOrigin,
+    committedSearchBbox,
+    committedSearchZoom,
+    zoomToBbox,
+    setCommittedSearchBbox
+  ])
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
-    isLoading,
     onClose,
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL'),
     origin: 'REGULATORY_AREAS_LIST_MODAL',
@@ -48,8 +60,6 @@ export const FilteredRegulatoryAreas = ({
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
       modalRef.current?.present()
-    } else {
-      modalRef.current?.dismiss()
     }
   }, [activeModal])
 
@@ -68,6 +78,7 @@ export const FilteredRegulatoryAreas = ({
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
+      stackBehavior="replace"
       style={{ paddingBottom: 100 }}
     >
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
@@ -76,7 +87,7 @@ export const FilteredRegulatoryAreas = ({
 
           <TextInput
             style={styles.input}
-            value={''}
+            value={filters.searchQuery}
             onChangeText={() => {}}
             onFocus={() => {
               onClose()
@@ -87,6 +98,7 @@ export const FilteredRegulatoryAreas = ({
         </View>
         {config?.features?.hasRegulatoryAreasFilters && <EnvFilters />}
       </View>
+      <View style={globalStyle.separator} />
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}
         data={areResultsVisible ? flattenedRows : []}

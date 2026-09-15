@@ -12,6 +12,7 @@ import { Image } from 'expo-image'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { Spacing } from '@constants/theme'
+import { useRegulatoryAreasLayer } from '../Layers/RegulatoryAreasLayers'
 
 type GroupRow = {
   type: 'group'
@@ -29,13 +30,11 @@ type RegulatoryRow = GroupRow | AreaRow
 
 export function useRegulatoryAreasList({
   shouldShowResults = true,
-  isLoading = false,
   onClose,
   origin = undefined,
   onSelectRegulatoryArea
 }: {
   shouldShowResults?: boolean
-  isLoading?: boolean
   onClose: () => void
   origin?: ModalType
   onSelectRegulatoryArea?: () => void
@@ -55,6 +54,8 @@ export function useRegulatoryAreasList({
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
+
+  const { isLoading } = useRegulatoryAreasLayer()
 
   const isClickedFeatureList = origin === 'CLICKED_FEATURES_LIST_MODAL'
   const sourceRegulatoryAreas = isClickedFeatureList ? regulatoryAreas : regulatoryAreas

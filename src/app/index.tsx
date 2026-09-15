@@ -277,14 +277,8 @@ function App() {
           </Link>
         </View>
 
-        <SelectedRegulatoryAreas
-          isLoading={regulatoryAreaLayer.isLoading}
-          setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin}
-        />
-        <FilteredRegulatoryAreas
-          isLoading={regulatoryAreaLayer.isLoading}
-          setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin}
-        />
+        <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
+        <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
         <RegulatoryAreaDetails origin={regulatoryAreaDetailsOrigin} />
 
         <View style={styles.bottomWrapper}>
