@@ -33,6 +33,7 @@ import { Image } from 'expo-image'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useGlobalStyle } from '@globalStyle'
 import { Link, useRouter } from 'expo-router'
+import { UserFeedback } from '@features/UserFeedback'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -275,6 +276,7 @@ function App() {
               <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
             </Pressable>
           </Link>
+          <UserFeedback />
         </View>
 
         <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
