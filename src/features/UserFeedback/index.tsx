@@ -63,7 +63,7 @@ export function UserFeedback() {
         onPress={() => setIsFeedbackModalOpen(true)}
         accessibilityRole="button"
         accessibilityState={{ disabled: isFeedbackModalOpen }}
-        style={[globalStyle.buttonBase, { backgroundColor: theme.white, marginTop: Spacing.two }]}
+        style={[globalStyle.squareButton, { backgroundColor: theme.white, marginTop: Spacing.two }]}
       >
         <Image source={require('@assets/icons/message.svg')} style={globalStyle.iconNormal} />
       </Pressable>

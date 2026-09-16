@@ -262,23 +262,24 @@ function App() {
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>
           <SwitchContextButton />
-          <Link href="/settings" asChild>
-            <Pressable
-              accessibilityRole="link"
-              accessibilityState={{ disabled: false }}
-              style={StyleSheet.flatten([globalStyle.squareButton, { backgroundColor: 'white' }])}
-            >
-              {isRefreshingSettingsData && (
-                <View style={globalStyle.dot}>
-                  <LoaderIcon tintColor="white" size="SMALL" />
-                </View>
-              )}
-              <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
-            </Pressable>
-          </Link>
-          <UserFeedback />
+          <View>
+            <Link href="/settings" asChild>
+              <Pressable
+                accessibilityRole="link"
+                accessibilityState={{ disabled: false }}
+                style={StyleSheet.flatten([globalStyle.squareButton, { backgroundColor: 'white' }])}
+              >
+                {isRefreshingSettingsData && (
+                  <View style={globalStyle.dot}>
+                    <LoaderIcon tintColor="white" size="SMALL" />
+                  </View>
+                )}
+                <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
+              </Pressable>
+            </Link>
+            <UserFeedback />
+          </View>
         </View>
-
         <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
         <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
         <RegulatoryAreaDetails origin={regulatoryAreaDetailsOrigin} />

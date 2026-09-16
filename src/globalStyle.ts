@@ -1,4 +1,4 @@
-import { BottomTabInset, Spacing } from '@constants/theme'
+import { Spacing } from '@constants/theme'
 import { useTheme } from '@hooks/use-theme'
 import { StyleSheet } from 'react-native'
 
@@ -35,13 +35,6 @@ export function useGlobalStyle() {
     iconSmall: {
       height: 20,
       width: 20
-    },
-    modalContainer: {
-      backgroundColor: theme.white,
-      height: '90%',
-      marginTop: 90,
-      paddingBottom: BottomTabInset,
-      width: '100%'
     },
     pageHeader: {
       alignItems: 'center',
