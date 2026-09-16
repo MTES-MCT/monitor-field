@@ -28,6 +28,7 @@ type ApiRow = {
   prohibition_periods: string
   additional_ref_reg: string
   themes: string
+  sub_themes: string
 }
 
 type ApiResponse = {
@@ -156,12 +157,13 @@ export async function syncEnvRegulatoryAreas(db: DB, seaFronts: string[], forceR
           prohibition_periods,
           additional_ref_reg,
           themes,
+          sub_themes,
           location,
           fill_color,
           edition,
           bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat,
           total_by_group
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
           [
             row.id,
@@ -180,6 +182,7 @@ export async function syncEnvRegulatoryAreas(db: DB, seaFronts: string[], forceR
             row.prohibition_periods,
             row.additional_ref_reg,
             row.themes,
+            row.sub_themes,
             row.location,
             fillColor ?? null,
             row.edition ?? null,

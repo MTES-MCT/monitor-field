@@ -4,25 +4,34 @@ import { useTheme } from '@hooks/use-theme'
 import { Spacing, type Accent } from '@constants/theme'
 import { Image } from 'expo-image'
 
-type MultiCheckboxProps = {
+type CheckboxProps = {
   accent?: Accent
   label: string
   isChecked: boolean
   onToggle: () => void
+  style?: object
+  numberOfLines?: number
 }
 
-export function MultiCheckbox({ accent = 'PRIMARY', label, isChecked, onToggle }: MultiCheckboxProps) {
+export function Checkbox({
+  accent = 'PRIMARY',
+  label,
+  isChecked,
+  onToggle,
+  style,
+  numberOfLines = undefined
+}: CheckboxProps) {
   const theme = useTheme()
 
   const backgroundColor = isChecked ? theme[accent === 'PRIMARY' ? 'charcoal' : 'blueGray'] : theme.gainsboro
 
   return (
-    <Pressable style={styles.row} onPress={onToggle} hitSlop={10}>
+    <Pressable style={[styles.row, style]} onPress={onToggle} hitSlop={10}>
       <View style={[styles.checkbox, { backgroundColor, borderColor: theme.lightGray }]}>
         {isChecked && <Image source={require('@assets/icons/check.svg')} style={styles.checkIcon} />}
       </View>
 
-      <ThemedText themeColor={accent === 'PRIMARY' ? 'gunMetal' : 'white'} type="default">
+      <ThemedText numberOfLines={numberOfLines} themeColor={accent === 'PRIMARY' ? 'gunMetal' : 'white'} type="default">
         {label}
       </ThemedText>
     </Pressable>

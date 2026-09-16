@@ -13,6 +13,16 @@ function matchesRecentlyAddedOrModified(
   return dayjs(regulatoryArea.edition).isAfter(dayjs().subtract(30, 'day'))
 }
 
+function matchesThemesAndSubThemes(
+  regulatoryArea: EnvRegulatoryAreaFromDatabase,
+  themesAndSubThemes: string[]
+): boolean {
+  if (themesAndSubThemes.length === 0) {
+    return true
+  }
+  return themesAndSubThemes.every(theme => regulatoryArea.themes.includes(theme))
+}
+
 export function filterEnvRegulatoryArea(regulatoryArea: EnvRegulatoryAreaFromDatabase, filters: Filters): boolean {
   const matchesSearchQuery = matchesRegulatoryAreaSearch(regulatoryArea, filters.searchQuery, 'MONITORENV ')
   const matchesRecentlyAddedOrModifiedResult = matchesRecentlyAddedOrModified(
@@ -20,5 +30,7 @@ export function filterEnvRegulatoryArea(regulatoryArea: EnvRegulatoryAreaFromDat
     filters.recentlyAddedOrModified
   )
 
-  return matchesSearchQuery && matchesRecentlyAddedOrModifiedResult
+  const matchesThemesAndSubThemesResult = matchesThemesAndSubThemes(regulatoryArea, filters.themesAndSubThemes)
+
+  return matchesSearchQuery && matchesRecentlyAddedOrModifiedResult && matchesThemesAndSubThemesResult
 }
