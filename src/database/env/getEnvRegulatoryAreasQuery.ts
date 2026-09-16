@@ -33,7 +33,8 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
           env.bbox_min_lat,
           env.bbox_max_lon,
           env.bbox_max_lat,
-          env.fill_color as fillColor
+          env.fill_color as fillColor,
+          env.total_by_group as totalByGroup
         FROM ${ENV_REGULATORY_AREAS_TABLE} AS env
         WHERE env.bbox_max_lon >= ?
           AND env.bbox_min_lon <= ?

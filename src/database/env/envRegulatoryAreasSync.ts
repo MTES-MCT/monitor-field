@@ -115,6 +115,12 @@ export async function syncEnvRegulatoryAreas(db: DB, seaFronts: string[], forceR
         selectedSeaFronts
       )
 
+      const totalsByGroup = new Map()
+      for (const row of rows) {
+        const key = `${row.layer_name} - ${row.location}`
+        totalsByGroup.set(key, (totalsByGroup.get(key) ?? 0) + 1)
+      }
+
       for (let idx = 0; idx < rows.length; idx++) {
         const row = rows[idx]
         if (!row) {
@@ -153,8 +159,9 @@ export async function syncEnvRegulatoryAreas(db: DB, seaFronts: string[], forceR
           location,
           fill_color,
           edition,
-          bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat,
+          total_by_group
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
           [
             row.id,
@@ -179,7 +186,8 @@ export async function syncEnvRegulatoryAreas(db: DB, seaFronts: string[], forceR
             bbox?.minLon ?? null,
             bbox?.minLat ?? null,
             bbox?.maxLon ?? null,
-            bbox?.maxLat ?? null
+            bbox?.maxLat ?? null,
+            totalsByGroup.get(`${row.layer_name} - ${row.location}`) ?? 0
           ]
         )
       }

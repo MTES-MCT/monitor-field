@@ -164,7 +164,13 @@ export function useRegulatoryAreasList({
       if (item.type === 'group') {
         return (
           <Pressable style={styles.groupButton} onPress={() => clickOnGroup(item.group)}>
-            <ThemedText type="defaultBold">{item.group}</ThemedText>
+            <ThemedText type="defaultBold" style={{ flex: 1, flexWrap: 'wrap' }}>
+              {item.group}
+            </ThemedText>
+            <ThemedText
+              type="defaultBold"
+              themeColor="slateGray"
+            >{`${item.areas.length} / ${item.areas[0]?.totalByGroup}`}</ThemedText>
           </Pressable>
         )
       }
@@ -259,6 +265,7 @@ const styles = StyleSheet.create({
   groupButton: {
     alignItems: 'center',
     flexDirection: 'row',
+    gap: Spacing.four,
     justifyContent: 'space-between',
     minHeight: 48,
     paddingHorizontal: Spacing.four,

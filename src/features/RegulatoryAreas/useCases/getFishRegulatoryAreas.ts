@@ -42,6 +42,7 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
       id: area.id,
       regulations: area.regulations,
       theme: area.theme,
+      totalByGroup: area.totalByGroup,
       type: area.type,
       zone: area.zone
     }

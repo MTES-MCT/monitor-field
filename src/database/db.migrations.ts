@@ -35,7 +35,8 @@ const migrations: Migration[] = [
             bbox_min_lon REAL,
             bbox_min_lat REAL,
             bbox_max_lon REAL,
-            bbox_max_lat REAL
+            bbox_max_lat REAL,
+            total_by_group INTEGER
           )
         `
       )
@@ -76,7 +77,8 @@ const migrations: Migration[] = [
           bbox_min_lon REAL,
           bbox_min_lat REAL,
           bbox_max_lon REAL,
-          bbox_max_lat REAL
+          bbox_max_lat REAL,
+          total_by_group INTEGER
         )
       `)
 

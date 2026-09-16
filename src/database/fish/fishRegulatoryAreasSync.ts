@@ -103,6 +103,13 @@ export async function syncFishRegulatoryAreas(db: DB, seaFronts: string[], force
            AND id NOT IN (SELECT id FROM tmp_fish_synced_ids)`,
         selectedSeaFronts
       )
+
+      const totalsByGroup = new Map()
+      for (const row of rows) {
+        const key = row.thematique
+        totalsByGroup.set(key, (totalsByGroup.get(key) ?? 0) + 1)
+      }
+
       for (let idx = 0; idx < rows.length; idx++) {
         const row = rows[idx]
         if (!row) {
@@ -124,8 +131,9 @@ export async function syncFishRegulatoryAreas(db: DB, seaFronts: string[], force
             INSERT INTO ${FISH_REGULATORY_AREAS_TABLE} (
               id, type, theme, zone, fill_color,
               regulations, geojson,
-              bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat,
+              total_by_group
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? , ?)
           `,
           [
             row.id,
@@ -138,7 +146,8 @@ export async function syncFishRegulatoryAreas(db: DB, seaFronts: string[], force
             bbox?.minLon ?? null,
             bbox?.minLat ?? null,
             bbox?.maxLon ?? null,
-            bbox?.maxLat ?? null
+            bbox?.maxLat ?? null,
+            totalsByGroup.get(row.thematique) ?? 0
           ]
         )
       }
