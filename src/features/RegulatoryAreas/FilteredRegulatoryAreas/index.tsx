@@ -20,7 +20,6 @@ type FilteredRegulatoryAreasProps = {
 
 export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: FilteredRegulatoryAreasProps) => {
   const theme = useTheme()
-  const styles = createStyles(theme)
   const globalStyle = useGlobalStyle()
   const router = useRouter()
   const { activeModal, config, setActiveModal } = useAppContext()
@@ -82,7 +81,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       style={{ paddingBottom: 100 }}
     >
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
-        <View style={styles.searchBox}>
+        <View style={globalStyle.searchBox}>
           <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
@@ -127,28 +126,17 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   )
 }
 
-const createStyles = theme =>
-  StyleSheet.create({
-    emptyState: {
-      paddingHorizontal: Spacing.four
-    },
-    input: {
-      color: '#2b3a4a',
-      flex: 1,
-      fontSize: 17,
-      paddingVertical: 0
-    },
-    listContent: {
-      paddingBottom: Spacing.four
-    },
-    searchBox: {
-      alignItems: 'center',
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flex: 1,
-      flexDirection: 'row',
-      height: 48,
-      marginRight: Spacing.two,
-      paddingHorizontal: Spacing.one
-    }
-  })
+const styles = StyleSheet.create({
+  emptyState: {
+    paddingHorizontal: Spacing.four
+  },
+  input: {
+    color: '#2b3a4a',
+    flex: 1,
+    fontSize: 17,
+    paddingVertical: 0
+  },
+  listContent: {
+    paddingBottom: Spacing.four
+  }
+})

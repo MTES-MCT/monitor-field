@@ -75,7 +75,7 @@ export default function SeaFronts() {
         <ThemedText type="default">Façades</ThemedText>
         <CloseButton onClose={onCloseSettings} />
       </View>
-      <View style={styles.searchBox}>
+      <View style={[globalStyle.searchBox, styles.styledSearchBox]}>
         <TextInput style={styles.input} value={searchQuery} onChangeText={setSearchQuery} />
 
         <Image
@@ -102,16 +102,11 @@ const createStyles = theme =>
       fontSize: 17,
       paddingVertical: 0
     },
-    searchBox: {
-      alignItems: 'center',
+    styledSearchBox: {
       backgroundColor: theme.gainsboro,
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flexDirection: 'row',
-      height: 48,
+      flex: 0,
       marginBottom: Spacing.four,
-      marginHorizontal: Spacing.four,
-      paddingRight: Spacing.two
+      marginHorizontal: Spacing.four
     },
     wrapper: {
       backgroundColor: theme.white,
