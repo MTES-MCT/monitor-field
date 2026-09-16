@@ -24,7 +24,8 @@ export async function getFishRegulatoryAreasQuery(
           fish.bbox_min_lat,
           fish.bbox_max_lon,
           fish.bbox_max_lat,
-          fish.fill_color as fillColor
+          fish.fill_color as fillColor,
+          fish.total_by_group as totalByGroup
         FROM ${FISH_REGULATORY_AREAS_TABLE} AS fish
         WHERE fish.bbox_max_lon >= ?
           AND fish.bbox_min_lon <= ?

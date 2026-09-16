@@ -1,15 +1,15 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router'
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 import { AppProvider } from '@contexts/AppContext'
+import { CameraProvider } from '@contexts/CameraContext'
 import { RegulatoryAreasProvider } from '@contexts/RegulatoryAreasContext'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
 import { storage } from '@storage'
 import { Appearance, StatusBar } from 'react-native'
 import { OnBoarding } from '@features/OnBoarding'
-import App from '.'
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
@@ -50,12 +50,22 @@ export default function TabLayout() {
     <GestureHandlerRootView>
       <AppProvider>
         <RegulatoryAreasProvider>
-          <BottomSheetModalProvider>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <StatusBar barStyle="dark-content" />
-              {!!isOnBoardingFinished ? <App /> : <OnBoarding />}
-            </ThemeProvider>
-          </BottomSheetModalProvider>
+          <CameraProvider>
+            <BottomSheetModalProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <StatusBar barStyle="dark-content" />
+                {!!isOnBoardingFinished ? (
+                  <Stack screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' }, headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="search" options={{ presentation: 'modal' }} />
+                  </Stack>
+                ) : (
+                  <OnBoarding />
+                )}
+              </ThemeProvider>
+            </BottomSheetModalProvider>
+          </CameraProvider>
         </RegulatoryAreasProvider>
       </AppProvider>
     </GestureHandlerRootView>

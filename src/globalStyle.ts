@@ -36,10 +36,23 @@ export function useGlobalStyle() {
       paddingBottom: BottomTabInset,
       width: '100%'
     },
+    pageHeader: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      padding: Spacing.four
+    },
     separator: {
       backgroundColor: theme.lightGray,
       height: 1,
       marginVertical: Spacing.four
+    },
+    squareButton: {
+      alignItems: 'center',
+      boxShadow: '0px 3px 6px rgba(112, 119, 133, 0.25)',
+      height: 48,
+      justifyContent: 'center',
+      width: 48
     },
     textUnderline: {
       textDecorationLine: 'underline'

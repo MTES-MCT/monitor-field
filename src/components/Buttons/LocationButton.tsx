@@ -15,7 +15,7 @@ type LocationButtonProps = {
 
 export function LocationButton({ onLocate }: LocationButtonProps) {
   const { isLocationEnabled, isLocationGranted } = useLocationStatus()
-  const { isLocationButtonEnabled, setIsLocationButtonEnabled } = useAppContext()
+  const { isLocationButtonEnabled, setIsLocationButtonEnabled, hasAutoLocatedRef } = useAppContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
 
@@ -49,10 +49,11 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
   }, [isLocationEnabled, onLocate, setIsLocationButtonEnabled])
 
   useEffect(() => {
-    if (isLocationGranted) {
+    if (isLocationGranted && !hasAutoLocatedRef.current) {
+      hasAutoLocatedRef.current = true
       getLocation()
     }
-  }, [isLocationGranted, getLocation])
+  }, [isLocationGranted, getLocation, hasAutoLocatedRef])
 
   return (
     <View style={styles.wrapper}>
@@ -62,7 +63,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
         accessibilityState={{
           disabled: isButtonDisabled
         }}
-        style={[styles.buttonBase, { backgroundColor: theme.white }]}
+        style={[globalStyle.squareButton, { backgroundColor: theme.white }]}
       >
         <Image
           key={`${isLocationGranted}-${isLocationEnabled}`}
@@ -86,12 +87,6 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
 }
 
 const styles = StyleSheet.create({
-  buttonBase: {
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    width: 48
-  },
   wrapper: {
     alignItems: 'flex-end',
     paddingTop: Spacing.two

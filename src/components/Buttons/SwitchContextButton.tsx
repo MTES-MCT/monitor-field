@@ -42,7 +42,7 @@ export function SwitchContextButton() {
           selected: config.mode === 'MONITORENV'
         }}
         style={() => [
-          styles.buttonBase,
+          globalStyle.squareButton,
           getVisualState({
             mode: 'MONITORENV',
             selected: config.mode === 'MONITORENV',
@@ -70,7 +70,7 @@ export function SwitchContextButton() {
           selected: config.mode === 'MONITORFISH'
         }}
         style={() => [
-          styles.buttonBase,
+          globalStyle.squareButton,
           getVisualState({
             mode: 'MONITORFISH',
             selected: config.mode === 'MONITORFISH',
@@ -95,12 +95,6 @@ export function SwitchContextButton() {
 }
 
 const styles = StyleSheet.create({
-  buttonBase: {
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    width: 48
-  },
   wrapper: {
     display: 'flex',
     flexDirection: 'row'

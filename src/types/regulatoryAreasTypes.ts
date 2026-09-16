@@ -10,6 +10,7 @@ export type FishRegulatoryAreaFromDatabase = {
   bbox_max_lon: number
   bbox_max_lat: number
   fillColor: string
+  totalByGroup: number
 }
 
 export type FishRegulatoryArea = Omit<
@@ -48,6 +49,7 @@ export type EnvRegulatoryAreaFromDatabase = {
   bbox_max_lon: number
   bbox_max_lat: number
   fillColor: string
+  totalByGroup: number
 }
 
 export type EnvRegulatoryArea = Omit<

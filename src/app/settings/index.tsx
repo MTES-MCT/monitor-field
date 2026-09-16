@@ -1,35 +1,33 @@
-import { CloseButton } from '@components/Buttons/CloseButton'
-import { ThemedText } from '@components/Elements/Text'
-import { ScrollView } from 'react-native-gesture-handler'
-import { Linking, Pressable, StyleSheet, View } from 'react-native'
+import { logSentryError } from '@utils/sentryLogger'
 import { Image } from 'expo-image'
-import { Spacing } from '@constants/theme'
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { useState } from 'react'
+import * as Linking from 'expo-linking'
+
+import { LoaderIcon } from '@components/LoaderIcon'
+import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
-import { LoaderIcon } from '@components/LoaderIcon'
-import { useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import daysjs from 'dayjs'
-import { useGlobalStyle } from '@globalStyle'
+import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
+
+import { ThemedText } from '@components/Elements/Text'
+import { Spacing } from '@constants/theme'
+import { Link, useRouter } from 'expo-router'
 import { useThemedStyles } from '@hooks/use-themed-styles'
+import { CloseButton } from '@components/Buttons/CloseButton'
+import { useGlobalStyle } from '@globalStyle'
+import daysjs from 'dayjs'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAppContext } from '@contexts/AppContext'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 
-type SettingsPageProps = {
-  closeSettings: () => void
-  openSeaFrontsSelector: () => void
-  setIsRefreshingData: (value: boolean) => void
-  refreshData: () => Promise<void>
-}
-
-export function SettingsPage({
-  closeSettings,
-  openSeaFrontsSelector,
-  setIsRefreshingData,
-  refreshData
-}: SettingsPageProps) {
+export default function Settings() {
+  const router = useRouter()
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
+  const { isRefreshingSettingsData, setIsRefreshingSettingsData } = useAppContext()
+
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const [regulatoryAreasLastUpdate] = useMMKVString('regulatory-areas-last-update', storage)
@@ -38,15 +36,36 @@ export function SettingsPage({
 
   const refreshDataFromSettings = () => {
     setIsRefreshingDataLocal(true)
-    setIsRefreshingData(true)
+    setIsRefreshingSettingsData(true)
     refreshData().finally(() => {
       setIsRefreshingDataLocal(false)
     })
   }
 
+  const refreshData = async () => {
+    if (isRefreshingSettingsData) {
+      return
+    }
+
+    const seaFronts = parseSeaFronts(selectedSeaFronts)
+
+    setIsRefreshingSettingsData(true)
+    try {
+      await syncRegulatoryAreasDB(seaFronts, { forceRefresh: true })
+    } catch (e) {
+      logSentryError(e, 'Unable to sync regulatory areas')
+    } finally {
+      setIsRefreshingSettingsData(false)
+    }
+  }
+
+  const closeSettings = () => {
+    router.back()
+  }
+
   return (
-    <SafeAreaView>
-      <View style={styles.header}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={globalStyle.pageHeader}>
         <ThemedText type="large">Paramètres</ThemedText>
         <CloseButton onClose={closeSettings} />
       </View>
@@ -83,20 +102,24 @@ export function SettingsPage({
           <ThemedText type="default">
             Les réglementations ne pourront être chargées sur la carte que dans le(s) secteur(s) choisi
           </ThemedText>
-          <Pressable
-            onPress={openSeaFrontsSelector}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: false }}
-            style={styles.seaFrontsSelector}
-          >
-            <View style={{ flex: 1 }}>
-              <ThemedText type="default">Façades</ThemedText>
-              <ThemedText type="small" themeColor="slateGray" style={{ flexWrap: 'wrap' }}>
-                {selectedSeaFronts}
-              </ThemedText>
-            </View>
-            <Image source={require('@assets/icons/chevron.svg')} style={[styles.chevronIcon, globalStyle.iconSmall]} />
-          </Pressable>
+          <Link href="/settings/sea-fronts" asChild>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityState={{ disabled: false }}
+              style={styles.seaFrontsSelector}
+            >
+              <View style={{ flex: 1 }}>
+                <ThemedText type="default">Façades</ThemedText>
+                <ThemedText type="small" themeColor="slateGray" style={{ flexWrap: 'wrap' }}>
+                  {selectedSeaFronts}
+                </ThemedText>
+              </View>
+              <Image
+                source={require('@assets/icons/chevron.svg')}
+                style={[styles.chevronIcon, globalStyle.iconSmall]}
+              />
+            </Pressable>
+          </Link>
         </View>
         <View style={globalStyle.separator} />
         <View style={styles.section}>
