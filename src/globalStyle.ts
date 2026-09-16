@@ -45,6 +45,16 @@ export function useGlobalStyle() {
     requiredField: {
       color: theme.maximumRed
     },
+    searchBox: {
+      alignItems: 'center',
+      borderColor: theme.lightGray,
+      borderWidth: 1,
+      flex: 1,
+      flexDirection: 'row',
+      height: 48,
+      marginRight: Spacing.two,
+      paddingHorizontal: Spacing.one
+    },
     separator: {
       backgroundColor: theme.lightGray,
       height: 1,

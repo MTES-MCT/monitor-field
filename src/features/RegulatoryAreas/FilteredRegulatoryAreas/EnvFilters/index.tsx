@@ -1,44 +1,45 @@
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { ThemedText } from '@components/Elements/Text'
-import { Switch } from '@components/Elements/Switch'
-import { Spacing } from '@constants/theme'
+// import { Switch } from '@components/Elements/Switch'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { Image } from 'expo-image'
 import { useMemo, useState } from 'react'
-import { Modal, Pressable, StyleSheet, View } from 'react-native'
+import { Modal, Pressable, View } from 'react-native'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
-import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useAppContext } from '@contexts/AppContext'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { ThemesSelector } from './ThemesSelector'
 
 export function EnvFilters() {
-  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
-  const { filters, setFilters, totalCount } = useRegulatoryAreasContext()
+  const { filters } = useRegulatoryAreasContext()
   const { activeModal } = useAppContext()
-  const [isOpen, setIsOpen] = useState(false)
-  const closeEnvFilters = () => setIsOpen(false)
+  // const [isOpen, setIsOpen] = useState(false)
+  const [isThemesSelectorOpen, setIsThemesSelectorOpen] = useState(false)
+  // const closeEnvFilters = () => setIsOpen(false)
+  const closeThemesSelector = () => setIsThemesSelectorOpen(false)
 
   const filtersCount = filters.themesAndSubThemes.length + (filters.recentlyAddedOrModified ? 1 : 0)
 
-  const onSwitch = () => {
+  /* const onSwitch = () => {
     setFilters(currentFilters => ({
       ...currentFilters,
       recentlyAddedOrModified: !currentFilters.recentlyAddedOrModified
     }))
   }
+
   const cleanFilters = () => {
     setFilters({
       ...filters,
       recentlyAddedOrModified: false,
       themesAndSubThemes: []
     })
-  }
-  const openThemesFilterSelector = () => {}
+  } 
 
-  const consultResults = () => setIsOpen(false)
+  const openThemesFilterSelector = () => setIsThemesSelectorOpen(true)
+
+  const consultResults = () => setIsOpen(false)*/
 
   const borderStyle = useMemo(() => {
     if (activeModal && activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
@@ -54,7 +55,7 @@ export function EnvFilters() {
   return (
     <>
       <Pressable
-        onPress={() => setIsOpen(true)}
+        onPress={() => setIsThemesSelectorOpen(true)}
         accessibilityRole="button"
         accessibilityState={{
           disabled: false
@@ -78,6 +79,8 @@ export function EnvFilters() {
         <Image source={require('@assets/icons/filter.svg')} style={globalStyle.iconNormal} />
       </Pressable>
 
+      {/*       
+      Commented this for beta test
       <Modal transparent visible={isOpen} animationType="slide" onRequestClose={closeEnvFilters}>
         <SafeAreaView style={styles.overlay}>
           <View style={styles.modalContainer}>
@@ -127,63 +130,18 @@ export function EnvFilters() {
               </View>
             </View>
           </View>
-        </SafeAreaView>
+        </View>
+      </Modal> */}
+
+      <Modal transparent visible={isThemesSelectorOpen} animationType="slide" onRequestClose={closeThemesSelector}>
+        <View style={globalStyle.modalContainer}>
+          <View style={globalStyle.pageHeader}>
+            <ThemedText type="large">Thématiques et sous them.</ThemedText>
+            <CloseButton onClose={closeThemesSelector} />
+          </View>
+          <ThemesSelector />
+        </View>
       </Modal>
     </>
   )
 }
-
-const createStyles = theme =>
-  StyleSheet.create({
-    buttonsWrapper: {
-      gap: Spacing.two,
-      justifyContent: 'center',
-      paddingHorizontal: Spacing.three
-    },
-    chevronIcon: {
-      height: 20,
-      tintColor: theme.slateGray,
-      transform: [{ rotate: '180deg' }],
-      width: 20
-    },
-    filterRow: {
-      alignItems: 'center',
-      borderBottomWidth: 1,
-      borderColor: theme.lightGray,
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginHorizontal: Spacing.four,
-      paddingVertical: Spacing.four
-    },
-    header: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      padding: Spacing.four
-    },
-    modalContainer: {
-      backgroundColor: theme.white,
-      flex: 1,
-      marginTop: 80
-    },
-    overlay: {
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      flex: 1,
-      justifyContent: 'flex-end',
-      paddingBottom: 0
-    },
-    primaryButton: {
-      alignItems: 'center',
-      backgroundColor: theme.charcoal,
-      justifyContent: 'center',
-      paddingHorizontal: Spacing.six,
-      paddingVertical: Spacing.four
-    },
-    transparentButton: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginHorizontal: Spacing.six,
-      paddingVertical: Spacing.four
-    }
-  })

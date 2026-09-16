@@ -4,7 +4,6 @@ import { Fonts, Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useAppContext } from '@contexts/AppContext'
 import { useGlobalStyle } from '@globalStyle'
-import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { useCallback, useRef } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
@@ -20,7 +19,6 @@ type SearchInputProps = {
 export function SearchInput({ onClose, text, setText }: SearchInputProps) {
   const router = useRouter()
   const inputRef = useRef<TextInput>(null)
-  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { setFilters } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
@@ -59,7 +57,7 @@ export function SearchInput({ onClose, text, setText }: SearchInputProps) {
   return (
     <>
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
-        <View style={styles.searchBox}>
+        <View style={globalStyle.searchBox}>
           <BackButton onBack={onCloseSearchInput} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
@@ -94,30 +92,19 @@ export function SearchInput({ onClose, text, setText }: SearchInputProps) {
   )
 }
 
-const createStyles = theme =>
-  StyleSheet.create({
-    informationMessage: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: Spacing.two,
-      marginHorizontal: Spacing.three,
-      marginTop: Spacing.three
-    },
-    input: {
-      color: '#2b3a4a',
-      flex: 1,
-      fontFamily: Fonts.sans,
-      fontSize: 17,
-      paddingVertical: 0
-    },
-    searchBox: {
-      alignItems: 'center',
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flex: 1,
-      flexDirection: 'row',
-      height: 48,
-      marginRight: Spacing.two,
-      paddingHorizontal: Spacing.one
-    }
-  })
+const styles = StyleSheet.create({
+  informationMessage: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginHorizontal: Spacing.two,
+    marginVertical: Spacing.two
+  },
+  input: {
+    color: '#2b3a4a',
+    flex: 1,
+    fontFamily: Fonts.sans,
+    fontSize: 17,
+    paddingVertical: 0
+  }
+})
