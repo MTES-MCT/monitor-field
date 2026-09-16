@@ -1,4 +1,4 @@
-import { getBuildNumber, getSystemName, getSystemVersion, getVersion } from 'react-native-device-info'
+import { getBuildNumber, getSystemName, getSystemVersion, getVersion, getModel } from 'react-native-device-info'
 
 const FEEDBACK_ACCESS_TOKEN = process.env.EXPO_PUBLIC_FEEDBACK_ACCESS_TOKEN!
 const REPO_OWNER = 'MTES-MCT'
@@ -16,12 +16,13 @@ export class FeedbackError extends Error {}
 
 export async function sendFeedback({ title, description, type, email, env }: FeedbackPayload): Promise<void> {
   const os = `${getSystemName()} ${getSystemVersion()}`
+  const model = getModel()
   const version = getVersion()
   const build = getBuildNumber()
 
   const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_FEEDBACK}/dispatches`, {
     body: JSON.stringify({
-      client_payload: { description, email, env, os, title, type, version: `${version} (${build})` },
+      client_payload: { description, email, env, model, os, title, type, version: `${version} (${build})` },
       event_type: 'feedback'
     }),
     headers: {
