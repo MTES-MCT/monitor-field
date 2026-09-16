@@ -26,6 +26,7 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
           env.prohibition_periods as prohibitionPeriods,
           env.additional_ref_reg as additionalRefReg,
           env.themes,
+          env.sub_themes as subThemes,
           env.geojson,
           env.location,
           env.edition,

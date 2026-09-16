@@ -6,7 +6,6 @@ import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useAppContext } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 import { useGlobalStyle } from '@globalStyle'
-import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { useCallback, useRef, useState } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
@@ -19,7 +18,6 @@ type SearchInputProps = {
 export function SearchInput({ onClose }: SearchInputProps) {
   const router = useRouter()
   const inputRef = useRef<TextInput>(null)
-  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { zoomToBbox } = useCameraContext()
   const { filters, setFilters, committedSearchBbox, committedSearchZoom } = useRegulatoryAreasContext()
@@ -68,7 +66,7 @@ export function SearchInput({ onClose }: SearchInputProps) {
   return (
     <>
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
-        <View style={styles.searchBox}>
+        <View style={globalStyle.searchBox}>
           <BackButton onBack={onCloseSearchInput} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
@@ -103,29 +101,18 @@ export function SearchInput({ onClose }: SearchInputProps) {
   )
 }
 
-const createStyles = theme =>
-  StyleSheet.create({
-    informationMessage: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      gap: Spacing.two,
-      marginHorizontal: Spacing.two,
-      marginVertical: Spacing.two
-    },
-    input: {
-      color: '#2b3a4a',
-      flex: 1,
-      fontSize: 17,
-      paddingVertical: 0
-    },
-    searchBox: {
-      alignItems: 'center',
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flex: 1,
-      flexDirection: 'row',
-      height: 48,
-      marginRight: Spacing.two,
-      paddingHorizontal: Spacing.one
-    }
-  })
+const styles = StyleSheet.create({
+  informationMessage: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginHorizontal: Spacing.two,
+    marginVertical: Spacing.two
+  },
+  input: {
+    color: '#2b3a4a',
+    flex: 1,
+    fontSize: 17,
+    paddingVertical: 0
+  }
+})

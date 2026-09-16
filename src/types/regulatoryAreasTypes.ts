@@ -43,6 +43,7 @@ export type EnvRegulatoryAreaFromDatabase = {
   prohibitionPeriods: string
   additionalRefReg: string
   themes: string
+  subThemes: string
   geojson?: string
   bbox_min_lon: number
   bbox_min_lat: number

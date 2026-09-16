@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   large: {
     fontFamily: Fonts.sansMedium,
     fontSize: 20,
-    lineHeight: 20
+    lineHeight: 24
   },
   link: {
     color: '#295EDB',

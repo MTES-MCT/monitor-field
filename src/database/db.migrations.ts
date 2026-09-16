@@ -30,6 +30,7 @@ const migrations: Migration[] = [
             prohibition_periods TEXT,
             additional_ref_reg TEXT,
             themes TEXT,
+            sub_themes TEXT,
             location TEXT,
             edition TEXT,
             bbox_min_lon REAL,

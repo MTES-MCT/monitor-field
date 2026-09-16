@@ -52,6 +52,7 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       prohibitionPeriods: area.prohibitionPeriods,
       refReg: area.refReg,
       resume: area.resume,
+      subThemes: area.subThemes,
       themes: area.themes,
       totalByGroup: area.totalByGroup,
       type: area.type,
