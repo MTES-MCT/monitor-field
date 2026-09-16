@@ -10,6 +10,7 @@ import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useAppContext } from '@contexts/AppContext'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export function EnvFilters() {
   const styles = useThemedStyles(createStyles)
@@ -78,53 +79,55 @@ export function EnvFilters() {
       </Pressable>
 
       <Modal transparent visible={isOpen} animationType="slide" onRequestClose={closeEnvFilters}>
-        <View style={globalStyle.modalContainer}>
-          <View style={styles.header}>
-            <ThemedText type="large">Filtres</ThemedText>
-            <CloseButton onClose={closeEnvFilters} />
-          </View>
-          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
-            <View>
-              <View style={styles.filterRow}>
-                <ThemedText type="default">Ajoutées / modifiées récemment</ThemedText>
-                <Switch isOn={filters.recentlyAddedOrModified} onSwitch={onSwitch} />
-              </View>
+        <SafeAreaView style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.header}>
+              <ThemedText type="large">Filtres</ThemedText>
+              <CloseButton onClose={closeEnvFilters} />
+            </View>
+            <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
+              <View>
+                <View style={styles.filterRow}>
+                  <ThemedText type="default">Ajoutées / modifiées récemment</ThemedText>
+                  <Switch isOn={filters.recentlyAddedOrModified} onSwitch={onSwitch} />
+                </View>
 
-              <Pressable
-                onPress={openThemesFilterSelector}
-                accessibilityRole="button"
-                accessibilityState={{ disabled: false }}
-                style={styles.filterRow}
-              >
-                <ThemedText type="default">Thématiques et sous them.</ThemedText>
-                <Image source={require('@assets/icons/chevron.svg')} style={styles.chevronIcon} />
-              </Pressable>
-            </View>
-            <View>
-              <View style={globalStyle.separator}></View>
-              <View style={styles.buttonsWrapper}>
                 <Pressable
-                  onPress={cleanFilters}
+                  onPress={openThemesFilterSelector}
                   accessibilityRole="button"
                   accessibilityState={{ disabled: false }}
-                  style={styles.transparentButton}
+                  style={styles.filterRow}
                 >
-                  <ThemedText type="default">Effacer les filtres ({filtersCount})</ThemedText>
+                  <ThemedText type="default">Thématiques et sous them.</ThemedText>
+                  <Image source={require('@assets/icons/chevron.svg')} style={styles.chevronIcon} />
                 </Pressable>
-                <Pressable
-                  onPress={consultResults}
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: false }}
-                  style={styles.primaryButton}
-                >
-                  <ThemedText type="default" themeColor="white">
-                    Voir {totalCount ?? 0} résultat(s)
-                  </ThemedText>
-                </Pressable>
+              </View>
+              <View>
+                <View style={globalStyle.separator}></View>
+                <View style={styles.buttonsWrapper}>
+                  <Pressable
+                    onPress={cleanFilters}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: false }}
+                    style={styles.transparentButton}
+                  >
+                    <ThemedText type="default">Effacer les filtres ({filtersCount})</ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={consultResults}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: false }}
+                    style={styles.primaryButton}
+                  >
+                    <ThemedText type="default" themeColor="white">
+                      Voir {totalCount ?? 0} résultat(s)
+                    </ThemedText>
+                  </Pressable>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
     </>
   )
@@ -158,6 +161,17 @@ const createStyles = theme =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       padding: Spacing.four
+    },
+    modalContainer: {
+      backgroundColor: theme.white,
+      flex: 1,
+      marginTop: 80
+    },
+    overlay: {
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      flex: 1,
+      justifyContent: 'flex-end',
+      paddingBottom: 0
     },
     primaryButton: {
       alignItems: 'center',
