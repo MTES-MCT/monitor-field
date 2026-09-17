@@ -38,7 +38,7 @@ export async function getFishRegulatoryAreasQuery(
 
     return result.rows as FishRegulatoryAreaFromDatabase[]
   } catch (error) {
-    logSentryError(error, 'Error fetching Env areas')
+    logSentryError(error, 'Error fetching Fish areas')
     return []
   }
 }

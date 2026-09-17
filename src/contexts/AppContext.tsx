@@ -1,7 +1,7 @@
 import type { AppMode, AppModeConfig } from '@config/appModes'
 import { monitorEnvConfig } from '@config/appModes/monitorenv.config'
 import { monitorFishConfig } from '@config/appModes/monitorfish.config'
-import { createContext, useContext, useRef, useState } from 'react'
+import { createContext, useContext, useMemo, useRef, useState } from 'react'
 
 const configs: Record<AppMode, AppModeConfig> = {
   MONITORENV: monitorEnvConfig,
@@ -39,23 +39,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const config = configs[mode]
 
-  return (
-    <AppContext.Provider
-      value={{
-        activeModal,
-        config,
-        hasAutoLocatedRef,
-        isLocationButtonEnabled,
-        isRefreshingSettingsData,
-        setActiveModal,
-        setIsLocationButtonEnabled,
-        setIsRefreshingSettingsData,
-        setMode
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+  // Memoised: without it every state change here re-renders the map screen, which rebuilds
+  // the whole map style.
+  const value = useMemo(
+    () => ({
+      activeModal,
+      config,
+      hasAutoLocatedRef,
+      isLocationButtonEnabled,
+      isRefreshingSettingsData,
+      setActiveModal,
+      setIsLocationButtonEnabled,
+      setIsRefreshingSettingsData,
+      setMode
+    }),
+    [activeModal, config, isLocationButtonEnabled, isRefreshingSettingsData]
   )
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
 
 export function useAppContext() {

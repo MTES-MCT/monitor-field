@@ -1,6 +1,6 @@
 import type { BoundingBox } from '@/types/mapTypes'
 import type { EnvRegulatoryArea, FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 
 export type RegulatoryAreaListItem = FishRegulatoryArea | EnvRegulatoryArea
 
@@ -59,42 +59,57 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
   const [isolatedRegulatoryAreaId, setIsolatedRegulatoryAreaId] = useState<number | undefined>(undefined)
 
-  const setRegulatoryAreas = (areas: RegulatoryAreaListItem[]) => {
+  const setRegulatoryAreas = useCallback((areas: RegulatoryAreaListItem[]) => {
     setLocalRegulatoryAreas(areas)
     setTotalCount(areas.length)
-  }
+  }, [])
 
-  return (
-    <RegulatoryAreasContext.Provider
-      value={{
-        areRegulatoryAreasLayerVisible,
-        clickedFeaturesList,
-        committedSearchBbox,
-        committedSearchZoom,
-        currentZoom,
-        filters,
-        isSearchZoneActive,
-        isolatedRegulatoryAreaId,
-        regulatoryAreas,
-        searchBbox,
-        selectedRegulatoryArea,
-        setAreRegulatoryAreasLayerVisible,
-        setClickedFeaturesList,
-        setCommittedSearchBbox,
-        setCommittedSearchZoom,
-        setCurrentZoom,
-        setFilters,
-        setIsSearchZoneActive,
-        setIsolatedRegulatoryAreaId,
-        setRegulatoryAreas,
-        setSearchBbox,
-        setSelectedRegulatoryArea,
-        totalCount
-      }}
-    >
-      {children}
-    </RegulatoryAreasContext.Provider>
+  // Memoised: without it every state change here re-renders the map screen, which rebuilds
+  // the whole map style.
+  const value = useMemo(
+    () => ({
+      areRegulatoryAreasLayerVisible,
+      clickedFeaturesList,
+      committedSearchBbox,
+      committedSearchZoom,
+      currentZoom,
+      filters,
+      isSearchZoneActive,
+      isolatedRegulatoryAreaId,
+      regulatoryAreas,
+      searchBbox,
+      selectedRegulatoryArea,
+      setAreRegulatoryAreasLayerVisible,
+      setClickedFeaturesList,
+      setCommittedSearchBbox,
+      setCommittedSearchZoom,
+      setCurrentZoom,
+      setFilters,
+      setIsSearchZoneActive,
+      setIsolatedRegulatoryAreaId,
+      setRegulatoryAreas,
+      setSearchBbox,
+      setSelectedRegulatoryArea,
+      totalCount
+    }),
+    [
+      areRegulatoryAreasLayerVisible,
+      clickedFeaturesList,
+      committedSearchBbox,
+      committedSearchZoom,
+      currentZoom,
+      filters,
+      isSearchZoneActive,
+      isolatedRegulatoryAreaId,
+      regulatoryAreas,
+      searchBbox,
+      selectedRegulatoryArea,
+      setRegulatoryAreas,
+      totalCount
+    ]
   )
+
+  return <RegulatoryAreasContext.Provider value={value}>{children}</RegulatoryAreasContext.Provider>
 }
 
 export function useRegulatoryAreasContext() {

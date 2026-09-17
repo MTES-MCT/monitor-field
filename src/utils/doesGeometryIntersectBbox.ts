@@ -1,4 +1,5 @@
 import type { BoundingBox, Geometry, Position } from '@/types/mapTypes'
+import { isPointInRing } from '@utils/isPointInGeometry'
 
 type Point = [number, number]
 
@@ -8,24 +9,6 @@ function toPoint(position: Position): Point {
 
 function isPointInBbox([lon, lat]: Point, bbox: BoundingBox): boolean {
   return lon >= bbox.minLon && lon <= bbox.maxLon && lat >= bbox.minLat && lat <= bbox.maxLat
-}
-
-// standard ray-casting point-in-polygon test
-function isPointInRing([lon, lat]: Point, ring: Point[]): boolean {
-  let isInside = false
-
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i] as Point
-    const [xj, yj] = ring[j] as Point
-
-    const intersects = yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi
-
-    if (intersects) {
-      isInside = !isInside
-    }
-  }
-
-  return isInside
 }
 
 function direction(a: Point, b: Point, c: Point): number {

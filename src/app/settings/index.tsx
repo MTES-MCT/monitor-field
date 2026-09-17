@@ -1,4 +1,3 @@
-import { logSentryError } from '@utils/sentryLogger'
 import { Image } from 'expo-image'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useState } from 'react'
@@ -8,7 +7,7 @@ import { LoaderIcon } from '@components/LoaderIcon'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { useMMKVString } from 'react-native-mmkv'
 import { storage } from '@storage'
-import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
+import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreas'
 
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
@@ -30,9 +29,17 @@ export default function Settings() {
 
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
-  const [regulatoryAreasLastUpdate] = useMMKVString('regulatory-areas-last-update', storage)
+  const [fishLastUpdate] = useMMKVString('fish-regulatory-areas-last-update', storage)
+  const [envLastUpdate] = useMMKVString('env-regulatory-areas-last-update', storage)
 
-  const formattedLastUpdateDate = daysjs(regulatoryAreasLastUpdate).format('DD/MM/YYYY à HH[h]mm')
+  // Each dataset syncs on its own schedule, so the honest "last updated" is the older one.
+  const oldestLastUpdate = [fishLastUpdate, envLastUpdate]
+    .filter((value): value is string => !!value)
+    .map(value => daysjs(value))
+    .filter(date => date.isValid())
+    .sort((a, b) => a.valueOf() - b.valueOf())[0]
+
+  const formattedLastUpdateDate = oldestLastUpdate?.format('DD/MM/YYYY à HH[h]mm')
 
   const refreshDataFromSettings = () => {
     setIsRefreshingDataLocal(true)
@@ -51,9 +58,7 @@ export default function Settings() {
 
     setIsRefreshingSettingsData(true)
     try {
-      await syncRegulatoryAreasDB(seaFronts, { forceRefresh: true })
-    } catch (e) {
-      logSentryError(e, 'Unable to sync regulatory areas')
+      await syncRegulatoryAreas(seaFronts, { forceRefresh: true })
     } finally {
       setIsRefreshingSettingsData(false)
     }
@@ -93,7 +98,7 @@ export default function Settings() {
             </ThemedText>
           </Pressable>
           <ThemedText themeColor="slateGray" type="small" style={styles.refreshDate}>
-            Dernière mise à jour le {formattedLastUpdateDate}
+            {formattedLastUpdateDate ? `Dernière mise à jour le ${formattedLastUpdateDate}` : 'Jamais mis à jour'}
           </ThemedText>
         </View>
         <View style={globalStyle.separator} />
