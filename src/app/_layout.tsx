@@ -12,7 +12,7 @@ import { Appearance, StatusBar } from 'react-native'
 import { OnBoarding } from '@features/OnBoarding'
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
-import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
+import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreas'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
 
 export default function TabLayout() {
@@ -28,7 +28,7 @@ export default function TabLayout() {
   useEffect(() => {
     async function refreshData() {
       const seaFronts = parseSeaFronts(selectedSeaFronts)
-      await syncRegulatoryAreasDB(seaFronts)
+      await syncRegulatoryAreas(seaFronts)
       setIsAppReady(true)
     }
 

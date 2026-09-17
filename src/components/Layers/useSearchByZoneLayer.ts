@@ -82,23 +82,29 @@ export function useSearchByZoneLayer(): SearchByZoneLayerProps {
     [displayedBbox]
   )
 
-  if (!geoJSON) {
-    return {
-      ids: searchByZoneIds,
-      layer: undefined,
-      source: undefined
-    }
-  }
+  // Memoised so the map style, which is keyed on their identity, is not rebuilt every render.
+  const layer = useMemo(
+    () => (geoJSON ? createSearchByZoneLayer(searchByZoneIds.source, theme.charcoal) : undefined),
+    [geoJSON, theme.charcoal]
+  )
+
+  const source = useMemo(
+    () =>
+      geoJSON
+        ? {
+            definition: {
+              data: geoJSON,
+              type: 'geojson' as const
+            },
+            id: searchByZoneIds.source
+          }
+        : undefined,
+    [geoJSON]
+  )
 
   return {
     ids: searchByZoneIds,
-    layer: createSearchByZoneLayer(searchByZoneIds.source, theme.charcoal),
-    source: {
-      definition: {
-        data: geoJSON,
-        type: 'geojson'
-      },
-      id: searchByZoneIds.source
-    }
+    layer,
+    source
   }
 }

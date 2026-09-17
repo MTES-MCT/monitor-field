@@ -1,4 +1,4 @@
-import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
+import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreas'
 import { storage } from '@storage'
 import { useState } from 'react'
 import { StyleSheet } from 'react-native'
@@ -11,11 +11,11 @@ import { useThemedStyles } from '@hooks/use-themed-styles'
 export function OnBoarding() {
   const styles = useThemedStyles(createStyles)
   const [currentStep, setCurrentStep] = useState(1)
-  const [syncPromise, setSyncPromise] = useState<Promise<void> | null>(null)
+  const [syncPromise, setSyncPromise] = useState<Promise<unknown> | null>(null)
 
   const handleStep2Next = (seaFronts: string[]) => {
     storage.set('selectedSeaFronts', seaFronts.join(','))
-    setSyncPromise(syncRegulatoryAreasDB(seaFronts))
+    setSyncPromise(syncRegulatoryAreas(seaFronts))
     setCurrentStep(3)
   }
 

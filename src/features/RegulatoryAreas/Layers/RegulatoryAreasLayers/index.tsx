@@ -180,21 +180,36 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     fetch()
   }, [fetch, isSearchZoneActive, pathname, filters.searchQuery])
 
+  // Both are memoised: Prevent rebuilding map style on every render
+  // (would re-serialise the whole FeatureCollection across the bridge on any state change).
+  const layers = useMemo(
+    () =>
+      geoJSONWithResolvedFillColor
+        ? createRegulatoryAreasLayers(regulatoryAreasIds.source, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id)
+        : [],
+    [geoJSONWithResolvedFillColor, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id]
+  )
+
+  const source = useMemo(
+    () => ({
+      definition: {
+        data:
+          geoJSONWithResolvedFillColor ??
+          ({
+            features: [],
+            type: 'FeatureCollection'
+          } as GeoJSONCollection),
+        type: 'geojson' as const
+      },
+      id: regulatoryAreasIds.source
+    }),
+    [geoJSONWithResolvedFillColor]
+  )
+
   return {
     ids: regulatoryAreasIds,
     isLoading,
-    layers: geoJSONWithResolvedFillColor
-      ? createRegulatoryAreasLayers(regulatoryAreasIds.source, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id)
-      : [],
-    source: {
-      definition: {
-        data: geoJSONWithResolvedFillColor ?? {
-          features: [],
-          type: 'FeatureCollection'
-        },
-        type: 'geojson'
-      },
-      id: regulatoryAreasIds.source
-    }
+    layers,
+    source
   }
 }
