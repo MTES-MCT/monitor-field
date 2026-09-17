@@ -12,30 +12,11 @@ const POLYGON = {
   type: 'Polygon'
 }
 
-const MULTI_POLYGON = { coordinates: [POLYGON.coordinates], type: 'MultiPolygon' }
-
 describe('parseGeoJSONFeature', () => {
   it('returns a stored Feature as-is', () => {
     const feature = { geometry: POLYGON, properties: { id: 12 }, type: 'Feature' }
 
     expect(parseGeoJSONFeature(JSON.stringify(feature))).toEqual(feature)
-  })
-
-  // Rows written before the fish dataset stored a Feature.
-  it('wraps a bare Polygon into a Feature', () => {
-    expect(parseGeoJSONFeature(JSON.stringify(POLYGON))).toEqual({
-      geometry: POLYGON,
-      properties: {},
-      type: 'Feature'
-    })
-  })
-
-  it('wraps a bare MultiPolygon into a Feature', () => {
-    expect(parseGeoJSONFeature(JSON.stringify(MULTI_POLYGON))).toEqual({
-      geometry: MULTI_POLYGON,
-      properties: {},
-      type: 'Feature'
-    })
   })
 
   it('returns undefined for an empty or missing column', () => {

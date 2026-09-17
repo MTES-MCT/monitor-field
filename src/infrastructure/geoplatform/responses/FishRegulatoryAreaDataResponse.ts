@@ -28,8 +28,8 @@ export function toFishRegulatoryArea(feature: FishRegulatoryAreaFeature): FishRe
 
   return {
     boundingBox: toBoundingBox(feature),
-    // Stored as a Feature, like the env dataset: `parseGeoJSONFeature` reads both
-    // columns and rejects a bare geometry.
+    // Stored as a Feature, like the env dataset; `parseGeoJSONFeature` also
+    // accepts the bare geometry older rows hold.
     geometry: feature.geometry
       ? JSON.stringify({ geometry: feature.geometry, properties: {}, type: 'Feature' })
       : undefined,
