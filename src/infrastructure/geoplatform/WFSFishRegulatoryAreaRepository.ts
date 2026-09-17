@@ -48,7 +48,6 @@ export function createWFSFishRegulatoryAreaRepository(fetchFn: typeof fetch = fe
         const features = payload.features ?? []
 
         for (const feature of features) {
-
           const area = toFishRegulatoryArea(feature as FishRegulatoryAreaFeature)
 
           if (!area) {

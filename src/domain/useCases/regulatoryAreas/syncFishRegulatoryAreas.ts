@@ -37,7 +37,6 @@ export async function syncFishRegulatoryAreas(
   })
 
   if (skip) {
-
     return
   }
 

@@ -4,8 +4,7 @@ import { syncEnvRegulatoryAreas } from './syncEnvRegulatoryAreas'
 import type { SyncFishRegulatoryAreasDependencies } from './syncFishRegulatoryAreas'
 import { syncFishRegulatoryAreas } from './syncFishRegulatoryAreas'
 
-export type SyncRegulatoryAreasDependencies = SyncEnvRegulatoryAreasDependencies &
-  SyncFishRegulatoryAreasDependencies
+export type SyncRegulatoryAreasDependencies = SyncEnvRegulatoryAreasDependencies & SyncFishRegulatoryAreasDependencies
 
 export type SyncRegulatoryAreasOptions = {
   forceRefresh?: boolean
