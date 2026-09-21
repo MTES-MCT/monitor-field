@@ -9,17 +9,24 @@ import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet, View } from 'react-native'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasList } from '@features/RegulatoryAreas/hooks/useRegulatoryAreasList'
+import { useMemo } from 'react'
 
 export default function SearchPage() {
   const theme = useTheme()
   const router = useRouter()
   const { filters, setFilters } = useRegulatoryAreasContext()
-  const { setActiveModal } = useAppContext()
+  const { config, setActiveModal } = useAppContext()
+
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV'
+      ? (filters.searchQueryEnv?.trim() ?? undefined)
+      : (filters.searchQueryFish?.trim() ?? undefined)
+  }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onDismiss = () => {
     setFilters(currentFilters => ({
       ...currentFilters,
-      searchQuery: undefined
+      ...(config.mode === 'MONITORENV' ? { searchQueryEnv: undefined } : { searchQueryFish: undefined })
     }))
     setActiveModal(undefined)
     router.back()
@@ -42,7 +49,7 @@ export default function SearchPage() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
-          filters.searchQuery?.trim() ? (
+          searchQuery?.trim() ? (
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
               Aucune zone réglementaire ne correspond à cette recherche.
             </ThemedText>

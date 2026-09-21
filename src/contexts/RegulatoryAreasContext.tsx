@@ -37,7 +37,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
 
   const [filters, setFilters] = useState<Filters>({
     recentlyAddedOrModified: false,
-    searchQuery: undefined,
+    searchQueryEnv: undefined,
+    searchQueryFish: undefined,
     themesAndSubThemes: []
   })
 

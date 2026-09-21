@@ -7,7 +7,7 @@ import { useAppContext } from '@contexts/AppContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
@@ -21,8 +21,15 @@ export function SearchInput({ onClose }: SearchInputProps) {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { filters, setFilters } = useRegulatoryAreasContext()
-  const { setActiveModal } = useAppContext()
-  const [text, setText] = useState(filters.searchQuery ?? '')
+  const { config, setActiveModal } = useAppContext()
+
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV'
+      ? (filters.searchQueryEnv?.trim() ?? '')
+      : (filters.searchQueryFish?.trim() ?? '')
+  }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
+
+  const [text, setText] = useState(searchQuery ?? '')
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const onChangeText = (newText: string) => {
@@ -33,9 +40,12 @@ export function SearchInput({ onClose }: SearchInputProps) {
     }
 
     timeoutRef.current = setTimeout(() => {
+      const trimmedText = newText.trim()
       setFilters(currentFilters => ({
         ...currentFilters,
-        searchQuery: newText.trim() ? newText.trim() : undefined
+        ...(config.mode === 'MONITORENV'
+          ? { searchQueryEnv: trimmedText ?? undefined }
+          : { searchQueryFish: trimmedText ?? undefined })
       }))
     }, 300)
   }

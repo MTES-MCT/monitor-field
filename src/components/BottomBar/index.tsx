@@ -8,6 +8,7 @@ import { ThemedText } from '../Elements/Text'
 import { EnvFilters } from '@features/RegulatoryAreas/FilteredRegulatoryAreas/EnvFilters'
 import { useGlobalStyle } from '@globalStyle'
 import { LoaderIcon } from '@components/LoaderIcon'
+import { useMemo } from 'react'
 
 type BottomBarProps = {
   isLoading: boolean
@@ -21,6 +22,12 @@ export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
 
   const { areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible, totalCount, filters } =
     useRegulatoryAreasContext()
+
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV'
+      ? (filters.searchQueryEnv?.trim() ?? undefined)
+      : (filters.searchQueryFish?.trim() ?? undefined)
+  }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const handleLayers = () => {
     setAreRegulatoryAreasLayerVisible(!areRegulatoryAreasLayerVisible)
@@ -80,10 +87,10 @@ export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
           }}
           style={[globalStyle.squareButton, { backgroundColor: theme.white }]}
         >
-          {filters.searchQuery && <View style={globalStyle.dot} />}
+          {searchQuery && <View style={globalStyle.dot} />}
           <Image
             source={require('@assets/icons/search.svg')}
-            style={[globalStyle.iconNormal, { tintColor: filters.searchQuery ? theme.blueGray : theme.slateGray }]}
+            style={[globalStyle.iconNormal, { tintColor: searchQuery ? theme.blueGray : theme.slateGray }]}
           />
         </Pressable>
 

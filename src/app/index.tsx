@@ -45,6 +45,7 @@ import {
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
+import { useLocationStatus } from '@hooks/useLocationStatus'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -98,7 +99,8 @@ function App() {
   } = useCameraContext()
   const globalStyle = useGlobalStyle()
 
-  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData, config } = useAppContext()
+  const { config, isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
+  const { isLocationEnabled } = useLocationStatus()
   const { areRegulatoryAreasLayerVisible, setSearchBbox, setSelectedRegulatoryArea, setClickedFeaturesList } =
     useRegulatoryAreasContext()
 
@@ -174,9 +176,9 @@ function App() {
       setActiveModal('CLICKED_FEATURES_LIST_MODAL')
     },
     [
+      config,
       mapRef,
       regulatoryAreaLayer.ids,
-      config.mode,
       setRegulatoryAreaDetailsOrigin,
       setSelectedRegulatoryArea,
       setActiveModal,
@@ -262,7 +264,7 @@ function App() {
         </LayerAnnotation>
       )}
 
-      {isLocationButtonEnabled && <UserLocation accuracy />}
+      {isLocationButtonEnabled && isLocationEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
         initialViewState={{

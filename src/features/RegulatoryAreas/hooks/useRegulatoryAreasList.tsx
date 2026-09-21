@@ -42,7 +42,7 @@ export function useRegulatoryAreasList({
   const {
     clickedFeaturesList,
     regulatoryAreas,
-    filters: { searchQuery },
+    filters: { searchQueryEnv, searchQueryFish },
     setIsolatedRegulatoryAreaId,
     setSelectedRegulatoryArea,
     isolatedRegulatoryAreaId
@@ -61,6 +61,10 @@ export function useRegulatoryAreasList({
     () => (isClickedFeatureList ? (clickedFeaturesList ?? []) : regulatoryAreas),
     [isClickedFeatureList, clickedFeaturesList, regulatoryAreas]
   )
+
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV' ? (searchQueryEnv?.trim() ?? undefined) : (searchQueryFish?.trim() ?? undefined)
+  }, [config.mode, searchQueryEnv, searchQueryFish])
 
   const areResultsVisible = useMemo(() => {
     return shouldShowResults || searchQuery?.trim() !== undefined

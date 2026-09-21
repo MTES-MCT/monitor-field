@@ -30,6 +30,12 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   const modalRef = useRef<BottomSheetModal>(null)
   const hasPresentedRef = useRef(false)
 
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV'
+      ? (filters.searchQueryEnv?.trim() ?? undefined)
+      : (filters.searchQueryFish?.trim() ?? undefined)
+  }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
+
   const onClose = useCallback(() => {
     setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL')
     setActiveModal(undefined)
@@ -75,7 +81,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 
           <TextInput
             style={styles.input}
-            value={filters.searchQuery}
+            value={searchQuery}
             onChangeText={() => {}}
             onFocus={() => {
               onClose()
@@ -96,7 +102,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
-          filters.searchQuery?.trim() ? (
+          searchQuery?.trim() ? (
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
               Aucune zone réglementaire ne correspond à cette recherche.
             </ThemedText>

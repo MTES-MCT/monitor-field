@@ -20,8 +20,14 @@ export const SelectedRegulatoryAreas = ({
   const modalRef = useRef<BottomSheetModal>(null)
   const hasPresentedRef = useRef(false)
 
-  const { activeModal, setActiveModal } = useAppContext()
+  const { config, activeModal, setActiveModal } = useAppContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, filters } = useRegulatoryAreasContext()
+
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV'
+      ? (filters.searchQueryEnv?.trim() ?? undefined)
+      : (filters.searchQueryFish?.trim() ?? undefined)
+  }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onClose = () => {
     setClickedFeaturesList(undefined)
@@ -69,7 +75,7 @@ export const SelectedRegulatoryAreas = ({
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
-          filters.searchQuery?.trim() ? (
+          searchQuery?.trim() ? (
             <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
               Aucune zone réglementaire ne correspond à cette recherche.
             </ThemedText>
