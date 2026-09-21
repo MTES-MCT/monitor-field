@@ -7,21 +7,6 @@ type Migration = {
   run: (tx: Transaction) => Promise<void>
 }
 
-/**
- * `ALTER TABLE ADD COLUMN` throws when the column is already there, which happens on installs
- * whose first migration already created the table with it.
- */
-async function addColumnIfMissing(tx: Transaction, table: string, column: string, definition: string) {
-  const result = await tx.execute(`PRAGMA table_info(${table})`)
-  const exists = result.rows.some(row => row.name === column)
-
-  if (exists) {
-    return
-  }
-
-  await tx.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
-}
-
 const migrations: Migration[] = [
   {
     run: async tx => {
@@ -123,14 +108,6 @@ const migrations: Migration[] = [
       )
     },
     version: 1
-  },
-  {
-    run: async tx => {
-      // Added to version 1 after it had already shipped, so existing databases never got the column.
-      await addColumnIfMissing(tx, ENV_REGULATORY_AREAS_TABLE, 'total_by_group', 'INTEGER')
-      await addColumnIfMissing(tx, FISH_REGULATORY_AREAS_TABLE, 'total_by_group', 'INTEGER')
-    },
-    version: 2
   }
 ]
 
