@@ -48,7 +48,7 @@ export function useRegulatoryAreasList({
     isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
-  const { setClickedCoordinate, zoomOnRegulatoryArea } = useCameraContext()
+  const { zoomOnRegulatoryArea } = useCameraContext()
 
   const theme = useTheme()
   const pathname = usePathname()
@@ -88,7 +88,6 @@ export function useRegulatoryAreasList({
 
       setSelectedRegulatoryArea(area)
       setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
-      setClickedCoordinate(undefined)
       setExpandedGroups({})
       onSelectRegulatoryArea?.()
 
@@ -110,7 +109,6 @@ export function useRegulatoryAreasList({
       sourceRegulatoryAreas,
       setSelectedRegulatoryArea,
       setActiveModal,
-      setClickedCoordinate,
       pathname,
       router,
       onSelectRegulatoryArea

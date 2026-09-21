@@ -52,7 +52,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
     if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
       hasPresentedRef.current = true
       modalRef.current?.present()
-    } else if (hasPresentedRef.current) {
+    } else {
       modalRef.current?.dismiss()
     }
   }, [activeModal])

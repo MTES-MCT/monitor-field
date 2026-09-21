@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
+import { useCameraContext } from '@contexts/CameraContext'
 import { Spacing } from '@constants/theme'
 import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet, View } from 'react-native'
@@ -16,12 +17,13 @@ export const SelectedRegulatoryAreas = ({
 }) => {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
-  const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
+  const snapPoints = useMemo(() => ['25%', '66%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
   const hasPresentedRef = useRef(false)
 
   const { config, activeModal, setActiveModal } = useAppContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, filters } = useRegulatoryAreasContext()
+  const { setClickedCoordinate } = useCameraContext()
 
   const searchQuery = useMemo(() => {
     return config.mode === 'MONITORENV'
@@ -33,6 +35,7 @@ export const SelectedRegulatoryAreas = ({
     setClickedFeaturesList(undefined)
     setIsolatedRegulatoryAreaId(undefined)
     setActiveModal(undefined)
+    setClickedCoordinate(undefined)
   }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
@@ -40,11 +43,12 @@ export const SelectedRegulatoryAreas = ({
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin('CLICKED_FEATURES_LIST_MODAL'),
     origin: 'CLICKED_FEATURES_LIST_MODAL'
   })
+
   useEffect(() => {
     if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
       hasPresentedRef.current = true
       modalRef.current?.present()
-    } else if (hasPresentedRef.current) {
+    } else {
       modalRef.current?.dismiss()
     }
   }, [activeModal])

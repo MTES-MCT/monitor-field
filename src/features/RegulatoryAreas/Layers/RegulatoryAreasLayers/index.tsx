@@ -100,7 +100,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     ) {
       return
     }
-    lastFetchParamsRef.current = { bbox, filters, mode: config.mode }
+    lastFetchParamsRef.current = {
+      bbox,
+      filters,
+      mode: config.mode
+    }
 
     setIsLoading(true)
 

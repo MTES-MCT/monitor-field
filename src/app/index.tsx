@@ -46,6 +46,7 @@ import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { useLocationStatus } from '@hooks/useLocationStatus'
+import { useSelectedRegulatoryAreaLayer } from '@components/Layers/useSelectedRegulatoryAreaLayer'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -101,8 +102,14 @@ function App() {
 
   const { config, isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
   const { isLocationEnabled } = useLocationStatus()
-  const { areRegulatoryAreasLayerVisible, setSearchBbox, setSelectedRegulatoryArea, setClickedFeaturesList } =
-    useRegulatoryAreasContext()
+  const {
+    areRegulatoryAreasLayerVisible,
+    selectedRegulatoryArea,
+    setSearchBbox,
+    setSelectedRegulatoryArea,
+    setClickedFeaturesList,
+    setAreRegulatoryAreasLayerVisible
+  } = useRegulatoryAreasContext()
 
   const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
@@ -123,6 +130,9 @@ function App() {
       minLat: Math.min(latA, latB),
       minLon: Math.min(lonA, lonB)
     })
+    if (!areRegulatoryAreasLayerVisible && !selectedRegulatoryArea) {
+      setAreRegulatoryAreasLayerVisible(true)
+    }
   }
 
   const handleLocate = useCallback((coordinates: { longitude: number; latitude: number }) => {

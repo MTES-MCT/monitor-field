@@ -35,7 +35,7 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
       hasPresentedRef.current = true
       modalRef.current?.present()
-    } else if (hasPresentedRef.current) {
+    } else {
       modalRef.current?.dismiss()
     }
   }, [activeModal])
