@@ -14,9 +14,10 @@ import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegul
 import {
   Camera,
   Images,
+  Layer,
+  LayerAnnotation,
   Map as MapLibreMap,
   UserLocation,
-  type LayerSpecification,
   type LngLat,
   type MapRef,
   type PressEvent,
@@ -24,7 +25,7 @@ import {
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
@@ -34,6 +35,8 @@ import { LoaderIcon } from '@components/LoaderIcon'
 import { useGlobalStyle } from '@globalStyle'
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
+import { isPointInGeometry } from '@utils/isPointInGeometry'
+import type { BoundingBox } from '@/types/mapTypes'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -74,6 +77,11 @@ const baseMapStyle: StyleSpecification = {
 
 const LOCATION_FOCUS_ZOOM = 12
 
+/** Cheap rejection before the ray-cast: list items already carry a precomputed bbox. */
+function isPointInBoundingBox([lon, lat]: LngLat, bbox: BoundingBox): boolean {
+  return lon >= bbox.minLon && lon <= bbox.maxLon && lat >= bbox.minLat && lat <= bbox.maxLat
+}
+
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
@@ -104,47 +112,45 @@ function App() {
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const searchByZone = useSearchByZoneLayer()
 
-  const mapStyle: StyleSpecification = {
-    ...baseMapStyle,
-    layers: [
-      ...baseMapStyle.layers,
-      ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
-      ...(searchByZone.layer ? [searchByZone.layer] : []),
-      ...(clickedCoordinate
-        ? [
-            {
-              id: 'clickedPointLayer',
-              layout: {
-                'icon-allow-overlap': true,
-                'icon-image': 'cursorIcon',
-                'icon-size': 0.5
-              },
-              source: 'clickedPointSource',
-              type: 'symbol'
-            } as LayerSpecification
-          ]
-        : [])
-    ],
-    sources: {
-      ...baseMapStyle.sources,
-      ...(searchByZone.source && {
-        [searchByZone.source.id]: searchByZone.source.definition
-      }),
-      ...(regulatoryAreaLayer.source && {
-        [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
-      }),
-      ...(clickedCoordinate && {
-        clickedPointSource: {
-          data: {
-            geometry: { coordinates: clickedCoordinate, type: 'Point' },
-            properties: {},
-            type: 'Feature'
-          },
-          type: 'geojson'
-        }
-      })
-    }
-  }
+  const mapStyle: StyleSpecification = useMemo(
+    () => ({
+      ...baseMapStyle,
+      layers: [
+        ...baseMapStyle.layers,
+        ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
+        ...(searchByZone.layer ? [searchByZone.layer] : [])
+      ],
+      sources: {
+        ...baseMapStyle.sources,
+        ...(searchByZone.source && {
+          [searchByZone.source.id]: searchByZone.source.definition
+        }),
+        ...(regulatoryAreaLayer.source && {
+          [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
+        })
+      }
+    }),
+    [
+      isSearchZoneActive,
+      areRegulatoryAreasLayerVisible,
+      regulatoryAreaLayer.layers,
+      regulatoryAreaLayer.source,
+      searchByZone.layer,
+      searchByZone.source
+    ]
+  )
+
+  /** Rebuilt only when the layer reloads, not on every tap. */
+  const geometriesById = useMemo(
+    () =>
+      new Map(
+        (regulatoryAreaLayer.source?.definition.data.features ?? []).map(feature => [
+          feature.properties?.id,
+          feature.geometry
+        ])
+      ),
+    [regulatoryAreaLayer.source]
+  )
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)
@@ -176,42 +182,62 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const onMapPress = async (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
+  const resolveClickedAreas = useCallback(
+    (coordinate: LngLat) => {
+      const clickedRegulatoryAreas = regulatoryAreas.filter(area => {
+        if (!isPointInBoundingBox(coordinate, area.bbox)) {
+          return false
+        }
+
+        const geometry = geometriesById.get(area.id)
+
+        return !!geometry && isPointInGeometry(coordinate, geometry)
+      })
+
+      if (clickedRegulatoryAreas.length === 0) {
+        setClickedCoordinate(undefined)
+        return
+      }
+
+      if (clickedRegulatoryAreas.length === 1) {
+        setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
+        setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
+        setClickedCoordinate(undefined)
+        zoomOnRegulatoryArea(clickedRegulatoryAreas[0])
+        return
+      }
+
+      setClickedFeaturesList(clickedRegulatoryAreas)
+      setActiveModal('CLICKED_FEATURES_LIST_MODAL')
+    },
+    [
+      regulatoryAreas,
+      geometriesById,
+      setSelectedRegulatoryArea,
+      setActiveModal,
+      setClickedCoordinate,
+      zoomOnRegulatoryArea,
+      setClickedFeaturesList
+    ]
+  )
+
+  const onMapPress = (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
     if (!isSearchZoneActive) {
       return
     }
 
-    const position = event.nativeEvent.point
-    const coordinate = await mapRef.current?.unproject(position)
+    const coordinate = event.nativeEvent.lngLat
+    if (!coordinate) {
+      return
+    }
 
     setClickedCoordinate(coordinate)
-    const features = await mapRef.current?.queryRenderedFeatures(position, {
-      layers: [regulatoryAreaLayer.ids.fillLayer]
+
+    // The first frame runs before this commit paints, the second after it: the cursor is on
+    // screen before the ray-cast takes the thread.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolveClickedAreas(coordinate))
     })
-    if (features?.length === 0) {
-      setClickedCoordinate(undefined)
-      return
-    }
-
-    const clickedFeaturesIds = features?.map(feature => feature.properties?.id) ?? []
-    const clickedRegulatoryAreas = regulatoryAreas.filter(area => clickedFeaturesIds.includes(area.id))
-
-    if (clickedRegulatoryAreas.length === 1) {
-      setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
-      setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
-      setClickedCoordinate(undefined)
-      zoomOnRegulatoryArea(clickedRegulatoryAreas[0])
-      return
-    }
-
-    const featuresToDisplay =
-      clickedRegulatoryAreas && clickedRegulatoryAreas.length > 1 ? clickedRegulatoryAreas : undefined
-
-    if (!featuresToDisplay) {
-      return
-    }
-    setClickedFeaturesList(featuresToDisplay)
-    setActiveModal('CLICKED_FEATURES_LIST_MODAL')
   }
 
   const searchByQuery = async () => {
@@ -249,6 +275,16 @@ function App() {
       onPress={onMapPress}
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
+
+      {clickedCoordinate && (
+        <LayerAnnotation id="clickedPoint" lngLat={clickedCoordinate}>
+          <Layer
+            id="clickedPointLayer"
+            type="symbol"
+            layout={{ 'icon-allow-overlap': true, 'icon-image': 'cursorIcon', 'icon-size': 0.5 }}
+          />
+        </LayerAnnotation>
+      )}
 
       {isLocationButtonEnabled && <UserLocation accuracy />}
       <Camera

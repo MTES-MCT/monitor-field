@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
 import { LoaderIcon } from '@components/LoaderIcon'
 
-export function Step3({ syncPromise }: { syncPromise: Promise<void> }) {
+export function Step3({ syncPromise }: { syncPromise: Promise<unknown> }) {
   useEffect(() => {
     syncPromise.then(() => {
       storage.set('isOnBoardingFinished', true)

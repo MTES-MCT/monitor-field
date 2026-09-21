@@ -14,8 +14,7 @@ import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useRouter } from 'expo-router'
 import { useAppContext } from '@contexts/AppContext'
-import { syncRegulatoryAreasDB } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreasDB'
-import { logSentryError } from '@utils/sentryLogger'
+import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreas'
 
 export default function SeaFronts() {
   const styles = useThemedStyles(createStyles)
@@ -44,9 +43,7 @@ export default function SeaFronts() {
     setIsRefreshingSettingsData(true)
 
     try {
-      await syncRegulatoryAreasDB(selectedSeaFrontsArray, { forceRefresh: true })
-    } catch (e) {
-      logSentryError(e, 'Unable to sync regulatory areas')
+      await syncRegulatoryAreas(selectedSeaFrontsArray, { forceRefresh: true })
     } finally {
       setIsRefreshingSettingsData(false)
     }
