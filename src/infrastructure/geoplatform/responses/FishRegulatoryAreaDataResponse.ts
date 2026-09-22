@@ -2,6 +2,7 @@ import { bbox } from '@turf/bbox'
 import type { Feature, MultiPolygon, Polygon } from 'geojson'
 import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRegulatoryArea'
 import { parseFeatureId } from '../parseFeatureId'
+import { RawGeoJSONFeatureSchema } from '@/types/schemas'
 
 export type FishRegulatoryAreaProperties = {
   reglementations: string
@@ -26,12 +27,15 @@ export function toFishRegulatoryArea(feature: FishRegulatoryAreaFeature): FishRe
 
   const properties = feature.properties ?? ({} as FishRegulatoryAreaProperties)
 
+  const storedFeature = feature.geometry ? { geometry: feature.geometry, properties: {}, type: 'Feature' } : undefined
+
   return {
     boundingBox: toBoundingBox(feature),
-    // Stored as a Feature, like the Env dataset
-    geometry: feature.geometry
-      ? JSON.stringify({ geometry: feature.geometry, properties: {}, type: 'Feature' })
-      : undefined,
+    // Validated once at ingest so the read path can trust the stored JSON.
+    geometry:
+      storedFeature && RawGeoJSONFeatureSchema.safeParse(storedFeature).success
+        ? JSON.stringify(storedFeature)
+        : undefined,
     id,
     regulations: properties.reglementations,
     theme: properties.thematique,

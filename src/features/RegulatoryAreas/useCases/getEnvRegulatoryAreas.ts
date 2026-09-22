@@ -1,6 +1,6 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
 import { EnvFeaturePropertiesSchema } from '@/types/schemas'
-import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
+import { parseStoredFeature } from '@utils/parseGeoJSONFeature'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
@@ -25,7 +25,7 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       continue
     }
 
-    const feature = parseGeoJSONFeature(area.geojson)
+    const feature = parseStoredFeature(area.geojson)
 
     if (!feature) {
       continue
@@ -68,9 +68,8 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       }
     })
 
-    // `feature` is already a validated GeoJSON feature from `parseGeoJSONFeature`; only the
-    // properties we just built still need validating. Re-validating the geometry here would walk
-    // every coordinate a second time for no benefit.
+    // `feature` comes from `parseStoredFeature`; its geometry was validated once at ingest, so
+    // only the properties we just built still need validating here.
     const validatedProperties = EnvFeaturePropertiesSchema.safeParse(currentArea)
 
     if (!validatedProperties.success) {

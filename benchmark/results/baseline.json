@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-22T10:43:40.894Z",
+  "generatedAt": "2026-09-22T10:52:36.261Z",
   "scenarios": [
     {
       "name": "per-area · 1k vertices",
@@ -9,18 +9,18 @@
       "iterations": 5,
       "processedAreas": 50,
       "validate": {
-        "meanMs": 71.48,
-        "medianMs": 71.6,
-        "p95Ms": 72.13,
-        "msPerArea": 1.43,
-        "areasPerSecond": 699.5
+        "meanMs": 10.52,
+        "medianMs": 10.45,
+        "p95Ms": 11.12,
+        "msPerArea": 0.21,
+        "areasPerSecond": 4752.85
       },
       "search": {
-        "meanMs": 72.42,
-        "medianMs": 72.04,
-        "p95Ms": 73.56,
-        "msPerArea": 1.45,
-        "areasPerSecond": 690.39
+        "meanMs": 11.93,
+        "medianMs": 11.44,
+        "p95Ms": 13.67,
+        "msPerArea": 0.24,
+        "areasPerSecond": 4192.53
       }
     },
     {
@@ -31,18 +31,18 @@
       "iterations": 5,
       "processedAreas": 10,
       "validate": {
-        "meanMs": 143.37,
-        "medianMs": 143.45,
-        "p95Ms": 144.13,
-        "msPerArea": 14.34,
-        "areasPerSecond": 69.75
+        "meanMs": 20.51,
+        "medianMs": 20.51,
+        "p95Ms": 20.73,
+        "msPerArea": 2.05,
+        "areasPerSecond": 487.57
       },
       "search": {
-        "meanMs": 146.22,
-        "medianMs": 146.26,
-        "p95Ms": 146.54,
-        "msPerArea": 14.62,
-        "areasPerSecond": 68.39
+        "meanMs": 23.19,
+        "medianMs": 23.15,
+        "p95Ms": 23.55,
+        "msPerArea": 2.32,
+        "areasPerSecond": 431.26
       }
     },
     {
@@ -53,18 +53,18 @@
       "iterations": 5,
       "processedAreas": 1,
       "validate": {
-        "meanMs": 156.88,
-        "medianMs": 155.84,
-        "p95Ms": 163.65,
-        "msPerArea": 156.88,
-        "areasPerSecond": 6.37
+        "meanMs": 23.79,
+        "medianMs": 24.27,
+        "p95Ms": 24.37,
+        "msPerArea": 23.79,
+        "areasPerSecond": 42.03
       },
       "search": {
-        "meanMs": 159.69,
-        "medianMs": 159.53,
-        "p95Ms": 161.93,
-        "msPerArea": 159.69,
-        "areasPerSecond": 6.26
+        "meanMs": 29.1,
+        "medianMs": 29.04,
+        "p95Ms": 29.22,
+        "msPerArea": 29.1,
+        "areasPerSecond": 34.36
       }
     },
     {
@@ -75,18 +75,18 @@
       "iterations": 5,
       "processedAreas": 30,
       "validate": {
-        "meanMs": 211.2,
-        "medianMs": 210.98,
-        "p95Ms": 212.67,
-        "msPerArea": 7.04,
-        "areasPerSecond": 142.05
+        "meanMs": 31.08,
+        "medianMs": 31.07,
+        "p95Ms": 31.29,
+        "msPerArea": 1.04,
+        "areasPerSecond": 965.25
       },
       "search": {
-        "meanMs": 216.09,
-        "medianMs": 216.31,
-        "p95Ms": 216.7,
-        "msPerArea": 7.2,
-        "areasPerSecond": 138.83
+        "meanMs": 34.73,
+        "medianMs": 34.74,
+        "p95Ms": 34.92,
+        "msPerArea": 1.16,
+        "areasPerSecond": 863.73
       }
     },
     {
@@ -97,18 +97,18 @@
       "iterations": 5,
       "processedAreas": 50,
       "validate": {
-        "meanMs": 353.81,
-        "medianMs": 353.25,
-        "p95Ms": 357.76,
-        "msPerArea": 7.08,
-        "areasPerSecond": 141.32
+        "meanMs": 51.73,
+        "medianMs": 51.69,
+        "p95Ms": 52.45,
+        "msPerArea": 1.03,
+        "areasPerSecond": 966.56
       },
       "search": {
-        "meanMs": 363.35,
-        "medianMs": 361.98,
-        "p95Ms": 368.94,
-        "msPerArea": 7.27,
-        "areasPerSecond": 137.61
+        "meanMs": 58.09,
+        "medianMs": 58.35,
+        "p95Ms": 58.42,
+        "msPerArea": 1.16,
+        "areasPerSecond": 860.73
       }
     }
   ]

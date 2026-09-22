@@ -1,5 +1,5 @@
 import { doesGeometryIntersectBbox } from '@/utils/doesGeometryIntersectBbox'
-import { parseGeoJSONFeature } from '@/utils/parseGeoJSONFeature'
+import { parseStoredFeature } from '@/utils/parseGeoJSONFeature'
 import { EnvFeaturePropertiesSchema, FishFeaturePropertiesSchema } from '@/types/schemas'
 import type { BoundingBox, Geometry } from '@/types/mapTypes'
 
@@ -7,12 +7,11 @@ import type { BoundingBox, Geometry } from '@/types/mapTypes'
  * Benchmark for the regulatory-area search hot path.
  *
  * It replicates, in isolation, the per-area body of `getEnvRegulatoryAreas` /
- * `getFishRegulatoryAreas`: `parseGeoJSONFeature` (a JSON.parse followed by a full Zod
- * geometry validation), an optional `doesGeometryIntersectBbox` intersection test, and then a
- * Zod validation of the (small) properties object. That is the exact cost identified as the
- * main "search in the area shown on screen is slow" driver, and the thing we want to measure
- * before/after optimising (e.g. dropping the duplicate geometry validation, caching parsed
- * geometries).
+ * `getFishRegulatoryAreas`: `parseStoredFeature` (a JSON.parse of the geometry already validated
+ * at ingest), an optional `doesGeometryIntersectBbox` intersection test, and a Zod validation of
+ * the (small) properties object. That is the exact cost identified as the main "search in the
+ * area shown on screen is slow" driver, and the thing we want to measure before/after optimising
+ * (e.g. caching parsed geometries, pushing text search into SQL).
  *
  * The geometry shapes are synthetic but sized to the real dataset: the codebase itself notes
  * fish geometries "reach ~118 000 vertices" (`FishRegulatoryAreaDataResponse.ts`).
@@ -171,7 +170,7 @@ function buildProperties(id: number, mode: BenchmarkMode): EnvFeatureProperties 
 }
 
 function runArea(row: AreaRow, bbox: BoundingBox, mode: BenchmarkMode, includeIntersection: boolean): PipelineStep {
-  const feature = parseGeoJSONFeature(row.geojson)
+  const feature = parseStoredFeature(row.geojson)
 
   if (!feature) {
     return 'parseFailed'
@@ -287,7 +286,7 @@ export function formatReport(report: BenchmarkReport): string {
       `${scenario.name} (${scenario.mode}) — ${scenario.areaCount} areas × ${vertices} vertices, ${scenario.iterations} iterations`
     )
     lines.push(
-      `  validate (parse + geometry Zod + props Zod)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
+      `  validate (JSON.parse + props Zod)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
     )
     lines.push(
       `  search   (validate + intersect) mean ${round(scenario.search.meanMs)}ms · median ${round(scenario.search.medianMs)}ms · p95 ${round(scenario.search.p95Ms)}ms · ${round(scenario.search.msPerArea)} ms/area · ${round(scenario.search.areasPerSecond)} areas/s`
