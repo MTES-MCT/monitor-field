@@ -22,7 +22,7 @@ export const RawGeoJSONFeatureSchema = z.object({
 
 export type RawGeoJSONFeature = z.infer<typeof RawGeoJSONFeatureSchema>
 
-const FishFeaturePropertiesSchema = z.object({
+export const FishFeaturePropertiesSchema = z.object({
   fillColor: z.string(),
   id: z.number(),
   theme: z.string(),
@@ -36,7 +36,7 @@ export const FishRegulatoryAreaFeatureSchema = RawGeoJSONFeatureSchema.extend({
 
 export type FishRegulatoryAreaFeature = z.infer<typeof FishRegulatoryAreaFeatureSchema>
 
-const EnvFeaturePropertiesSchema = z.object({
+export const EnvFeaturePropertiesSchema = z.object({
   additionalRefReg: z.string().nullable(),
   authorizationPeriods: z.string().nullable(),
   date: z.string().nullable(),

@@ -1,5 +1,5 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
-import { FishRegulatoryAreaFeatureSchema } from '@/types/schemas'
+import { FishFeaturePropertiesSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
@@ -57,21 +57,22 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
       }
     })
 
-    const featureWithProperties = {
-      ...feature,
-      properties: { ...currentArea }
-    }
+    // `feature` is already a validated GeoJSON feature from `parseGeoJSONFeature`; only the
+    // properties we just built still need validating. Re-validating the geometry here would walk
+    // every coordinate a second time for no benefit.
+    const validatedProperties = FishFeaturePropertiesSchema.safeParse(currentArea)
 
-    const validatedFeature = FishRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
-
-    if (!validatedFeature.success) {
-      logToSentry(`Invalid feature for area ${area.id}: ${validatedFeature.error}`, 'warning', {
+    if (!validatedProperties.success) {
+      logToSentry(`Invalid feature for area ${area.id}: ${validatedProperties.error}`, 'warning', {
         extra: { label: 'getFishRegulatoryAreas' }
       })
       continue
     }
 
-    features.push(validatedFeature.data as GeoJSONFeature)
+    features.push({
+      ...feature,
+      properties: validatedProperties.data
+    } as GeoJSONFeature)
   }
 
   return {

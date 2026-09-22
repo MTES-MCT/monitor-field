@@ -1,6 +1,6 @@
 import { doesGeometryIntersectBbox } from '@/utils/doesGeometryIntersectBbox'
 import { parseGeoJSONFeature } from '@/utils/parseGeoJSONFeature'
-import { EnvRegulatoryAreaFeatureSchema, FishRegulatoryAreaFeatureSchema } from '@/types/schemas'
+import { EnvFeaturePropertiesSchema, FishFeaturePropertiesSchema } from '@/types/schemas'
 import type { BoundingBox, Geometry } from '@/types/mapTypes'
 
 /**
@@ -9,9 +9,9 @@ import type { BoundingBox, Geometry } from '@/types/mapTypes'
  * It replicates, in isolation, the per-area body of `getEnvRegulatoryAreas` /
  * `getFishRegulatoryAreas`: `parseGeoJSONFeature` (a JSON.parse followed by a full Zod
  * geometry validation), an optional `doesGeometryIntersectBbox` intersection test, and then a
- * second full Zod validation via the `*FeatureSchema`. That is the exact cost identified as
- * the main "search in the area shown on screen is slow" driver, and the thing we want to
- * measure before/after optimising (e.g. dropping the double validation, caching parsed
+ * Zod validation of the (small) properties object. That is the exact cost identified as the
+ * main "search in the area shown on screen is slow" driver, and the thing we want to measure
+ * before/after optimising (e.g. dropping the duplicate geometry validation, caching parsed
  * geometries).
  *
  * The geometry shapes are synthetic but sized to the real dataset: the codebase itself notes
@@ -182,15 +182,11 @@ function runArea(row: AreaRow, bbox: BoundingBox, mode: BenchmarkMode, includeIn
   }
 
   const properties = buildProperties(row.id, mode)
-  const featureWithProperties = {
-    ...feature,
-    properties: { ...properties }
-  }
 
   const validated =
     mode === 'MONITORFISH'
-      ? FishRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
-      : EnvRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
+      ? FishFeaturePropertiesSchema.safeParse(properties)
+      : EnvFeaturePropertiesSchema.safeParse(properties)
 
   return validated.success ? 'processed' : 'validateFailed'
 }
@@ -291,7 +287,7 @@ export function formatReport(report: BenchmarkReport): string {
       `${scenario.name} (${scenario.mode}) — ${scenario.areaCount} areas × ${vertices} vertices, ${scenario.iterations} iterations`
     )
     lines.push(
-      `  validate (JSON.parse + 2× Zod)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
+      `  validate (parse + geometry Zod + props Zod)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
     )
     lines.push(
       `  search   (validate + intersect) mean ${round(scenario.search.meanMs)}ms · median ${round(scenario.search.medianMs)}ms · p95 ${round(scenario.search.p95Ms)}ms · ${round(scenario.search.msPerArea)} ms/area · ${round(scenario.search.areasPerSecond)} areas/s`
