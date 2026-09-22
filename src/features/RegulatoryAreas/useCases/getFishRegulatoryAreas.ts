@@ -39,8 +39,12 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
 
     const currentArea: Omit<FishRegulatoryArea, 'bbox'> = {
       fillColor: area.fillColor,
+      fishingPeriods: area.fishingPeriods,
+      gears: area.gears,
+      generalRemarks: area.generalRemarks,
       id: area.id,
-      regulations: area.regulations,
+      regulatoryReferences: area.regulatoryReferences,
+      species: area.species,
       theme: area.theme,
       totalByGroup: area.totalByGroup,
       type: area.type,

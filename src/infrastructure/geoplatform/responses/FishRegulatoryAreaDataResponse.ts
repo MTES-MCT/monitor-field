@@ -4,7 +4,12 @@ import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRe
 import { parseFeatureId } from '../parseFeatureId'
 
 export type FishRegulatoryAreaProperties = {
-  reglementations: string
+  engins: string | null
+  especes: string | null
+  periodes: string | null
+  /** The raw `regulatory_references` JSON array, no longer the flat list it used to hold. */
+  reglementations: string | null
+  remarques_generales: string | null
   thematique: string
   type_de_reglementation: string
   zone: string
@@ -28,12 +33,16 @@ export function toFishRegulatoryArea(feature: FishRegulatoryAreaFeature): FishRe
 
   return {
     boundingBox: toBoundingBox(feature),
+    fishingPeriods: properties.periodes ?? undefined,
+    gears: properties.engins ?? undefined,
+    generalRemarks: properties.remarques_generales ?? undefined,
     // Stored as a Feature, like the Env dataset
     geometry: feature.geometry
       ? JSON.stringify({ geometry: feature.geometry, properties: {}, type: 'Feature' })
       : undefined,
     id,
-    regulations: properties.reglementations,
+    regulatoryReferences: properties.reglementations ?? undefined,
+    species: properties.especes ?? undefined,
     theme: properties.thematique,
     type: properties.type_de_reglementation,
     zone: properties.zone

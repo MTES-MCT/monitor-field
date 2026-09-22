@@ -71,9 +71,13 @@ export function createInMemorySyncStateRepository(seed: Partial<Record<SyncedDat
 export function buildFishArea(id: number, seaFront = 'NAMO'): FishRegulatoryArea {
   return {
     boundingBox: { maxLat: 49, maxLon: -3, minLat: 48, minLon: -4 },
+    fishingPeriods: undefined,
+    gears: undefined,
+    generalRemarks: undefined,
     geometry: '{"type":"Polygon","coordinates":[]}',
     id,
-    regulations: `Arrêté ${id}`,
+    regulatoryReferences: undefined,
+    species: undefined,
     theme: 'Thématique',
     type: toRegulationType(seaFront),
     zone: `Zone ${id}`

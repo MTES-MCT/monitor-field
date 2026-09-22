@@ -36,9 +36,13 @@ function createRecordingDb() {
 function buildArea(id: number, seaFront = 'NAMO'): FishRegulatoryArea {
   return {
     boundingBox: { maxLat: 49, maxLon: -3, minLat: 48, minLon: -4 },
+    fishingPeriods: '{"weekdays": ["lundi"]}',
+    gears: '{"regulatedGears": []}',
+    generalRemarks: `Remarques ${id}`,
     geometry: '{"type":"Polygon","coordinates":[]}',
     id,
-    regulations: `Arrêté ${id}`,
+    regulatoryReferences: `[{"reference": "Arrêté ${id}"}]`,
+    species: '{"regulatedSpecies": []}',
     theme: 'Thématique',
     type: `Reg. ${seaFront}`,
     zone: `Zone ${id}`
@@ -116,7 +120,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
 
       await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
 
-      expect(insertedRows()[0]?.slice(6, 11)).toEqual(['{"type":"Polygon","coordinates":[]}', -4, 48, -3, 49])
+      expect(insertedRows()[0]?.slice(10, 15)).toEqual(['{"type":"Polygon","coordinates":[]}', -4, 48, -3, 49])
     })
 
     it('stores nulls rather than undefined when an area has no geometry', async () => {
@@ -125,7 +129,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
 
       await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [area])
 
-      expect(insertedRows()[0]?.slice(6, 11)).toEqual([null, null, null, null, null])
+      expect(insertedRows()[0]?.slice(10, 15)).toEqual([null, null, null, null, null])
     })
 
     it('stores how many areas each theme holds, so the list can show a total per group', async () => {
@@ -138,7 +142,37 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
 
       await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], areas)
 
-      expect(insertedRows().map(row => row[11])).toEqual([2, 2, 1])
+      expect(insertedRows().map(row => row[15])).toEqual([2, 2, 1])
+    })
+
+    it('writes the columns the delivery publishes: references, periods, gears, species, remarks', async () => {
+      const { db, insertedRows } = createRecordingDb()
+
+      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+
+      expect(insertedRows()[0]?.slice(5, 10)).toEqual([
+        '[{"reference": "Arrêté 1"}]',
+        '{"weekdays": ["lundi"]}',
+        '{"regulatedGears": []}',
+        '{"regulatedSpecies": []}',
+        'Remarques 1'
+      ])
+    })
+
+    it('stores nulls rather than undefined when the delivery omits the optional columns', async () => {
+      const { db, insertedRows } = createRecordingDb()
+      const area = {
+        ...buildArea(1),
+        fishingPeriods: undefined,
+        gears: undefined,
+        generalRemarks: undefined,
+        regulatoryReferences: undefined,
+        species: undefined
+      }
+
+      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [area])
+
+      expect(insertedRows()[0]?.slice(5, 10)).toEqual([null, null, null, null, null])
     })
 
     it('assigns a fill colour', async () => {

@@ -3,7 +3,11 @@ import type { FishRegulatoryAreaFeature } from '../FishRegulatoryAreaDataRespons
 import { toFishRegulatoryArea } from '../FishRegulatoryAreaDataResponse'
 
 const PROPERTIES = {
-  reglementations: 'Arrêté Préfectoral R53-2024',
+  engins: '{"regulatedGears": []}',
+  especes: '{"regulatedSpecies": []}',
+  periodes: '{"always": true}',
+  reglementations: '[{"reference": "Arrêté Préfectoral R53-2024"}]',
+  remarques_generales: 'Pêche interdite toute l’année',
   thematique: "Côtes d'Armor - CSJ",
   type_de_reglementation: 'Reg. NAMO',
   zone: 'Banc de Maërl'
@@ -36,11 +40,36 @@ describe('toFishRegulatoryArea', () => {
     const area = toFishRegulatoryArea(buildFeature())
 
     expect(area).toMatchObject({
+      fishingPeriods: '{"always": true}',
+      gears: '{"regulatedGears": []}',
+      generalRemarks: 'Pêche interdite toute l’année',
       id: 12,
-      regulations: 'Arrêté Préfectoral R53-2024',
+      regulatoryReferences: '[{"reference": "Arrêté Préfectoral R53-2024"}]',
+      species: '{"regulatedSpecies": []}',
       theme: "Côtes d'Armor - CSJ",
       type: 'Reg. NAMO',
       zone: 'Banc de Maërl'
+    })
+  })
+
+  it('leaves the optional columns undefined when the delivery sends null', () => {
+    const feature = buildFeature({
+      properties: {
+        ...PROPERTIES,
+        engins: null,
+        especes: null,
+        periodes: null,
+        reglementations: null,
+        remarques_generales: null
+      }
+    } as Partial<FishRegulatoryAreaFeature>)
+
+    expect(toFishRegulatoryArea(feature)).toMatchObject({
+      fishingPeriods: undefined,
+      gears: undefined,
+      generalRemarks: undefined,
+      regulatoryReferences: undefined,
+      species: undefined
     })
   })
 
