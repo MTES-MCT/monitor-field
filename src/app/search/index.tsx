@@ -16,7 +16,6 @@ export default function SearchPage() {
   const router = useRouter()
   const { filters, setFilters } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
-
   const searchQuery = useMemo(() => {
     return config.mode === 'MONITORENV'
       ? (filters.searchQueryEnv?.trim() ?? undefined)
@@ -24,12 +23,12 @@ export default function SearchPage() {
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onDismiss = () => {
+    router.back()
     setFilters(currentFilters => ({
       ...currentFilters,
       ...(config.mode === 'MONITORENV' ? { searchQueryEnv: undefined } : { searchQueryFish: undefined })
     }))
     setActiveModal(undefined)
-    router.back()
   }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({

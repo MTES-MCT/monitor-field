@@ -11,16 +11,15 @@ import { LoaderIcon } from '@components/LoaderIcon'
 import { useMemo } from 'react'
 
 type BottomBarProps = {
-  isLoading: boolean
   searchByQuery: () => void
 }
 
-export function BottomBar({ isLoading, searchByQuery }: BottomBarProps) {
+export function BottomBar({ searchByQuery }: BottomBarProps) {
   const { config, setActiveModal } = useAppContext()
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
 
-  const { areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible, totalCount, filters } =
+  const { isLoading, totalCount, filters, areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible } =
     useRegulatoryAreasContext()
 
   const searchQuery = useMemo(() => {

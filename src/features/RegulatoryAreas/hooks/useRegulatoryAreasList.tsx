@@ -12,7 +12,6 @@ import { Image } from 'expo-image'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { Spacing } from '@constants/theme'
-import { useRegulatoryAreasLayer } from '../Layers/RegulatoryAreasLayers'
 
 type GroupRow = {
   type: 'group'
@@ -40,6 +39,7 @@ export function useRegulatoryAreasList({
   onSelectRegulatoryArea?: () => void
 }) {
   const {
+    isLoading,
     clickedFeaturesList,
     regulatoryAreas,
     filters: { searchQueryEnv, searchQueryFish },
@@ -53,8 +53,6 @@ export function useRegulatoryAreasList({
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
-
-  const { isLoading } = useRegulatoryAreasLayer()
 
   const isClickedFeatureList = origin === 'CLICKED_FEATURES_LIST_MODAL'
   const sourceRegulatoryAreas = useMemo(
@@ -86,7 +84,12 @@ export function useRegulatoryAreasList({
         return
       }
 
+      if (pathname !== '/search') {
+        zoomOnRegulatoryArea(area)
+      }
+
       setSelectedRegulatoryArea(area)
+      setIsolatedRegulatoryAreaId(undefined)
       setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
       setExpandedGroups({})
       onSelectRegulatoryArea?.()
@@ -101,8 +104,6 @@ export function useRegulatoryAreasList({
 
         return
       }
-
-      zoomOnRegulatoryArea(area)
     },
     [
       zoomOnRegulatoryArea,
@@ -111,7 +112,8 @@ export function useRegulatoryAreasList({
       setActiveModal,
       pathname,
       router,
-      onSelectRegulatoryArea
+      onSelectRegulatoryArea,
+      setIsolatedRegulatoryAreaId
     ]
   )
 
@@ -126,10 +128,10 @@ export function useRegulatoryAreasList({
     [expandedGroups]
   )
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setExpandedGroups({})
     onClose()
-  }
+  }, [onClose])
 
   const isolateRegulatoryArea = useCallback(
     (area: RegulatoryAreaListItem) => {
@@ -174,7 +176,7 @@ export function useRegulatoryAreasList({
             <ThemedText
               type="defaultBold"
               themeColor="slateGray"
-            >{`${item.areas.length} / ${item.areas[0]?.totalByGroup}`}</ThemedText>
+            >{`${item.areas.length}/${item.areas[0]?.totalByGroup}`}</ThemedText>
           </Pressable>
         )
       }

@@ -24,6 +24,8 @@ const RegulatoryAreasContext = createContext<
       setIsolatedRegulatoryAreaId: (areaId: number | undefined) => void
       areRegulatoryAreasLayerVisible: boolean
       setAreRegulatoryAreasLayerVisible: (visible: boolean) => void
+      isLoading: boolean
+      setIsLoading: (loading: boolean) => void
     }
   | undefined
 >(undefined)
@@ -33,7 +35,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
   const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
-  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(true)
+  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const [filters, setFilters] = useState<Filters>({
     recentlyAddedOrModified: false,
@@ -57,6 +60,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       areRegulatoryAreasLayerVisible,
       clickedFeaturesList,
       filters,
+      isLoading,
       isolatedRegulatoryAreaId,
       regulatoryAreas,
       searchBbox,
@@ -64,6 +68,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       setAreRegulatoryAreasLayerVisible,
       setClickedFeaturesList,
       setFilters,
+      setIsLoading,
       setIsolatedRegulatoryAreaId,
       setRegulatoryAreas,
       setSearchBbox,
@@ -79,6 +84,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       searchBbox,
       selectedRegulatoryArea,
       setRegulatoryAreas,
+      isLoading,
+      setIsLoading,
       totalCount
     ]
   )

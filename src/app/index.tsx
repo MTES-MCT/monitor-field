@@ -46,7 +46,6 @@ import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { useLocationStatus } from '@hooks/useLocationStatus'
-import { useSelectedRegulatoryAreaLayer } from '@components/Layers/useSelectedRegulatoryAreaLayer'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -310,7 +309,7 @@ function App() {
 
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
-          <BottomBar isLoading={regulatoryAreaLayer.isLoading} searchByQuery={searchByQuery} />
+          <BottomBar searchByQuery={searchByQuery} />
         </View>
       </SafeAreaView>
     </MapLibreMap>

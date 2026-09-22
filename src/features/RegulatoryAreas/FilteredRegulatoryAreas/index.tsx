@@ -12,6 +12,8 @@ import { EnvFilters } from './EnvFilters'
 import { ThemedText } from '@components/Elements/Text'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 import { useGlobalStyle } from '@globalStyle'
+import { Image } from 'expo-image'
+import { CloseButton } from '@components/Buttons/CloseButton'
 
 type FilteredRegulatoryAreasProps = {
   setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
@@ -23,7 +25,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   const globalStyle = useGlobalStyle()
   const router = useRouter()
   const { activeModal, config, setActiveModal } = useAppContext()
-  const { filters } = useRegulatoryAreasContext()
+  const { filters, setFilters } = useRegulatoryAreasContext()
 
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
@@ -36,17 +38,30 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       : (filters.searchQueryFish?.trim() ?? undefined)
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
-  const onClose = useCallback(() => {
+  const onCloseRegulatoryAreaDetails = useCallback(() => {
     setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL')
     setActiveModal(undefined)
+    modalRef.current?.dismiss()
   }, [setActiveModal, setRegulatoryAreaDetailsOrigin])
 
+  const onCloseModal = useCallback(() => {
+    setActiveModal(undefined)
+    modalRef.current?.dismiss()
+  }, [setActiveModal])
+
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
-    onClose,
+    onClose: onCloseRegulatoryAreaDetails,
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL'),
     origin: 'REGULATORY_AREAS_LIST_MODAL',
     shouldShowResults: true
   })
+
+  const clearText = useCallback(() => {
+    setFilters(currentFilters => ({
+      ...currentFilters,
+      ...(config.mode === 'MONITORENV' ? { searchQueryEnv: undefined } : { searchQueryFish: undefined })
+    }))
+  }, [config.mode, setFilters])
 
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
@@ -77,18 +92,26 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
     >
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
         <View style={styles.searchBox}>
-          <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
+          <BackButton onBack={onCloseModal} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
             style={styles.input}
             value={searchQuery}
             onChangeText={() => {}}
             onFocus={() => {
-              onClose()
-              router.navigate('/search')
+              onCloseModal()
+              router.push('/search')
             }}
             placeholder="Rechercher"
           />
+          {searchQuery && searchQuery.length > 0 ? (
+            <CloseButton onClose={clearText} isSmall style={{ marginRight: Spacing.two }} />
+          ) : (
+            <Image
+              source={require('@assets/icons/search.svg')}
+              style={[globalStyle.iconSmall, { marginRight: Spacing.two }]}
+            />
+          )}
         </View>
         {config?.features?.hasRegulatoryAreasFilters && <EnvFilters />}
       </View>

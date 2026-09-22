@@ -10,6 +10,8 @@ import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet, View } from 'react-native'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 
+const ORIGIN = 'CLICKED_FEATURES_LIST_MODAL'
+
 export const SelectedRegulatoryAreas = ({
   setRegulatoryAreaDetailsOrigin
 }: {
@@ -32,16 +34,17 @@ export const SelectedRegulatoryAreas = ({
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onClose = () => {
+    setActiveModal(undefined)
     setClickedFeaturesList(undefined)
     setIsolatedRegulatoryAreaId(undefined)
-    setActiveModal(undefined)
     setClickedCoordinate(undefined)
+    modalRef.current?.dismiss()
   }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onClose,
-    onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin('CLICKED_FEATURES_LIST_MODAL'),
-    origin: 'CLICKED_FEATURES_LIST_MODAL'
+    onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
+    origin: ORIGIN
   })
 
   useEffect(() => {

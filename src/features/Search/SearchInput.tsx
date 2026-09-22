@@ -50,6 +50,14 @@ export function SearchInput({ onClose }: SearchInputProps) {
     }, 300)
   }
 
+  const clearText = () => {
+    setText('')
+    setFilters(currentFilters => ({
+      ...currentFilters,
+      ...(config.mode === 'MONITORENV' ? { searchQueryEnv: undefined } : { searchQueryFish: undefined })
+    }))
+  }
+
   const onCloseSearchInput = () => {
     inputRef.current?.blur()
     onClose()
@@ -78,7 +86,7 @@ export function SearchInput({ onClose }: SearchInputProps) {
           />
 
           {text.length > 0 ? (
-            <CloseButton onClose={() => onChangeText('')} isSmall style={{ marginRight: Spacing.two }} />
+            <CloseButton onClose={clearText} isSmall style={{ marginRight: Spacing.two }} />
           ) : (
             <Image
               source={require('@assets/icons/search.svg')}
@@ -104,7 +112,7 @@ const createStyles = theme =>
       alignItems: 'center',
       flexDirection: 'row',
       gap: Spacing.two,
-      marginHorizontal: Spacing.two,
+      marginHorizontal: Spacing.three,
       marginVertical: Spacing.two
     },
     input: {

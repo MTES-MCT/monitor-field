@@ -29,6 +29,7 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const onDismiss = () => {
     setActiveModal(origin)
     setSelectedRegulatoryArea(undefined)
+    modalRef.current?.dismiss()
   }
 
   useEffect(() => {
