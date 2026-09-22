@@ -1,21 +1,30 @@
 import type { BoundingBox, Geometry, Position } from '@/types/mapTypes'
 import { isPointInRing } from '@utils/isPointInGeometry'
 
-type Point = [number, number]
+// Rings here run to hundreds of thousands of vertices, so the helpers read coordinates
+// positionally from the stored arrays instead of mapping each position into a new `[lon, lat]`
+// tuple first (which would allocate an array per vertex on every check).
 
-function toPoint(position: Position): Point {
-  return [position[0] ?? 0, position[1] ?? 0]
+function lon(position: Position): number {
+  return position[0] ?? 0
 }
 
-function isPointInBbox([lon, lat]: Point, bbox: BoundingBox): boolean {
-  return lon >= bbox.minLon && lon <= bbox.maxLon && lat >= bbox.minLat && lat <= bbox.maxLat
+function lat(position: Position): number {
+  return position[1] ?? 0
 }
 
-function direction(a: Point, b: Point, c: Point): number {
-  return (c[0] - a[0]) * (b[1] - a[1]) - (b[0] - a[0]) * (c[1] - a[1])
+function isPointInBbox(position: Position, bbox: BoundingBox): boolean {
+  const lng = lon(position)
+  const latValue = lat(position)
+
+  return lng >= bbox.minLon && lng <= bbox.maxLon && latValue >= bbox.minLat && latValue <= bbox.maxLat
 }
 
-function doSegmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
+function direction(a: Position, b: Position, c: Position): number {
+  return (lon(c) - lon(a)) * (lat(b) - lat(a)) - (lon(b) - lon(a)) * (lat(c) - lat(a))
+}
+
+function doSegmentsIntersect(p1: Position, p2: Position, p3: Position, p4: Position): boolean {
   const d1 = direction(p3, p4, p1)
   const d2 = direction(p3, p4, p2)
   const d3 = direction(p1, p2, p3)
@@ -25,31 +34,34 @@ function doSegmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): boolea
 }
 
 function doesRingIntersectBbox(rawRing: Position[], bbox: BoundingBox): boolean {
-  const ring = rawRing.map(toPoint)
-  const bboxCorners: Point[] = [
+  const bboxCorners: Position[] = [
     [bbox.minLon, bbox.minLat],
     [bbox.maxLon, bbox.minLat],
     [bbox.maxLon, bbox.maxLat],
     [bbox.minLon, bbox.maxLat]
   ]
 
-  if (ring.some(point => isPointInBbox(point, bbox))) {
+  if (rawRing.some(position => isPointInBbox(position, bbox))) {
     return true
   }
 
-  if (bboxCorners.some(corner => isPointInRing(corner, ring))) {
+  if (bboxCorners.some(corner => isPointInRing(corner, rawRing))) {
     return true
   }
 
-  for (let i = 0; i < ring.length - 1; i += 1) {
-    const a = ring[i] as Point
-    const b = ring[i + 1] as Point
+  for (let i = 0; i < rawRing.length - 1; i += 1) {
+    const a = rawRing[i]
+    const b = rawRing[i + 1]
+
+    if (!a || !b) {
+      continue
+    }
 
     for (let j = 0; j < bboxCorners.length; j += 1) {
-      const c = bboxCorners[j] as Point
-      const d = bboxCorners[(j + 1) % bboxCorners.length] as Point
+      const c = bboxCorners[j]
+      const d = bboxCorners[(j + 1) % bboxCorners.length]
 
-      if (doSegmentsIntersect(a, b, c, d)) {
+      if (c && d && doSegmentsIntersect(a, b, c, d)) {
         return true
       }
     }

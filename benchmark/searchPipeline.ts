@@ -232,9 +232,13 @@ function runScenario(config: ScenarioConfig): ScenarioResult {
   // below populates it, so the measured iterations reflect the steady-state (cached) cost.
   clearGeometryCache()
 
-  // Warm the JIT and the cache with the validate-only path.
+  // Warm the JIT and the cache for both the validate-only and the intersection paths, so the
+  // timed iterations don't include JIT compilation.
   for (const row of rows) {
     runArea(row, BENCHMARK_BBOX, config.mode, false)
+  }
+  for (const row of rows) {
+    runArea(row, BENCHMARK_BBOX, config.mode, true)
   }
 
   const validateSamples: number[] = []
@@ -271,12 +275,51 @@ function runScenario(config: ScenarioConfig): ScenarioResult {
   }
 }
 
+/** 4000 passes lands at ~20s of timed work on a quiet machine; override with `BENCHMARK_ITERATIONS`. */
+function readDefaultIterations(): number {
+  const fromEnv = Number(process.env.BENCHMARK_ITERATIONS)
+
+  return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : 4000
+}
+
+const DEFAULT_ITERATIONS = readDefaultIterations()
+
 export const DEFAULT_SCENARIOS: ScenarioConfig[] = [
-  { areaCount: 50, iterations: 5, mode: 'MONITORFISH', name: 'per-area · 1k vertices', verticesPerArea: 1_000 },
-  { areaCount: 10, iterations: 5, mode: 'MONITORFISH', name: 'per-area · 10k vertices', verticesPerArea: 10_000 },
-  { areaCount: 1, iterations: 5, mode: 'MONITORFISH', name: 'per-area · 100k vertices', verticesPerArea: 100_000 },
-  { areaCount: 30, iterations: 5, mode: 'MONITORENV', name: 'env search · 30 zones × 5k', verticesPerArea: 5_000 },
-  { areaCount: 50, iterations: 5, mode: 'MONITORFISH', name: 'fish search · 50 zones × 5k', verticesPerArea: 5_000 }
+  {
+    areaCount: 50,
+    iterations: DEFAULT_ITERATIONS,
+    mode: 'MONITORFISH',
+    name: 'per-area · 1k vertices',
+    verticesPerArea: 1_000
+  },
+  {
+    areaCount: 20,
+    iterations: DEFAULT_ITERATIONS,
+    mode: 'MONITORFISH',
+    name: 'per-area · 10k vertices',
+    verticesPerArea: 10_000
+  },
+  {
+    areaCount: 3,
+    iterations: DEFAULT_ITERATIONS,
+    mode: 'MONITORFISH',
+    name: 'per-area · 100k vertices',
+    verticesPerArea: 100_000
+  },
+  {
+    areaCount: 30,
+    iterations: DEFAULT_ITERATIONS,
+    mode: 'MONITORENV',
+    name: 'env search · 30 zones × 5k',
+    verticesPerArea: 5_000
+  },
+  {
+    areaCount: 50,
+    iterations: DEFAULT_ITERATIONS,
+    mode: 'MONITORFISH',
+    name: 'fish search · 50 zones × 5k',
+    verticesPerArea: 5_000
+  }
 ]
 
 export function runSearchPipelineBenchmark(scenarios: ScenarioConfig[] = DEFAULT_SCENARIOS): BenchmarkReport {

@@ -1,70 +1,70 @@
 {
-  "generatedAt": "2026-09-22T10:59:59.662Z",
+  "generatedAt": "2026-09-22T11:17:51.419Z",
   "scenarios": [
     {
       "name": "per-area · 1k vertices",
       "mode": "MONITORFISH",
       "areaCount": 50,
       "verticesPerArea": 1000,
-      "iterations": 5,
+      "iterations": 4000,
       "processedAreas": 50,
       "validate": {
-        "meanMs": 0.11,
-        "medianMs": 0.09,
-        "p95Ms": 0.19,
-        "msPerArea": 0.0022,
-        "areasPerSecond": 454545.45
+        "meanMs": 0.04,
+        "medianMs": 0.03,
+        "p95Ms": 0.04,
+        "msPerArea": 0.0008,
+        "areasPerSecond": 1250000
       },
       "search": {
-        "meanMs": 3.62,
-        "medianMs": 3.76,
-        "p95Ms": 7.61,
-        "msPerArea": 0.0724,
-        "areasPerSecond": 13806.97
+        "meanMs": 0.26,
+        "medianMs": 0.25,
+        "p95Ms": 0.27,
+        "msPerArea": 0.0052,
+        "areasPerSecond": 191718.32
       }
     },
     {
       "name": "per-area · 10k vertices",
       "mode": "MONITORFISH",
-      "areaCount": 10,
+      "areaCount": 20,
       "verticesPerArea": 10000,
-      "iterations": 5,
-      "processedAreas": 10,
+      "iterations": 4000,
+      "processedAreas": 20,
       "validate": {
-        "meanMs": 0.02,
-        "medianMs": 0.02,
-        "p95Ms": 0.03,
-        "msPerArea": 0.002,
-        "areasPerSecond": 500000
+        "meanMs": 0.01,
+        "medianMs": 0.01,
+        "p95Ms": 0.02,
+        "msPerArea": 0.0005,
+        "areasPerSecond": 2000000
       },
       "search": {
-        "meanMs": 3.11,
-        "medianMs": 2.67,
-        "p95Ms": 5.02,
-        "msPerArea": 0.311,
-        "areasPerSecond": 3218.69
+        "meanMs": 0.9,
+        "medianMs": 0.9,
+        "p95Ms": 0.96,
+        "msPerArea": 0.045,
+        "areasPerSecond": 22116.56
       }
     },
     {
       "name": "per-area · 100k vertices",
       "mode": "MONITORFISH",
-      "areaCount": 1,
+      "areaCount": 3,
       "verticesPerArea": 100000,
-      "iterations": 5,
-      "processedAreas": 1,
+      "iterations": 4000,
+      "processedAreas": 3,
       "validate": {
         "meanMs": 0.0,
         "medianMs": 0.0,
-        "p95Ms": 0.01,
+        "p95Ms": 0.0,
         "msPerArea": 0.0,
         "areasPerSecond": 0
       },
       "search": {
-        "meanMs": 4.65,
-        "medianMs": 4.85,
-        "p95Ms": 7.12,
-        "msPerArea": 4.65,
-        "areasPerSecond": 214.93
+        "meanMs": 1.24,
+        "medianMs": 1.23,
+        "p95Ms": 1.27,
+        "msPerArea": 0.4133,
+        "areasPerSecond": 2418.7
       }
     },
     {
@@ -72,21 +72,21 @@
       "mode": "MONITORENV",
       "areaCount": 30,
       "verticesPerArea": 5000,
-      "iterations": 5,
+      "iterations": 4000,
       "processedAreas": 30,
       "validate": {
-        "meanMs": 0.1,
-        "medianMs": 0.1,
-        "p95Ms": 0.11,
-        "msPerArea": 0.0033,
-        "areasPerSecond": 303030.3
+        "meanMs": 0.03,
+        "medianMs": 0.03,
+        "p95Ms": 0.03,
+        "msPerArea": 0.001,
+        "areasPerSecond": 1000000
       },
       "search": {
-        "meanMs": 4.34,
-        "medianMs": 3.78,
-        "p95Ms": 6.09,
-        "msPerArea": 0.1447,
-        "areasPerSecond": 6905.88
+        "meanMs": 0.78,
+        "medianMs": 0.77,
+        "p95Ms": 0.84,
+        "msPerArea": 0.026,
+        "areasPerSecond": 38431.7
       }
     },
     {
@@ -94,21 +94,21 @@
       "mode": "MONITORFISH",
       "areaCount": 50,
       "verticesPerArea": 5000,
-      "iterations": 5,
+      "iterations": 4000,
       "processedAreas": 50,
       "validate": {
-        "meanMs": 0.09,
-        "medianMs": 0.09,
-        "p95Ms": 0.09,
-        "msPerArea": 0.0018,
-        "areasPerSecond": 555555.56
+        "meanMs": 0.04,
+        "medianMs": 0.04,
+        "p95Ms": 0.04,
+        "msPerArea": 0.0008,
+        "areasPerSecond": 1250000
       },
       "search": {
-        "meanMs": 9.61,
-        "medianMs": 6.28,
-        "p95Ms": 21.79,
-        "msPerArea": 0.1922,
-        "areasPerSecond": 5201.98
+        "meanMs": 1.24,
+        "medianMs": 1.22,
+        "p95Ms": 1.38,
+        "msPerArea": 0.0248,
+        "areasPerSecond": 40204.78
       }
     }
   ]
