@@ -5,6 +5,7 @@ import type { Filters } from '@contexts/RegulatoryAreasContext'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
+import { cacheGeometry, getCachedGeometry } from '@utils/geometryCache'
 import { logToSentry } from '@utils/sentryLogger'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 import { filterEnvRegulatoryArea } from '../utils/matchesRecentlyAddedOrModified'
@@ -25,7 +26,16 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       continue
     }
 
-    const feature = parseStoredFeature(area.geojson)
+    const cacheKey = `MONITORENV:${area.id}`
+    let feature = getCachedGeometry(cacheKey)
+
+    if (!feature) {
+      feature = parseStoredFeature(area.geojson)
+
+      if (feature) {
+        cacheGeometry(cacheKey, feature)
+      }
+    }
 
     if (!feature) {
       continue

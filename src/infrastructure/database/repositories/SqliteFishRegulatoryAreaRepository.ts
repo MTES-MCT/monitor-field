@@ -5,6 +5,7 @@ import { toRegulationType } from '@domain/entities/regulatoryAreas/FishRegulator
 import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRegulatoryArea'
 import type { LocalFishRegulatoryAreaRepository } from '@domain/repositories/LocalFishRegulatoryAreaRepository'
 import { normalizeFeatureProperty, stringToArrayItem } from '@utils/layersStyle'
+import { clearGeometryCache } from '@utils/geometryCache'
 import { logSentryError } from '@utils/sentryLogger'
 
 const INSERT_AREA = `
@@ -45,6 +46,7 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
 
     deleteAll: async () => {
       await db.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}`)
+      clearGeometryCache()
     },
 
     replaceForSeaFronts: async (seaFronts: string[], areas: FishRegulatoryArea[]) => {
@@ -85,6 +87,7 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
 
       try {
         await db.executeBatch(commands)
+        clearGeometryCache()
       } catch (error) {
         logSentryError(error, 'Transaction failed during fish sync')
         throw error

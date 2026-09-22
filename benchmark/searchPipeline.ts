@@ -1,4 +1,5 @@
 import { doesGeometryIntersectBbox } from '@/utils/doesGeometryIntersectBbox'
+import { cacheGeometry, clearGeometryCache, getCachedGeometry } from '@/utils/geometryCache'
 import { parseStoredFeature } from '@/utils/parseGeoJSONFeature'
 import { EnvFeaturePropertiesSchema, FishFeaturePropertiesSchema } from '@/types/schemas'
 import type { BoundingBox, Geometry } from '@/types/mapTypes'
@@ -170,7 +171,16 @@ function buildProperties(id: number, mode: BenchmarkMode): EnvFeatureProperties 
 }
 
 function runArea(row: AreaRow, bbox: BoundingBox, mode: BenchmarkMode, includeIntersection: boolean): PipelineStep {
-  const feature = parseStoredFeature(row.geojson)
+  const cacheKey = `${mode}:${row.id}`
+  let feature = getCachedGeometry(cacheKey)
+
+  if (!feature) {
+    feature = parseStoredFeature(row.geojson)
+
+    if (feature) {
+      cacheGeometry(cacheKey, feature)
+    }
+  }
 
   if (!feature) {
     return 'parseFailed'
@@ -218,7 +228,11 @@ function summarize(samples: number[], areaCount: number): TimingSummary {
 function runScenario(config: ScenarioConfig): ScenarioResult {
   const rows = Array.from({ length: config.areaCount }, (_, index) => createAreaRow(index + 1, config.verticesPerArea))
 
-  // Warm the JIT with the validate-only path.
+  // Scenarios reuse ids with different geometry sizes, so start from a clean cache. The warm-up
+  // below populates it, so the measured iterations reflect the steady-state (cached) cost.
+  clearGeometryCache()
+
+  // Warm the JIT and the cache with the validate-only path.
   for (const row of rows) {
     runArea(row, BENCHMARK_BBOX, config.mode, false)
   }
@@ -286,7 +300,7 @@ export function formatReport(report: BenchmarkReport): string {
       `${scenario.name} (${scenario.mode}) — ${scenario.areaCount} areas × ${vertices} vertices, ${scenario.iterations} iterations`
     )
     lines.push(
-      `  validate (JSON.parse + props Zod)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
+      `  validate (props Zod · cached parse)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
     )
     lines.push(
       `  search   (validate + intersect) mean ${round(scenario.search.meanMs)}ms · median ${round(scenario.search.medianMs)}ms · p95 ${round(scenario.search.p95Ms)}ms · ${round(scenario.search.msPerArea)} ms/area · ${round(scenario.search.areasPerSecond)} areas/s`

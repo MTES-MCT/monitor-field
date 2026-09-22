@@ -4,6 +4,7 @@ import { parseStoredFeature } from '@utils/parseGeoJSONFeature'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
+import { cacheGeometry, getCachedGeometry } from '@utils/geometryCache'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { logToSentry } from '@utils/sentryLogger'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
@@ -26,7 +27,16 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
       continue
     }
 
-    const feature = parseStoredFeature(area.geojson)
+    const cacheKey = `MONITORFISH:${area.id}`
+    let feature = getCachedGeometry(cacheKey)
+
+    if (!feature) {
+      feature = parseStoredFeature(area.geojson)
+
+      if (feature) {
+        cacheGeometry(cacheKey, feature)
+      }
+    }
 
     if (!feature) {
       continue

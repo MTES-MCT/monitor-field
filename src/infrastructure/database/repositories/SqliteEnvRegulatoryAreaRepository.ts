@@ -4,6 +4,7 @@ import { ENV_REGULATORY_AREAS_TABLE } from '@database/db.schema'
 import type { EnvRegulatoryArea } from '@domain/entities/regulatoryAreas/EnvRegulatoryArea'
 import type { LocalEnvRegulatoryAreaRepository } from '@domain/repositories/LocalEnvRegulatoryAreaRepository'
 import { normalizeFeatureProperty, stringToArrayItem } from '@utils/layersStyle'
+import { clearGeometryCache } from '@utils/geometryCache'
 import { logSentryError } from '@utils/sentryLogger'
 
 function buildFeatureColorKey(area: EnvRegulatoryArea): string {
@@ -40,6 +41,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
 
     deleteAll: async () => {
       await db.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
+      clearGeometryCache()
     },
 
     replaceForSeaFronts: async (seaFronts: string[], areas: EnvRegulatoryArea[]) => {
@@ -106,6 +108,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
             )
           }
         })
+        clearGeometryCache()
       } catch (error) {
         logSentryError(error, 'Transaction failed during env sync')
         throw error
