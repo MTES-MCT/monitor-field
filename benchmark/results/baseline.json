@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-22T13:45:10.494Z",
+  "generatedAt": "2026-09-22T13:53:53.140Z",
   "scenarios": [
     {
       "areaCount": 50,
@@ -8,13 +8,13 @@
       "name": "per-area · 1k vertices",
       "processedAreas": 50,
       "processing": {
-        "areasPerSecond": 314531.9482512757,
-        "meanMs": 0.15896636344253212,
-        "medianMs": 0.1532079999999496,
-        "msPerArea": 0.0031793272688506423,
-        "p95Ms": 0.16662499999983993
+        "areasPerSecond": 374634.2879161709,
+        "meanMs": 0.13346349123064818,
+        "medianMs": 0.13191700000061246,
+        "msPerArea": 0.0026692698246129636,
+        "p95Ms": 0.14350000000001728
       },
-      "samples": 62849,
+      "samples": 74863,
       "verticesPerArea": 1000
     },
     {
@@ -24,13 +24,13 @@
       "name": "per-area · 10k vertices",
       "processedAreas": 20,
       "processing": {
-        "areasPerSecond": 30289.026672546603,
-        "meanMs": 0.6603051400832111,
-        "medianMs": 0.6507090000013704,
-        "msPerArea": 0.03301525700416055,
-        "p95Ms": 0.7110409999986587
+        "areasPerSecond": 38591.15284316539,
+        "meanMs": 0.5182534992224794,
+        "medianMs": 0.5171250000003056,
+        "msPerArea": 0.025912674961123972,
+        "p95Ms": 0.5709999999999127
       },
-      "samples": 15141,
+      "samples": 19292,
       "verticesPerArea": 10000
     },
     {
@@ -40,13 +40,13 @@
       "name": "per-area · 100k vertices",
       "processedAreas": 3,
       "processing": {
-        "areasPerSecond": 3223.0295637687427,
-        "meanMs": 0.9308012665239253,
-        "medianMs": 0.9176249999982247,
-        "msPerArea": 0.31026708884130844,
-        "p95Ms": 1.019165999998222
+        "areasPerSecond": 3895.9372185272655,
+        "meanMs": 0.7700329424543586,
+        "medianMs": 0.7655000000013388,
+        "msPerArea": 0.2566776474847862,
+        "p95Ms": 0.8198749999974098
       },
-      "samples": 10742,
+      "samples": 12981,
       "verticesPerArea": 100000
     },
     {
@@ -56,13 +56,13 @@
       "name": "env search · 30 zones × 5k",
       "processedAreas": 30,
       "processing": {
-        "areasPerSecond": 69920.7420354483,
-        "meanMs": 0.4290572314691776,
-        "medianMs": 0.42237500000192085,
-        "msPerArea": 0.014301907715639254,
-        "p95Ms": 0.4492919999975129
+        "areasPerSecond": 37293.39105448343,
+        "meanMs": 0.80443207634757,
+        "medianMs": 0.8274590000000899,
+        "msPerArea": 0.026814402544919,
+        "p95Ms": 0.8627080000005662
       },
-      "samples": 23299,
+      "samples": 12430,
       "verticesPerArea": 5000
     },
     {
@@ -72,13 +72,13 @@
       "name": "fish search · 50 zones × 5k",
       "processedAreas": 50,
       "processing": {
-        "areasPerSecond": 64655.32125220884,
-        "meanMs": 0.7733315530976784,
-        "medianMs": 0.7601660000000265,
-        "msPerArea": 0.015466631061953569,
-        "p95Ms": 0.8261249999995925
+        "areasPerSecond": 74336.20470356397,
+        "meanMs": 0.6726197577531531,
+        "medianMs": 0.6672079999989364,
+        "msPerArea": 0.013452395155063062,
+        "p95Ms": 0.7281250000014552
       },
-      "samples": 12929,
+      "samples": 14865,
       "verticesPerArea": 5000
     }
   ]
