@@ -3,7 +3,12 @@ export type FishRegulatoryAreaFromDatabase = {
   type: string
   theme: string
   zone: string
-  regulations: string
+  /** The raw `regulatory_references` JSON array, kept as delivered. */
+  regulatoryReferences: string | null
+  fishingPeriods: string | null
+  gears: string | null
+  species: string | null
+  generalRemarks: string | null
   geojson?: string
   bbox_min_lon: number
   bbox_min_lat: number

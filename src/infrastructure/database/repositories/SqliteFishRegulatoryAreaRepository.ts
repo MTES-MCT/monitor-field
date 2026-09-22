@@ -10,10 +10,11 @@ import { logSentryError } from '@utils/sentryLogger'
 const INSERT_AREA = `
   INSERT OR REPLACE INTO ${FISH_REGULATORY_AREAS_TABLE} (
     id, type, theme, zone, fill_color,
-    regulations, geojson,
+    regulatory_references, fishing_periods, gears, species, general_remarks,
+    geojson,
     bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat,
     total_by_group
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 /** The list groups fish areas by theme, and shows "shown / total" against this stored count. */
@@ -64,7 +65,11 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
           area.theme,
           area.zone,
           fillColor ?? null,
-          area.regulations,
+          area.regulatoryReferences ?? null,
+          area.fishingPeriods ?? null,
+          area.gears ?? null,
+          area.species ?? null,
+          area.generalRemarks ?? null,
           area.geometry ?? null,
           area.boundingBox?.minLon ?? null,
           area.boundingBox?.minLat ?? null,

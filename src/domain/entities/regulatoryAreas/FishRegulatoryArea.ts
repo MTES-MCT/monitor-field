@@ -5,7 +5,15 @@ export type FishRegulatoryArea = {
   type: string
   theme: string
   zone: string
-  regulations: string
+  /**
+   * The raw `regulatory_references` JSON array, kept as delivered. The service publishes it
+   * under `reglementations`, which used to carry the references flattened to a list.
+   */
+  regulatoryReferences: string | undefined
+  fishingPeriods: string | undefined
+  gears: string | undefined
+  species: string | undefined
+  generalRemarks: string | undefined
   geometry: string | undefined
   boundingBox: BoundingBox | undefined
 }
