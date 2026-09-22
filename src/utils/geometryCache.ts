@@ -1,4 +1,5 @@
 import type { RawGeoJSONFeature } from '@/types/schemas'
+import { parseStoredFeature } from './parseGeoJSONFeature'
 
 /**
  * Bounded cache of parsed regulatory-area geometries, keyed by dataset + id.
@@ -12,11 +13,11 @@ const MAX_CACHED_GEOMETRIES = 256
 
 const cache = new Map<string, RawGeoJSONFeature>()
 
-export function getCachedGeometry(key: string): RawGeoJSONFeature | undefined {
+function getCachedGeometry(key: string): RawGeoJSONFeature | undefined {
   return cache.get(key)
 }
 
-export function cacheGeometry(key: string, feature: RawGeoJSONFeature): void {
+function cacheGeometry(key: string, feature: RawGeoJSONFeature): void {
   if (cache.has(key)) {
     // Re-insert to refresh recency.
     cache.delete(key)
@@ -33,4 +34,30 @@ export function cacheGeometry(key: string, feature: RawGeoJSONFeature): void {
 
 export function clearGeometryCache(): void {
   cache.clear()
+}
+
+/**
+ * Returns the parsed feature for an area, resolving it from the cache or, on a miss, parsing
+ * and caching the stored geometry. This is the shared "cache lookup → parse → cache" step used
+ * by both the search use cases and the benchmark, so the two cannot drift apart.
+ */
+export function resolveStoredFeature(
+  mode: string,
+  id: number,
+  geojson: string | undefined
+): RawGeoJSONFeature | undefined {
+  const cacheKey = `${mode}:${id}`
+  const cached = getCachedGeometry(cacheKey)
+
+  if (cached) {
+    return cached
+  }
+
+  const parsed = parseStoredFeature(geojson)
+
+  if (parsed) {
+    cacheGeometry(cacheKey, parsed)
+  }
+
+  return parsed
 }

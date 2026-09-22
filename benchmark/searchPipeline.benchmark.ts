@@ -3,7 +3,8 @@ import {
   formatComparison,
   formatReport,
   readBaseline,
-  runSearchPipelineBenchmark
+  runSearchPipelineBenchmark,
+  writeBaseline
 } from './searchPipeline'
 
 const REGRESSION_THRESHOLD_PCT = 25
@@ -21,11 +22,20 @@ describe('search pipeline benchmark', () => {
     // eslint-disable-next-line no-console
     console.log(formatReport(report))
 
+    if (process.env.BENCHMARK_WRITE_BASELINE === '1') {
+      writeBaseline(report)
+      // eslint-disable-next-line no-console
+      console.log('\nBaseline written to benchmark/results/baseline.json')
+      return
+    }
+
     const baseline = readBaseline()
 
     if (!baseline) {
       // eslint-disable-next-line no-console
-      console.log('\nNo baseline found at benchmark/results/baseline.json. Captured report JSON:')
+      console.log(
+        '\nNo baseline found at benchmark/results/baseline.json — run with BENCHMARK_WRITE_BASELINE=1 to create it.'
+      )
       // eslint-disable-next-line no-console
       console.log(JSON.stringify(report, null, 2))
       return

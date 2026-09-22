@@ -1,21 +1,17 @@
-import { doesGeometryIntersectBbox } from '@/utils/doesGeometryIntersectBbox'
-import { cacheGeometry, clearGeometryCache, getCachedGeometry } from '@/utils/geometryCache'
-import { parseStoredFeature } from '@/utils/parseGeoJSONFeature'
-import { EnvFeaturePropertiesSchema, FishFeaturePropertiesSchema } from '@/types/schemas'
+import { buildEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/buildEnvRegulatoryAreas'
+import { buildFishRegulatoryAreas } from '@features/RegulatoryAreas/useCases/buildFishRegulatoryAreas'
+import { clearGeometryCache } from '@/utils/geometryCache'
+import type { Filters } from '@contexts/RegulatoryAreasContext'
+import type { EnvRegulatoryAreaFromDatabase, FishRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import type { BoundingBox, Geometry } from '@/types/mapTypes'
 
 /**
- * Benchmark for the regulatory-area search hot path.
+ * Benchmark for the regulatory-area search processing.
  *
- * It replicates, in isolation, the per-area body of `getEnvRegulatoryAreas` /
- * `getFishRegulatoryAreas`: `parseStoredFeature` (a JSON.parse of the geometry already validated
- * at ingest), an optional `doesGeometryIntersectBbox` intersection test, and a Zod validation of
- * the (small) properties object. That is the exact cost identified as the main "search in the
- * area shown on screen is slow" driver, and the thing we want to measure before/after optimising
- * (e.g. caching parsed geometries, pushing text search into SQL).
- *
- * The geometry shapes are synthetic but sized to the real dataset: the codebase itself notes
- * fish geometries "reach ~118 000 vertices" (`FishRegulatoryAreaDataResponse.ts`).
+ * It drives the real `buildEnvRegulatoryAreas` / `buildFishRegulatoryAreas` functions (the full
+ * per-area processing, minus the SQL query) with synthetic `fetchedAreas`, so it measures exactly
+ * the code that runs in production. The geometry shapes are synthetic but sized to the real
+ * dataset: fish geometries "reach ~118 000 vertices" (`FishRegulatoryAreaDataResponse.ts`).
  */
 
 export type BenchmarkMode = 'MONITORENV' | 'MONITORFISH'
@@ -25,7 +21,7 @@ export type ScenarioConfig = {
   mode: BenchmarkMode
   areaCount: number
   verticesPerArea: number
-  iterations: number
+  durationMs: number
 }
 
 export type TimingSummary = {
@@ -41,11 +37,11 @@ export type ScenarioResult = {
   mode: BenchmarkMode
   areaCount: number
   verticesPerArea: number
-  iterations: number
-  /** parse + 2× Zod validation, without the intersection test */
-  validate: TimingSummary
-  /** validate + `doesGeometryIntersectBbox` (the real loop body) */
-  search: TimingSummary
+  /** number of passes measured within the fixed duration */
+  samples: number
+  durationMs: number
+  /** full `build*RegulatoryAreas` processing (filter + resolve + intersect + build) */
+  processing: TimingSummary
   processedAreas: number
 }
 
@@ -53,13 +49,6 @@ export type BenchmarkReport = {
   generatedAt: string
   scenarios: ScenarioResult[]
 }
-
-type AreaRow = {
-  id: number
-  geojson: string
-}
-
-type PipelineStep = 'processed' | 'parseFailed' | 'intersectFailed' | 'validateFailed'
 
 // A bbox fully inside the generated ring, so `doesGeometryIntersectBbox` has to walk the full
 // ring instead of short-circuiting on the first vertex.
@@ -70,37 +59,18 @@ const BENCHMARK_BBOX: BoundingBox = {
   minLon: -4.2
 }
 
+// Empty filters: no text search, no recently-added filter, so every area flows through to the
+// intersection (the measured cost).
+const FILTERS: Filters = {
+  recentlyAddedOrModified: false,
+  searchQuery: undefined,
+  themesAndSubThemes: []
+}
+
 const RING_CENTER_LON = -4
 const RING_CENTER_LAT = 48
 const RING_RADIUS_LON = 0.5
 const RING_RADIUS_LAT = 0.5
-
-type EnvFeatureProperties = {
-  additionalRefReg: string | null
-  authorizationPeriods: string | null
-  date: string | null
-  dateFin: string | null
-  edition: string | null
-  facade: string | null
-  fillColor: string
-  id: number
-  plan: string | null
-  polyName: string | null
-  prohibitionPeriods: string | null
-  refReg: string | null
-  resume: string | null
-  themes: string | null
-  type: string | null
-  url: string | null
-}
-
-type FishFeatureProperties = {
-  fillColor: string
-  id: number
-  theme: string
-  type: string
-  zone: string
-}
 
 function createRing(vertices: number): number[][] {
   const ring: number[][] = []
@@ -129,75 +99,83 @@ function createSyntheticGeometry(vertices: number): Geometry {
   }
 }
 
-function createAreaRow(id: number, vertices: number): AreaRow {
+function createSyntheticFeature(vertices: number): string {
   const feature = {
     geometry: createSyntheticGeometry(vertices),
     properties: {},
     type: 'Feature'
   }
 
-  return { geojson: JSON.stringify(feature), id }
+  return JSON.stringify(feature)
 }
 
-function buildProperties(id: number, mode: BenchmarkMode): EnvFeatureProperties | FishFeatureProperties {
-  if (mode === 'MONITORFISH') {
-    return {
-      fillColor: '#67A9CF',
-      id,
-      theme: 'Thématique',
-      type: 'Reg. NAMO',
-      zone: `Zone ${id}`
-    }
-  }
-
+function buildEnvRow(id: number, vertices: number): EnvRegulatoryAreaFromDatabase {
   return {
-    additionalRefReg: null,
-    authorizationPeriods: null,
+    additionalRefReg: '',
+    authorizationPeriods: '',
+    bbox_max_lat: 48.5,
+    bbox_max_lon: -3.5,
+    bbox_min_lat: 47.5,
+    bbox_min_lon: -4.5,
     date: '2026-01-01',
-    dateFin: null,
-    edition: null,
+    dateFin: '2026-12-31',
+    edition: '2026-01-01',
     facade: 'NAMO',
     fillColor: '#0B4F6C',
+    geojson: createSyntheticFeature(vertices),
     id,
-    plan: null,
+    layerName: 'Couche',
+    location: 'Lieu',
+    plan: 'Plan',
     polyName: `Polygone ${id}`,
-    prohibitionPeriods: null,
+    prohibitionPeriods: '',
     refReg: `Ref ${id}`,
-    resume: null,
+    resume: 'Résumé',
     themes: 'Thème',
+    totalByGroup: 1,
     type: 'Type',
     url: 'https://example.org'
   }
 }
 
-function runArea(row: AreaRow, bbox: BoundingBox, mode: BenchmarkMode, includeIntersection: boolean): PipelineStep {
-  const cacheKey = `${mode}:${row.id}`
-  let feature = getCachedGeometry(cacheKey)
+function buildFishRow(id: number, vertices: number): FishRegulatoryAreaFromDatabase {
+  return {
+    bbox_max_lat: 48.5,
+    bbox_max_lon: -3.5,
+    bbox_min_lat: 47.5,
+    bbox_min_lon: -4.5,
+    fillColor: '#67A9CF',
+    geojson: createSyntheticFeature(vertices),
+    id,
+    regulations: 'Réglementation',
+    theme: 'Thématique',
+    totalByGroup: 1,
+    type: 'Reg. NAMO',
+    zone: `Zone ${id}`
+  }
+}
 
-  if (!feature) {
-    feature = parseStoredFeature(row.geojson)
-
-    if (feature) {
-      cacheGeometry(cacheKey, feature)
-    }
+function buildRows(
+  mode: BenchmarkMode,
+  areaCount: number,
+  verticesPerArea: number
+): EnvRegulatoryAreaFromDatabase[] | FishRegulatoryAreaFromDatabase[] {
+  if (mode === 'MONITORENV') {
+    return Array.from({ length: areaCount }, (_, index) => buildEnvRow(index + 1, verticesPerArea))
   }
 
-  if (!feature) {
-    return 'parseFailed'
+  return Array.from({ length: areaCount }, (_, index) => buildFishRow(index + 1, verticesPerArea))
+}
+
+function processBatch(
+  mode: BenchmarkMode,
+  rows: EnvRegulatoryAreaFromDatabase[] | FishRegulatoryAreaFromDatabase[]
+): number {
+  if (mode === 'MONITORENV') {
+    return buildEnvRegulatoryAreas(rows as EnvRegulatoryAreaFromDatabase[], BENCHMARK_BBOX, FILTERS).listItems.length
   }
 
-  if (includeIntersection && !doesGeometryIntersectBbox(feature.geometry, bbox)) {
-    return 'intersectFailed'
-  }
-
-  const properties = buildProperties(row.id, mode)
-
-  const validated =
-    mode === 'MONITORFISH'
-      ? FishFeaturePropertiesSchema.safeParse(properties)
-      : EnvFeaturePropertiesSchema.safeParse(properties)
-
-  return validated.success ? 'processed' : 'validateFailed'
+  return buildFishRegulatoryAreas(rows as FishRegulatoryAreaFromDatabase[], BENCHMARK_BBOX, FILTERS).listItems.length
 }
 
 function percentile(sorted: number[], ratio: number): number {
@@ -226,96 +204,83 @@ function summarize(samples: number[], areaCount: number): TimingSummary {
 }
 
 function runScenario(config: ScenarioConfig): ScenarioResult {
-  const rows = Array.from({ length: config.areaCount }, (_, index) => createAreaRow(index + 1, config.verticesPerArea))
+  const rows = buildRows(config.mode, config.areaCount, config.verticesPerArea)
 
   // Scenarios reuse ids with different geometry sizes, so start from a clean cache. The warm-up
   // below populates it, so the measured iterations reflect the steady-state (cached) cost.
   clearGeometryCache()
 
-  // Warm the JIT and the cache for both the validate-only and the intersection paths, so the
-  // timed iterations don't include JIT compilation.
-  for (const row of rows) {
-    runArea(row, BENCHMARK_BBOX, config.mode, false)
-  }
-  for (const row of rows) {
-    runArea(row, BENCHMARK_BBOX, config.mode, true)
-  }
+  // Warm the JIT and the cache before timing.
+  processBatch(config.mode, rows)
 
-  const validateSamples: number[] = []
-  const searchSamples: number[] = []
+  const samples: number[] = []
   let processedAreas = 0
 
-  for (let iteration = 0; iteration < config.iterations; iteration += 1) {
-    let start = performance.now()
-    for (const row of rows) {
-      runArea(row, BENCHMARK_BBOX, config.mode, false)
-    }
-    validateSamples.push(performance.now() - start)
+  // Measure for a fixed wall-clock duration; the sample count adapts to the machine speed.
+  const deadline = performance.now() + config.durationMs
 
-    start = performance.now()
-    let processed = 0
-    for (const row of rows) {
-      if (runArea(row, BENCHMARK_BBOX, config.mode, true) === 'processed') {
-        processed += 1
-      }
-    }
-    searchSamples.push(performance.now() - start)
-    processedAreas = processed
+  while (performance.now() < deadline) {
+    const start = performance.now()
+    processedAreas = processBatch(config.mode, rows)
+    samples.push(performance.now() - start)
   }
 
   return {
     areaCount: config.areaCount,
-    iterations: config.iterations,
+    durationMs: config.durationMs,
     mode: config.mode,
     name: config.name,
     processedAreas,
-    search: summarize(searchSamples, config.areaCount),
-    validate: summarize(validateSamples, config.areaCount),
+    processing: summarize(samples, config.areaCount),
+    samples: samples.length,
     verticesPerArea: config.verticesPerArea
   }
 }
 
-/** 4000 passes lands at ~20s of timed work on a quiet machine; override with `BENCHMARK_ITERATIONS`. */
-function readDefaultIterations(): number {
-  const fromEnv = Number(process.env.BENCHMARK_ITERATIONS)
+/**
+ * Each scenario is measured for a fixed wall-clock duration; the sample count self-calibrates to
+ * the machine, so no pass count is hardcoded. Override with `BENCHMARK_DURATION_MS`.
+ */
+function readDefaultDurationMs(): number {
+  const fromEnv = Number(process.env.BENCHMARK_DURATION_MS)
 
-  return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : 4000
+  return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : 10000
 }
 
-const DEFAULT_ITERATIONS = readDefaultIterations()
+const DEFAULT_DURATION_MS = readDefaultDurationMs()
 
 export const DEFAULT_SCENARIOS: ScenarioConfig[] = [
   {
     areaCount: 50,
-    iterations: DEFAULT_ITERATIONS,
+    durationMs: DEFAULT_DURATION_MS,
     mode: 'MONITORFISH',
     name: 'per-area · 1k vertices',
     verticesPerArea: 1_000
   },
   {
     areaCount: 20,
-    iterations: DEFAULT_ITERATIONS,
+    durationMs: DEFAULT_DURATION_MS,
     mode: 'MONITORFISH',
     name: 'per-area · 10k vertices',
     verticesPerArea: 10_000
   },
   {
     areaCount: 3,
-    iterations: DEFAULT_ITERATIONS,
+    durationMs: DEFAULT_DURATION_MS,
     mode: 'MONITORFISH',
     name: 'per-area · 100k vertices',
     verticesPerArea: 100_000
   },
   {
     areaCount: 30,
-    iterations: DEFAULT_ITERATIONS,
+    durationMs: DEFAULT_DURATION_MS,
     mode: 'MONITORENV',
     name: 'env search · 30 zones × 5k',
     verticesPerArea: 5_000
   },
   {
     areaCount: 50,
-    iterations: DEFAULT_ITERATIONS,
+    durationMs: DEFAULT_DURATION_MS,
     mode: 'MONITORFISH',
     name: 'fish search · 50 zones × 5k',
     verticesPerArea: 5_000
@@ -340,13 +305,10 @@ export function formatReport(report: BenchmarkReport): string {
     const vertices = scenario.verticesPerArea.toLocaleString('en-US')
 
     lines.push(
-      `${scenario.name} (${scenario.mode}) — ${scenario.areaCount} areas × ${vertices} vertices, ${scenario.iterations} iterations`
+      `${scenario.name} (${scenario.mode}) — ${scenario.areaCount} areas × ${vertices} vertices, ${scenario.samples} samples in ${scenario.durationMs}ms`
     )
     lines.push(
-      `  validate (props Zod · cached parse)  mean ${round(scenario.validate.meanMs)}ms · median ${round(scenario.validate.medianMs)}ms · p95 ${round(scenario.validate.p95Ms)}ms · ${round(scenario.validate.msPerArea)} ms/area`
-    )
-    lines.push(
-      `  search   (validate + intersect) mean ${round(scenario.search.meanMs)}ms · median ${round(scenario.search.medianMs)}ms · p95 ${round(scenario.search.p95Ms)}ms · ${round(scenario.search.msPerArea)} ms/area · ${round(scenario.search.areasPerSecond)} areas/s`
+      `  processing (build*RegulatoryAreas)  mean ${round(scenario.processing.meanMs)}ms · median ${round(scenario.processing.medianMs)}ms · p95 ${round(scenario.processing.p95Ms)}ms · ${round(scenario.processing.msPerArea)} ms/area · ${round(scenario.processing.areasPerSecond)} areas/s`
     )
     lines.push(`  processed ${scenario.processedAreas}/${scenario.areaCount}`)
     lines.push('')
@@ -357,7 +319,6 @@ export function formatReport(report: BenchmarkReport): string {
 
 export type ComparisonRow = {
   name: string
-  metric: 'validate' | 'search'
   baselineMsPerArea: number
   currentMsPerArea: number
   deltaPct: number
@@ -382,17 +343,9 @@ export function compareReports(baseline: BenchmarkReport, current: BenchmarkRepo
     }
 
     rows.push({
-      baselineMsPerArea: baselineScenario.validate.msPerArea,
-      currentMsPerArea: scenario.validate.msPerArea,
-      deltaPct: deltaPct(scenario.validate.msPerArea, baselineScenario.validate.msPerArea),
-      metric: 'validate',
-      name: scenario.name
-    })
-    rows.push({
-      baselineMsPerArea: baselineScenario.search.msPerArea,
-      currentMsPerArea: scenario.search.msPerArea,
-      deltaPct: deltaPct(scenario.search.msPerArea, baselineScenario.search.msPerArea),
-      metric: 'search',
+      baselineMsPerArea: baselineScenario.processing.msPerArea,
+      currentMsPerArea: scenario.processing.msPerArea,
+      deltaPct: deltaPct(scenario.processing.msPerArea, baselineScenario.processing.msPerArea),
       name: scenario.name
     })
   }
@@ -407,7 +360,7 @@ export function formatComparison(rows: ComparisonRow[]): string {
     const sign = row.deltaPct > 0 ? '+' : ''
 
     lines.push(
-      `  ${row.name} · ${row.metric.padEnd(8)}  ${round(row.baselineMsPerArea).padStart(8)}ms/area → ${round(row.currentMsPerArea).padStart(8)}ms/area  (${sign}${row.deltaPct.toFixed(1)}%)`
+      `  ${row.name}  ${round(row.baselineMsPerArea).padStart(8)}ms/area → ${round(row.currentMsPerArea).padStart(8)}ms/area  (${sign}${row.deltaPct.toFixed(1)}%)`
     )
   }
 
@@ -421,4 +374,21 @@ export function readBaseline(): BenchmarkReport | undefined {
   } catch {
     return undefined
   }
+}
+
+// `__dirname` is provided by jest (CommonJS) at runtime but isn't declared by this project's
+// `types` (which only includes `jest`), so declare it for type-checking.
+declare const __dirname: string
+
+/** Writes the report as the committed baseline, so it can be updated in one command. */
+export function writeBaseline(report: BenchmarkReport): void {
+  // oxlint-disable-next-line typescript/no-require-imports
+  const fs = require('node:fs')
+  // oxlint-disable-next-line typescript/no-require-imports
+  const path = require('node:path')
+
+  const baselinePath = path.join(__dirname, 'results', 'baseline.json')
+
+  fs.mkdirSync(path.dirname(baselinePath), { recursive: true })
+  fs.writeFileSync(baselinePath, `${JSON.stringify(report, null, 2)}\n`)
 }

@@ -14,6 +14,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "benchmark": "jest --config jest.benchmark.config.js --runInBand",
+    "benchmark:baseline": "BENCHMARK_WRITE_BASELINE=1 jest --config jest.benchmark.config.js --runInBand",
     "build:android:production": "eas build --platform android --profile production",
     "build:android:production:ci": "eas build --platform android --profile production --non-interactive"
   },
