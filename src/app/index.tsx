@@ -9,7 +9,7 @@ import { BottomBar } from '@components/BottomBar'
 import { useSearchByZoneLayer } from '@components/Layers/useSearchByZoneLayer'
 import { LocationButton } from '@components/Buttons/LocationButton'
 import { SwitchContextButton } from '@components/Buttons/SwitchContextButton'
-import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
+import { useRegulatoryAreasContext, type RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
@@ -22,12 +22,13 @@ import {
   VectorSource,
   type LngLat,
   type MapRef,
+  type PixelPoint,
   type PressEvent,
   type PressEventWithFeatures,
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -46,8 +47,7 @@ import {
 } from '@infrastructure/tiles/vectorTileStore'
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
-import { isPointInGeometry } from '@utils/isPointInGeometry'
-import type { BoundingBox } from '@/types/mapTypes'
+import { getRegulatoryAreaById } from '@features/RegulatoryAreas/useCases/getRegulatoryAreaById'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -88,11 +88,6 @@ const baseMapStyle: StyleSpecification = {
 
 const LOCATION_FOCUS_ZOOM = 12
 
-/** Cheap rejection before the ray-cast: list items already carry a precomputed bbox. */
-function isPointInBoundingBox([lon, lat]: LngLat, bbox: BoundingBox): boolean {
-  return lon >= bbox.minLon && lon <= bbox.maxLon && lat >= bbox.minLat && lat <= bbox.maxLat
-}
-
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
@@ -106,14 +101,13 @@ function App() {
   } = useCameraContext()
   const globalStyle = useGlobalStyle()
 
-  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
+  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData, config } = useAppContext()
   const {
     areRegulatoryAreasLayerVisible,
     isSearchZoneActive,
     setSearchBbox,
     setCommittedSearchBbox,
     setCurrentZoom,
-    regulatoryAreas,
     setSelectedRegulatoryArea,
     setClickedFeaturesList
   } = useRegulatoryAreasContext()
@@ -122,13 +116,6 @@ function App() {
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const searchByZone = useSearchByZoneLayer()
-
-  /** Rebuilt only when the layer reloads, not on every tap. */
-  const geometriesById = useMemo(
-    () =>
-      new Map((regulatoryAreaLayer.geoJSON?.features ?? []).map(feature => [feature.properties?.id, feature.geometry])),
-    [regulatoryAreaLayer.geoJSON]
-  )
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)
@@ -161,16 +148,35 @@ function App() {
   }, [])
 
   const resolveClickedAreas = useCallback(
-    (coordinate: LngLat) => {
-      const clickedRegulatoryAreas = regulatoryAreas.filter(area => {
-        if (!isPointInBoundingBox(coordinate, area.bbox)) {
-          return false
-        }
-
-        const geometry = geometriesById.get(area.id)
-
-        return !!geometry && isPointInGeometry(coordinate, geometry)
+    async (point: PixelPoint) => {
+      const features = await mapRef.current?.queryRenderedFeatures(point, {
+        layers: [regulatoryAreaLayer.ids.fillLayer, regulatoryAreaLayer.ids.outlineLayer]
       })
+
+      if (!features || features.length === 0) {
+        setClickedCoordinate(undefined)
+        return
+      }
+
+      // The area id is promoted to the MVT feature id, so it comes back directly here.
+      const ids = [
+        ...new Set(
+          features
+            .map(feature => feature.id)
+            .filter((id): id is number | string => typeof id === 'number' || typeof id === 'string')
+            .map(Number)
+            .filter(id => Number.isFinite(id))
+        )
+      ]
+
+      const clickedRegulatoryAreas: RegulatoryAreaListItem[] = []
+
+      for (const id of ids) {
+        const area = await getRegulatoryAreaById(id, config.mode)
+        if (area) {
+          clickedRegulatoryAreas.push(area)
+        }
+      }
 
       if (clickedRegulatoryAreas.length === 0) {
         setClickedCoordinate(undefined)
@@ -189,8 +195,9 @@ function App() {
       setActiveModal('CLICKED_FEATURES_LIST_MODAL')
     },
     [
-      regulatoryAreas,
-      geometriesById,
+      mapRef,
+      regulatoryAreaLayer.ids,
+      config.mode,
       setSelectedRegulatoryArea,
       setActiveModal,
       setClickedCoordinate,
@@ -205,16 +212,17 @@ function App() {
     }
 
     const coordinate = event.nativeEvent.lngLat
-    if (!coordinate) {
+    const point = event.nativeEvent.point
+    if (!coordinate || !point) {
       return
     }
 
     setClickedCoordinate(coordinate)
 
     // The first frame runs before this commit paints, the second after it: the cursor is on
-    // screen before the ray-cast takes the thread.
+    // screen before the feature query takes the thread.
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolveClickedAreas(coordinate))
+      requestAnimationFrame(() => resolveClickedAreas(point))
     })
   }
 

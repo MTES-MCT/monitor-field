@@ -6,6 +6,7 @@ import { getDatabase } from '@database/db'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 import { matchesRegulatoryAreaSearch } from '../utils/matchesRegulatoryAreaSearch'
+import { mapFishAreaFromDatabase } from './mapRegulatoryAreaFromDatabase'
 
 export type FishRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
@@ -39,35 +40,15 @@ export async function getFishRegulatoryAreas(
       continue
     }
 
-    const currentArea: Omit<FishRegulatoryArea, 'bbox'> = {
-      fillColor: area.fillColor,
-      fishingPeriods: area.fishingPeriods,
-      gears: area.gears,
-      generalRemarks: area.generalRemarks,
-      id: area.id,
-      regulatoryReferences: area.regulatoryReferences,
-      species: area.species,
-      theme: area.theme,
-      totalByGroup: area.totalByGroup,
-      type: area.type,
-      zone: area.zone
-    }
+    const { props, bbox: areaBbox } = mapFishAreaFromDatabase(area)
 
-    listItems.push({
-      ...currentArea,
-      bbox: {
-        maxLat: area.bbox_max_lat,
-        maxLon: area.bbox_max_lon,
-        minLat: area.bbox_min_lat,
-        minLon: area.bbox_min_lon
-      }
-    })
+    listItems.push({ ...props, bbox: areaBbox })
 
-    // `feature` is already structurally validated in parseGeoJSONFeature and `currentArea` is
+    // `feature` is already structurally validated in parseGeoJSONFeature and `props` is
     // built from typed database fields, so no additional runtime validation is needed here.
     features.push({
       ...feature,
-      properties: { ...currentArea }
+      properties: props
     } as GeoJSONFeature)
   }
 

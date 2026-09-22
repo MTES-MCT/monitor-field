@@ -6,7 +6,7 @@ export type RegulatoryDataset = 'env' | 'fish'
 const TILES_ROOT = 'regulatory-tiles'
 
 /** Zoom range tiles are generated for (the app never renders outside this). */
-export const MIN_REGULATORY_TILE_ZOOM = 4
+export const MIN_REGULATORY_TILE_ZOOM = 0
 export const MAX_REGULATORY_TILE_ZOOM = 11
 
 /** MVT layer name emitted into every tile (used as `source-layer` in the style). */

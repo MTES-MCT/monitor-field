@@ -6,6 +6,7 @@ import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQ
 import { getDatabase } from '@database/db'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 import { filterEnvRegulatoryArea } from '../utils/matchesRecentlyAddedOrModified'
+import { mapEnvAreaFromDatabase } from './mapRegulatoryAreaFromDatabase'
 
 export type EnvRegulatoryAreasResult = {
   geoJSON: GeoJSONCollection
@@ -38,43 +39,15 @@ export async function getEnvRegulatoryAreas(
       continue
     }
 
-    const currentArea: Omit<EnvRegulatoryArea, 'bbox'> = {
-      additionalRefReg: area.additionalRefReg,
-      authorizationPeriods: area.authorizationPeriods,
-      date: area.date,
-      dateFin: area.dateFin,
-      edition: area.edition ?? null,
-      facade: area.facade,
-      fillColor: area.fillColor,
-      id: area.id,
-      layerName: area.layerName,
-      location: area.location,
-      plan: area.plan ?? null,
-      polyName: area.polyName,
-      prohibitionPeriods: area.prohibitionPeriods,
-      refReg: area.refReg,
-      resume: area.resume,
-      themes: area.themes,
-      totalByGroup: area.totalByGroup,
-      type: area.type,
-      url: area.url
-    }
+    const { props, bbox: areaBbox } = mapEnvAreaFromDatabase(area)
 
-    listItems.push({
-      ...currentArea,
-      bbox: {
-        maxLat: area.bbox_max_lat,
-        maxLon: area.bbox_max_lon,
-        minLat: area.bbox_min_lat,
-        minLon: area.bbox_min_lon
-      }
-    })
+    listItems.push({ ...props, bbox: areaBbox })
 
-    // `feature` is already structurally validated in parseGeoJSONFeature and `currentArea` is
+    // `feature` is already structurally validated in parseGeoJSONFeature and `props` is
     // built from typed database fields, so no additional runtime validation is needed here.
     features.push({
       ...feature,
-      properties: { ...currentArea }
+      properties: props
     } as GeoJSONFeature)
   }
 
