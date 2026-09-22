@@ -1,6 +1,11 @@
 import { bbox } from '@turf/bbox'
 import type { EnvRegulatoryArea } from '@domain/entities/regulatoryAreas/EnvRegulatoryArea'
 import { parseWktToGeojson } from '@utils/parseWktToGeojson'
+import {
+  GEOMETRY_COARSE_SIMPLIFICATION_TOLERANCE,
+  GEOMETRY_SIMPLIFICATION_TOLERANCE,
+  simplifyGeometry
+} from '@utils/simplifyGeometry'
 
 export type EnvRegulatoryAreaRow = {
   additional_ref_reg: string
@@ -25,17 +30,25 @@ export type EnvRegulatoryAreaRow = {
 
 /** See the `@turf/bbox` note in `FishRegulatoryAreaDataResponse`. */
 export function toEnvRegulatoryArea(row: EnvRegulatoryAreaRow): EnvRegulatoryArea {
-  const geometry = row.wkt ? parseWktToGeojson(row.wkt) : undefined
+  const feature = row.wkt ? parseWktToGeojson(row.wkt) : undefined
 
   return {
     additionalRefReg: row.additional_ref_reg,
     authorizationPeriods: row.authorization_periods,
-    boundingBox: toBoundingBox(geometry),
+    boundingBox: toBoundingBox(feature),
     date: row.date,
     dateFin: row.date_fin,
     edition: row.edition ?? undefined,
     facade: row.facade,
-    geometry: geometry ? JSON.stringify(geometry) : undefined,
+    geometry: feature
+      ? JSON.stringify({ ...feature, geometry: simplifyGeometry(feature.geometry, GEOMETRY_SIMPLIFICATION_TOLERANCE) })
+      : undefined,
+    geometryCoarse: feature
+      ? JSON.stringify({
+          ...feature,
+          geometry: simplifyGeometry(feature.geometry, GEOMETRY_COARSE_SIMPLIFICATION_TOLERANCE)
+        })
+      : undefined,
     id: row.id,
     layerName: row.layer_name,
     location: row.location,

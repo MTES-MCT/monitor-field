@@ -13,11 +13,13 @@ import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
+  GeoJSONSource,
   Images,
   Layer,
   LayerAnnotation,
   Map as MapLibreMap,
   UserLocation,
+  VectorSource,
   type LngLat,
   type MapRef,
   type PressEvent,
@@ -28,11 +30,20 @@ import {
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
-import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
+import {
+  OUTLINE_COLOR,
+  fillColorExpression,
+  useRegulatoryAreasLayer
+} from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 import * as Sentry from '@sentry/react-native'
 import { Image } from 'expo-image'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useGlobalStyle } from '@globalStyle'
+import {
+  MAX_REGULATORY_TILE_ZOOM,
+  MIN_REGULATORY_TILE_ZOOM,
+  REGULATORY_AREAS_TILE_LAYER
+} from '@infrastructure/tiles/vectorTileStore'
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { isPointInGeometry } from '@utils/isPointInGeometry'
@@ -112,44 +123,11 @@ function App() {
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const searchByZone = useSearchByZoneLayer()
 
-  const mapStyle: StyleSpecification = useMemo(
-    () => ({
-      ...baseMapStyle,
-      layers: [
-        ...baseMapStyle.layers,
-        ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
-        ...(searchByZone.layer ? [searchByZone.layer] : [])
-      ],
-      sources: {
-        ...baseMapStyle.sources,
-        ...(searchByZone.source && {
-          [searchByZone.source.id]: searchByZone.source.definition
-        }),
-        ...(regulatoryAreaLayer.source && {
-          [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
-        })
-      }
-    }),
-    [
-      isSearchZoneActive,
-      areRegulatoryAreasLayerVisible,
-      regulatoryAreaLayer.layers,
-      regulatoryAreaLayer.source,
-      searchByZone.layer,
-      searchByZone.source
-    ]
-  )
-
   /** Rebuilt only when the layer reloads, not on every tap. */
   const geometriesById = useMemo(
     () =>
-      new Map(
-        (regulatoryAreaLayer.source?.definition.data.features ?? []).map(feature => [
-          feature.properties?.id,
-          feature.geometry
-        ])
-      ),
-    [regulatoryAreaLayer.source]
+      new Map((regulatoryAreaLayer.geoJSON?.features ?? []).map(feature => [feature.properties?.id, feature.geometry])),
+    [regulatoryAreaLayer.geoJSON]
   )
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
@@ -264,7 +242,7 @@ function App() {
   return (
     <MapLibreMap
       ref={mapRef}
-      mapStyle={mapStyle}
+      mapStyle={baseMapStyle}
       touchZoom
       doubleTapZoom
       doubleTapHoldZoom
@@ -275,6 +253,34 @@ function App() {
       onPress={onMapPress}
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
+
+      {isSearchZoneActive && areRegulatoryAreasLayerVisible && (
+        <VectorSource
+          id={regulatoryAreaLayer.ids.source}
+          tiles={[regulatoryAreaLayer.tilesUrl]}
+          minzoom={MIN_REGULATORY_TILE_ZOOM}
+          maxzoom={MAX_REGULATORY_TILE_ZOOM}
+        >
+          <Layer
+            type="fill"
+            id={regulatoryAreaLayer.ids.fillLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            paint={{ 'fill-color': fillColorExpression, 'fill-opacity': 0.4 }}
+          />
+          <Layer
+            type="line"
+            id={regulatoryAreaLayer.ids.outlineLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
+          />
+        </VectorSource>
+      )}
+
+      {searchByZone.geoJSON && searchByZone.layer && (
+        <GeoJSONSource id={searchByZone.ids.source} data={searchByZone.geoJSON}>
+          <Layer {...searchByZone.layer} />
+        </GeoJSONSource>
+      )}
 
       {clickedCoordinate && (
         <LayerAnnotation id="clickedPoint" lngLat={clickedCoordinate}>

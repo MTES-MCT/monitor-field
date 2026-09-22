@@ -3,9 +3,18 @@ import type { BoundingBox } from '@/types/mapTypes'
 import { ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { EnvRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import { logSentryError } from '@utils/sentryLogger'
+import { isCoarseGeometryLevel, MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '@utils/simplifyGeometry'
 
-export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Promise<EnvRegulatoryAreaFromDatabase[]> {
+export async function getEnvRegulatoryAreasQuery(
+  db: DB,
+  bbox: BoundingBox,
+  zoom?: number
+): Promise<EnvRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
+  const geometrySelect = isCoarseGeometryLevel(zoom)
+    ? 'COALESCE(env.geojson_coarse, env.geojson) AS geojson'
+    : 'env.geojson AS geojson'
+  const minSize = minimumVisibleBboxSize(zoom)
 
   try {
     const result = await db.execute(
@@ -26,7 +35,7 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
           env.prohibition_periods as prohibitionPeriods,
           env.additional_ref_reg as additionalRefReg,
           env.themes,
-          env.geojson,
+          ${geometrySelect},
           env.location,
           env.edition,
           env.bbox_min_lon,
@@ -40,9 +49,11 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
           AND env.bbox_min_lon <= ?
           AND env.bbox_max_lat >= ?
           AND env.bbox_min_lat <= ?
-        ORDER BY env.id
+          AND (env.bbox_max_lon - env.bbox_min_lon >= ? OR env.bbox_max_lat - env.bbox_min_lat >= ?)
+        ORDER BY (env.bbox_max_lon - env.bbox_min_lon) * (env.bbox_max_lat - env.bbox_min_lat) DESC
+        LIMIT ?
       `,
-      [minLon, maxLon, minLat, maxLat]
+      [minLon, maxLon, minLat, maxLat, minSize, minSize, MAX_REGULATORY_AREAS_PER_QUERY]
     )
 
     return result.rows as EnvRegulatoryAreaFromDatabase[]

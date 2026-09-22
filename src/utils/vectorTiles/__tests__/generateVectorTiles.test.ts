@@ -1,0 +1,87 @@
+import geojsonvt from 'geojson-vt'
+import type { GeoJSONCollection } from '@/types/mapTypes'
+import { generateVectorTiles } from '../generateVectorTiles'
+
+function polygonRing(centerLon: number, centerLat: number, radius: number, points: number): number[][] {
+  const ring: number[][] = []
+  for (let i = 0; i < points; i += 1) {
+    const angle = (i / points) * 2 * Math.PI
+    ring.push([centerLon + radius * Math.cos(angle), centerLat + radius * Math.sin(angle)])
+  }
+  ring.push(ring[0]!)
+  return ring
+}
+
+function collectionWithPolygons(...rings: number[][][]): GeoJSONCollection {
+  return {
+    type: 'FeatureCollection',
+    features: rings.map((coordinates, index) => ({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [coordinates] },
+      properties: { id: index + 1, fillColor: '#000000' }
+    }))
+  }
+}
+
+type GeoJSONVT = InstanceType<typeof geojsonvt>
+
+function countTilePoints(tile: NonNullable<ReturnType<GeoJSONVT['getTile']>>): number {
+  let total = 0
+
+  for (const feature of tile.features) {
+    if (feature.type === 1) {
+      total += feature.geometry.length
+    } else {
+      for (const ring of feature.geometry) {
+        total += ring.length
+      }
+    }
+  }
+
+  return total
+}
+
+describe('generateVectorTiles', () => {
+  it('generates a non-empty MVT buffer for every populated tile', () => {
+    const collection = collectionWithPolygons(polygonRing(3, 46, 1, 200), polygonRing(4, 47, 0.5, 100))
+
+    const tiles = generateVectorTiles(collection, { maxZoom: 6 })
+
+    expect(tiles.length).toBeGreaterThan(0)
+
+    for (const tile of tiles) {
+      expect(Number.isInteger(tile.z)).toBe(true)
+      expect(tile.z).toBeGreaterThanOrEqual(0)
+      expect(tile.data).toBeInstanceOf(Uint8Array)
+      expect(tile.data.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('keeps more detail at higher zoom levels', () => {
+    const collection = collectionWithPolygons(polygonRing(3, 46, 2, 2000))
+    const index = new geojsonvt(collection, { maxZoom: 9, indexMaxZoom: 9, indexMaxPoints: 0 })
+
+    const pointsAt = (zoom: number) => {
+      let total = 0
+      for (const { z, x, y } of index.tileCoords) {
+        if (z !== zoom) continue
+        const tile = index.getTile(z, x, y)
+        if (tile) total += countTilePoints(tile)
+      }
+      return total
+    }
+
+    expect(pointsAt(9)).toBeGreaterThan(pointsAt(2))
+  })
+
+  it('promotes the area id to the MVT feature id', () => {
+    const collection = collectionWithPolygons(polygonRing(3, 46, 0.1, 8))
+    const index = new geojsonvt(collection, { maxZoom: 4, indexMaxZoom: 4, indexMaxPoints: 0, promoteId: 'id' })
+
+    const tile = index.tileCoords
+      .map(({ z, x, y }) => index.getTile(z, x, y))
+      .find(tile => tile && tile.features.length > 0)
+
+    expect(tile?.features[0]?.id).toBe(1)
+  })
+})

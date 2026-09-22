@@ -1,11 +1,9 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
-import { FishRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import { getFishRegulatoryAreasQuery } from '@database/fish/getFishRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
 import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
-import { logToSentry } from '@utils/sentryLogger'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 import { matchesRegulatoryAreaSearch } from '../utils/matchesRegulatoryAreaSearch'
 
@@ -14,9 +12,13 @@ export type FishRegulatoryAreasResult = {
   listItems: FishRegulatoryArea[]
 }
 
-export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<FishRegulatoryAreasResult> {
+export async function getFishRegulatoryAreas(
+  bbox: BoundingBox,
+  filters: Filters,
+  zoom?: number
+): Promise<FishRegulatoryAreasResult> {
   const db = await getDatabase()
-  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox)
+  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox, zoom)
 
   const features: GeoJSONFeature[] = []
   const listItems: FishRegulatoryArea[] = []
@@ -61,21 +63,12 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
       }
     })
 
-    const featureWithProperties = {
+    // `feature` is already structurally validated in parseGeoJSONFeature and `currentArea` is
+    // built from typed database fields, so no additional runtime validation is needed here.
+    features.push({
       ...feature,
       properties: { ...currentArea }
-    }
-
-    const validatedFeature = FishRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
-
-    if (!validatedFeature.success) {
-      logToSentry(`Invalid feature for area ${area.id}: ${validatedFeature.error}`, 'warning', {
-        extra: { label: 'getFishRegulatoryAreas' }
-      })
-      continue
-    }
-
-    features.push(validatedFeature.data as GeoJSONFeature)
+    } as GeoJSONFeature)
   }
 
   return {

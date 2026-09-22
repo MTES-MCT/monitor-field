@@ -12,15 +12,7 @@ export const searchByZoneIds = {
 const SEARCH_ZONE_INSET_RATIO = 0.05
 
 export type SearchByZoneLayerProps = {
-  source:
-    | {
-        id: string
-        definition: {
-          type: 'geojson'
-          data: GeoJSONFeature
-        }
-      }
-    | undefined
+  geoJSON: GeoJSONFeature | undefined
   layer: MapLayer | undefined
   ids: typeof searchByZoneIds
 }
@@ -88,23 +80,9 @@ export function useSearchByZoneLayer(): SearchByZoneLayerProps {
     [geoJSON, theme.charcoal]
   )
 
-  const source = useMemo(
-    () =>
-      geoJSON
-        ? {
-            definition: {
-              data: geoJSON,
-              type: 'geojson' as const
-            },
-            id: searchByZoneIds.source
-          }
-        : undefined,
-    [geoJSON]
-  )
-
   return {
+    geoJSON,
     ids: searchByZoneIds,
-    layer,
-    source
+    layer
   }
 }

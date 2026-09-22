@@ -13,8 +13,9 @@ const INSERT_AREA = `
     regulatory_references, fishing_periods, gears, species, general_remarks,
     geojson,
     bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat,
-    total_by_group
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    total_by_group,
+    geojson_coarse
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 /** The list groups fish areas by theme, and shows "shown / total" against this stored count. */
@@ -75,7 +76,8 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
           area.boundingBox?.minLat ?? null,
           area.boundingBox?.maxLon ?? null,
           area.boundingBox?.maxLat ?? null,
-          totalsByGroup.get(area.theme) ?? 0
+          totalsByGroup.get(area.theme) ?? 0,
+          area.geometryCoarse ?? null
         ]
       })
 

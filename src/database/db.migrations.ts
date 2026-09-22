@@ -112,6 +112,13 @@ const migrations: Migration[] = [
       )
     },
     version: 1
+  },
+  {
+    version: 2,
+    run: async tx => {
+      await tx.execute(`ALTER TABLE ${ENV_REGULATORY_AREAS_TABLE} ADD COLUMN geojson_coarse TEXT`)
+      await tx.execute(`ALTER TABLE ${FISH_REGULATORY_AREAS_TABLE} ADD COLUMN geojson_coarse TEXT`)
+    }
   }
 ]
 

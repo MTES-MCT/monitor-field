@@ -7,6 +7,7 @@ import { useTheme } from '@hooks/use-theme'
 import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
 import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
 import { logSentryError } from '@utils/sentryLogger'
+import { regulatoryTilesDirectory, tileUrlTemplate } from '@infrastructure/tiles/vectorTileStore'
 import { usePathname } from 'expo-router'
 import isEqual from 'lodash/isEqual'
 
@@ -16,23 +17,17 @@ export const regulatoryAreasIds = {
   source: 'regulatory-areas-source'
 }
 
-const DEFAULT_FISH_AREA_COLOR = '#67A9CF'
-const OUTLINE_COLOR = '#05055eb3'
+export const DEFAULT_FISH_AREA_COLOR = '#67A9CF'
+export const OUTLINE_COLOR = '#05055eb3'
 
-const fillColorExpression: any = ['coalesce', ['get', 'fillColor'], DEFAULT_FISH_AREA_COLOR]
+export const fillColorExpression: any = ['coalesce', ['get', 'fillColor'], DEFAULT_FISH_AREA_COLOR]
 
 export type RegulatoryAreasLayerProps = {
   isLoading: boolean
-  source:
-    | {
-        id: string
-        definition: {
-          type: 'geojson'
-          data: GeoJSONCollection
-        }
-      }
-    | undefined
+  geoJSON: GeoJSONCollection | undefined
+  geoJSONString: string | undefined
   layers: MapLayer[]
+  tilesUrl: string
   ids: typeof regulatoryAreasIds
 }
 
@@ -86,6 +81,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const {
     isSearchZoneActive,
     committedSearchBbox,
+    committedSearchZoom,
     setRegulatoryAreas,
     selectedRegulatoryArea,
     filters,
@@ -98,6 +94,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     bbox: BoundingBox
     filters: typeof filters
     mode: typeof config.mode
+    zoom: number | undefined
   } | null>(null)
 
   const geoJSONWithResolvedFillColor = useMemo(() => {
@@ -139,11 +136,12 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       previous &&
       isEqual(previous.bbox, bbox) &&
       isEqual(previous.filters, filters) &&
-      previous.mode === config.mode
+      previous.mode === config.mode &&
+      previous.zoom === committedSearchZoom
     ) {
       return
     }
-    lastFetchParamsRef.current = { bbox, filters, mode: config.mode }
+    lastFetchParamsRef.current = { bbox, filters, mode: config.mode, zoom: committedSearchZoom }
 
     setIsLoading(true)
 
@@ -156,9 +154,9 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
       let result
       if (config.mode === 'MONITORFISH') {
-        result = await getFishRegulatoryAreas(bbox, filters)
+        result = await getFishRegulatoryAreas(bbox, filters, committedSearchZoom)
       } else {
-        result = await getEnvRegulatoryAreas(bbox, filters)
+        result = await getEnvRegulatoryAreas(bbox, filters, committedSearchZoom)
       }
 
       setRegulatoryAreas(result.listItems)
@@ -170,7 +168,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode, setGeoJSON])
+  }, [committedSearchBbox, committedSearchZoom, setRegulatoryAreas, filters, config.mode, setGeoJSON])
 
   useEffect(() => {
     if (!isSearchZoneActive && pathname === '/search' && !filters.searchQuery?.trim()) {
@@ -190,26 +188,23 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     [geoJSONWithResolvedFillColor, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id]
   )
 
-  const source = useMemo(
-    () => ({
-      definition: {
-        data:
-          geoJSONWithResolvedFillColor ??
-          ({
-            features: [],
-            type: 'FeatureCollection'
-          } as GeoJSONCollection),
-        type: 'geojson' as const
-      },
-      id: regulatoryAreasIds.source
-    }),
+  const geoJSONString = useMemo(
+    () => (geoJSONWithResolvedFillColor ? JSON.stringify(geoJSONWithResolvedFillColor) : undefined),
     [geoJSONWithResolvedFillColor]
   )
 
+  const tilesUrl = useMemo(() => {
+    const dataset = config.mode === 'MONITORFISH' ? 'fish' : 'env'
+
+    return tileUrlTemplate(regulatoryTilesDirectory(dataset))
+  }, [config.mode])
+
   return {
+    geoJSON: geoJSONWithResolvedFillColor,
+    geoJSONString,
     ids: regulatoryAreasIds,
     isLoading,
     layers,
-    source
+    tilesUrl
   }
 }

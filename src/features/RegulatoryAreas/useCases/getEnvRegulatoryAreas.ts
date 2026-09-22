@@ -1,11 +1,9 @@
 import type { BoundingBox, GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
-import { EnvRegulatoryAreaFeatureSchema } from '@/types/schemas'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
 import type { Filters } from '@contexts/RegulatoryAreasContext'
 import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { getEnvRegulatoryAreasQuery } from '@database/env/getEnvRegulatoryAreasQuery'
 import { getDatabase } from '@database/db'
-import { logToSentry } from '@utils/sentryLogger'
 import { doesGeometryIntersectBbox } from '@utils/doesGeometryIntersectBbox'
 import { filterEnvRegulatoryArea } from '../utils/matchesRecentlyAddedOrModified'
 
@@ -14,9 +12,13 @@ export type EnvRegulatoryAreasResult = {
   listItems: EnvRegulatoryArea[]
 }
 
-export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<EnvRegulatoryAreasResult> {
+export async function getEnvRegulatoryAreas(
+  bbox: BoundingBox,
+  filters: Filters,
+  zoom?: number
+): Promise<EnvRegulatoryAreasResult> {
   const db = await getDatabase()
-  const fetchedAreas = await getEnvRegulatoryAreasQuery(db, bbox)
+  const fetchedAreas = await getEnvRegulatoryAreasQuery(db, bbox, zoom)
   const features: GeoJSONFeature[] = []
   const listItems: EnvRegulatoryArea[] = []
 
@@ -68,21 +70,12 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
       }
     })
 
-    const featureWithProperties = {
+    // `feature` is already structurally validated in parseGeoJSONFeature and `currentArea` is
+    // built from typed database fields, so no additional runtime validation is needed here.
+    features.push({
       ...feature,
       properties: { ...currentArea }
-    }
-
-    const validatedFeature = EnvRegulatoryAreaFeatureSchema.safeParse(featureWithProperties)
-
-    if (!validatedFeature.success) {
-      logToSentry(`Invalid feature for area ${area.id}: ${validatedFeature.error}`, 'warning', {
-        extra: { label: 'getEnvRegulatoryAreas' }
-      })
-      continue
-    }
-
-    features.push(validatedFeature.data as GeoJSONFeature)
+    } as GeoJSONFeature)
   }
 
   return {

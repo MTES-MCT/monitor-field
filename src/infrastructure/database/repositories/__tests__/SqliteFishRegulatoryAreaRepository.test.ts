@@ -40,6 +40,7 @@ function buildArea(id: number, seaFront = 'NAMO'): FishRegulatoryArea {
     gears: '{"regulatedGears": []}',
     generalRemarks: `Remarques ${id}`,
     geometry: '{"type":"Polygon","coordinates":[]}',
+    geometryCoarse: 'coarse-geometry',
     id,
     regulatoryReferences: `[{"reference": "Arrêté ${id}"}]`,
     species: '{"regulatedSpecies": []}',
@@ -121,6 +122,14 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
       await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
 
       expect(insertedRows()[0]?.slice(10, 15)).toEqual(['{"type":"Polygon","coordinates":[]}', -4, 48, -3, 49])
+    })
+
+    it('writes the coarse geometry for low zoom', async () => {
+      const { db, insertedRows } = createRecordingDb()
+
+      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+
+      expect(insertedRows()[0]?.[16]).toEqual('coarse-geometry')
     })
 
     it('stores nulls rather than undefined when an area has no geometry', async () => {

@@ -29,6 +29,13 @@ export type Geometry =
       coordinates: number[][][][]
     }
 
+/** A GeoJSON Feature parsed from the raw `geojson` column, before properties are attached. */
+export type RawGeoJSONFeature = {
+  geometry: Geometry
+  properties?: Record<string, unknown>
+  type: 'Feature'
+}
+
 export type GeoJSONFeature = {
   type: 'Feature'
   geometry: Geometry
