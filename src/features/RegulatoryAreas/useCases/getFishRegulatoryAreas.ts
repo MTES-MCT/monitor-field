@@ -23,3 +23,13 @@ export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters
 
   return listItems
 }
+
+/** Ids of every fish area matching `filters`, regardless of viewport (used to filter the tile layer). */
+export async function getFishRegulatoryAreaIds(filters: Filters): Promise<number[]> {
+  const db = await getDatabase()
+  const fetchedAreas = await getFishRegulatoryAreasQuery(db)
+
+  return fetchedAreas
+    .filter(area => matchesRegulatoryAreaSearch(area, filters.searchQuery, 'MONITORFISH'))
+    .map(area => area.id)
+}

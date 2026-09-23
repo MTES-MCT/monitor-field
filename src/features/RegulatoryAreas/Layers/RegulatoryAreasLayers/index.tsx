@@ -3,8 +3,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { BoundingBox } from '@/types/mapTypes'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
-import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
+import { getFishRegulatoryAreaIds, getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
+import {
+  getEnvRegulatoryAreaIds,
+  getEnvRegulatoryAreas
+} from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
 import { logSentryError } from '@utils/sentryLogger'
 import { regulatoryTilesDirectory, tileUrlTemplate } from '@infrastructure/tiles/vectorTileStore'
 import isEqual from 'lodash/isEqual'
@@ -21,20 +24,27 @@ export const OUTLINE_COLOR = '#05055eb3'
 export const fillColorExpression: any = ['coalesce', ['get', 'fillColor'], DEFAULT_FISH_AREA_COLOR]
 
 export type RegulatoryAreasLayerProps = {
+  hasActiveFilter: boolean
+  ids: typeof regulatoryAreasIds
   isLoading: boolean
   tilesUrl: string
-  ids: typeof regulatoryAreasIds
+  visibleAreaIds: number[]
 }
 
 const LIST_REFRESH_DEBOUNCE_MS = 200
 
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const [isLoading, setIsLoading] = useState(false)
+  const [visibleAreaIds, setVisibleAreaIds] = useState<number[]>([])
 
   const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
   const { config } = useAppContext()
 
+  const hasActiveFilter =
+    !!filters.searchQuery?.trim() || filters.recentlyAddedOrModified || filters.themesAndSubThemes.length > 0
+
   const requestIdRef = useRef(0)
+  const idRequestIdRef = useRef(0)
   const lastFetchParamsRef = useRef<{
     bbox: BoundingBox
     filters: typeof filters
@@ -94,6 +104,34 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     return () => clearTimeout(timer)
   }, [fetch])
 
+  // The map filter needs the matching ids, regardless of viewport (the tiles already clip to the
+  // screen), so it only refetches when the filters themselves change — no per-frame work on pan/zoom.
+  useEffect(() => {
+    const requestId = ++idRequestIdRef.current
+
+    if (!hasActiveFilter) {
+      setVisibleAreaIds([])
+      return
+    }
+
+    const resolve = async () => {
+      try {
+        const ids =
+          config.mode === 'MONITORFISH'
+            ? await getFishRegulatoryAreaIds(filters)
+            : await getEnvRegulatoryAreaIds(filters)
+
+        if (idRequestIdRef.current === requestId) {
+          setVisibleAreaIds(ids)
+        }
+      } catch (error) {
+        logSentryError(error, 'Failed to resolve visible regulatory area ids')
+      }
+    }
+
+    void resolve()
+  }, [hasActiveFilter, filters, config.mode])
+
   const tilesUrl = useMemo(() => {
     const dataset = config.mode === 'MONITORFISH' ? 'fish' : 'env'
 
@@ -101,8 +139,10 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   }, [config.mode])
 
   return {
+    hasActiveFilter,
     ids: regulatoryAreasIds,
     isLoading,
-    tilesUrl
+    tilesUrl,
+    visibleAreaIds
   }
 }

@@ -23,3 +23,11 @@ export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters)
 
   return listItems
 }
+
+/** Ids of every env area matching `filters`, regardless of viewport (used to filter the tile layer). */
+export async function getEnvRegulatoryAreaIds(filters: Filters): Promise<number[]> {
+  const db = await getDatabase()
+  const fetchedAreas = await getEnvRegulatoryAreasQuery(db)
+
+  return fetchedAreas.filter(area => filterEnvRegulatoryArea(area, filters)).map(area => area.id)
+}

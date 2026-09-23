@@ -6,9 +6,16 @@ import { logSentryError } from '@utils/sentryLogger'
 
 export async function getFishRegulatoryAreasQuery(
   db: DB,
-  bbox: BoundingBox
+  bbox?: BoundingBox
 ): Promise<FishRegulatoryAreaFromDatabase[]> {
-  const { minLon, minLat, maxLon, maxLat } = bbox
+  const params: number[] = []
+  const whereClause = bbox
+    ? 'WHERE fish.bbox_max_lon >= ? AND fish.bbox_min_lon <= ? AND fish.bbox_max_lat >= ? AND fish.bbox_min_lat <= ?'
+    : ''
+
+  if (bbox) {
+    params.push(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat)
+  }
 
   try {
     const result = await db.execute(
@@ -30,13 +37,10 @@ export async function getFishRegulatoryAreasQuery(
           fish.fill_color as fillColor,
           fish.total_by_group as totalByGroup
         FROM ${FISH_REGULATORY_AREAS_TABLE} AS fish
-        WHERE fish.bbox_max_lon >= ?
-          AND fish.bbox_min_lon <= ?
-          AND fish.bbox_max_lat >= ?
-          AND fish.bbox_min_lat <= ?
+        ${whereClause}
         ORDER BY (fish.bbox_max_lon - fish.bbox_min_lon) * (fish.bbox_max_lat - fish.bbox_min_lat) DESC
       `,
-      [minLon, maxLon, minLat, maxLat]
+      params
     )
 
     return result.rows as FishRegulatoryAreaFromDatabase[]

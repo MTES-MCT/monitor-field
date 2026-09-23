@@ -105,8 +105,6 @@ function App() {
   const {
     areRegulatoryAreasLayerVisible,
     currentZoom,
-    filters,
-    regulatoryAreas,
     setSearchBbox,
     setCurrentZoom,
     setSelectedRegulatoryArea,
@@ -119,25 +117,22 @@ function App() {
 
   const precisionLabel = `Précision ${formatTileError(estimateTileErrorMeters(currentZoom))}`
 
-  // When a search/filter is active, only show the zones the list returned (by id); otherwise the
-  // tiles render everything. The list is viewport-scoped, so this mirrors it on the map.
-  const regulatoryAreasFilter: any = useMemo(() => {
-    const hasActiveFilter =
-      !!filters.searchQuery?.trim() || filters.recentlyAddedOrModified || filters.themesAndSubThemes.length > 0
+  const { hasActiveFilter, visibleAreaIds } = regulatoryAreaLayer
 
+  // When a search/filter is active, only show the zones the (non-debounced) id source returned;
+  // otherwise the tiles render everything.
+  const regulatoryAreasFilter: any = useMemo(() => {
     if (!hasActiveFilter) {
       return undefined
     }
 
-    const ids = regulatoryAreas.map(area => area.id)
-
-    if (ids.length === 0) {
+    if (visibleAreaIds.length === 0) {
       // An active filter with no matches: hide every feature (area ids are positive).
       return ['==', ['id'], -1]
     }
 
-    return ['match', ['id'], ...ids.flatMap(id => [id, true]), false]
-  }, [filters, regulatoryAreas])
+    return ['match', ['id'], ...visibleAreaIds.flatMap(id => [id, true]), false]
+  }, [hasActiveFilter, visibleAreaIds])
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)

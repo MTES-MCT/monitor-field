@@ -4,8 +4,15 @@ import { ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { EnvRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import { logSentryError } from '@utils/sentryLogger'
 
-export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Promise<EnvRegulatoryAreaFromDatabase[]> {
-  const { minLon, minLat, maxLon, maxLat } = bbox
+export async function getEnvRegulatoryAreasQuery(db: DB, bbox?: BoundingBox): Promise<EnvRegulatoryAreaFromDatabase[]> {
+  const params: number[] = []
+  const whereClause = bbox
+    ? 'WHERE env.bbox_max_lon >= ? AND env.bbox_min_lon <= ? AND env.bbox_max_lat >= ? AND env.bbox_min_lat <= ?'
+    : ''
+
+  if (bbox) {
+    params.push(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat)
+  }
 
   try {
     const result = await db.execute(
@@ -35,13 +42,10 @@ export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Pro
           env.fill_color as fillColor,
           env.total_by_group as totalByGroup
         FROM ${ENV_REGULATORY_AREAS_TABLE} AS env
-        WHERE env.bbox_max_lon >= ?
-          AND env.bbox_min_lon <= ?
-          AND env.bbox_max_lat >= ?
-          AND env.bbox_min_lat <= ?
+        ${whereClause}
         ORDER BY (env.bbox_max_lon - env.bbox_min_lon) * (env.bbox_max_lat - env.bbox_min_lat) DESC
       `,
-      [minLon, maxLon, minLat, maxLat]
+      params
     )
 
     return result.rows as EnvRegulatoryAreaFromDatabase[]
