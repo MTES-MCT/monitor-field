@@ -13,26 +13,21 @@ import { useRegulatoryAreasList } from '@features/RegulatoryAreas/hooks/useRegul
 export default function SearchPage() {
   const theme = useTheme()
   const router = useRouter()
-  const { isSearchZoneActive, filters, setFilters, setCommittedSearchBbox } = useRegulatoryAreasContext()
+  const { filters, setFilters } = useRegulatoryAreasContext()
   const { setActiveModal } = useAppContext()
 
-  const shouldShowResults = isSearchZoneActive || !!filters.searchQuery?.trim()
-
   const onDismiss = () => {
-    if (!isSearchZoneActive) {
-      setCommittedSearchBbox(undefined)
-      setFilters(currentFilters => ({
-        ...currentFilters,
-        searchQuery: undefined
-      }))
-    }
+    setFilters(currentFilters => ({
+      ...currentFilters,
+      searchQuery: undefined
+    }))
     setActiveModal(undefined)
     router.back()
   }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onClose: onDismiss,
-    shouldShowResults
+    shouldShowResults: true
   })
 
   return (

@@ -6,19 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FishRegulatoryAreaDetails } from './FishRegulatoryAreaDetails'
 import type { FishRegulatoryArea, EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
-import { useCameraContext } from '@contexts/CameraContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 
 export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const { activeModal, config, setActiveModal } = useAppContext()
-  const {
-    selectedRegulatoryArea,
-    setSelectedRegulatoryArea,
-    committedSearchBbox,
-    committedSearchZoom,
-    setCommittedSearchBbox
-  } = useRegulatoryAreasContext()
-  const { zoomToBbox } = useCameraContext()
+  const { selectedRegulatoryArea, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
   const theme = useTheme()
 
   const insets = useSafeAreaInsets()
@@ -32,12 +24,6 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
     modalRef.current?.dismiss()
     setActiveModal(origin)
     setSelectedRegulatoryArea(undefined)
-    if (committedSearchBbox) {
-      const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
-      const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
-      zoomToBbox({ centerLat, centerLon, zoom: committedSearchZoom })
-      setCommittedSearchBbox(committedSearchBbox)
-    }
   }
 
   useEffect(() => {

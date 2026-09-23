@@ -4,7 +4,6 @@ import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useAppContext } from '@contexts/AppContext'
-import { useCameraContext } from '@contexts/CameraContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
@@ -21,8 +20,7 @@ export function SearchInput({ onClose }: SearchInputProps) {
   const inputRef = useRef<TextInput>(null)
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
-  const { zoomToBbox } = useCameraContext()
-  const { filters, setFilters, committedSearchBbox, committedSearchZoom } = useRegulatoryAreasContext()
+  const { filters, setFilters } = useRegulatoryAreasContext()
   const { setActiveModal } = useAppContext()
   const [text, setText] = useState(filters.searchQuery ?? '')
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -50,20 +48,7 @@ export function SearchInput({ onClose }: SearchInputProps) {
   const onSubmit = useCallback(() => {
     router.navigate('/')
     setActiveModal('REGULATORY_AREAS_LIST_MODAL')
-
-    setTimeout(() => {
-      if (committedSearchBbox) {
-        const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
-        const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
-        zoomToBbox({
-          centerLat,
-          centerLon,
-          withPadding: true,
-          zoom: committedSearchZoom ? committedSearchZoom * 0.9 : undefined
-        })
-      }
-    }, 1000)
-  }, [setActiveModal, router, committedSearchBbox, committedSearchZoom, zoomToBbox])
+  }, [setActiveModal, router])
 
   return (
     <>
@@ -95,7 +80,7 @@ export function SearchInput({ onClose }: SearchInputProps) {
       <View style={styles.informationMessage}>
         <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
         <ThemedText type="small" themeColor="slateGray">
-          La recherche se fait dans la zone en pointillés
+          La recherche se fait dans la zone affichée à l’écran
         </ThemedText>
       </View>
       <View style={globalStyle.separator} />

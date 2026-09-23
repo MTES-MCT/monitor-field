@@ -14,14 +14,8 @@ const RegulatoryAreasContext = createContext<
   | {
       searchBbox: BoundingBox | undefined
       setSearchBbox: (bbox: BoundingBox | undefined) => void
-      committedSearchBbox: BoundingBox | undefined
-      setCommittedSearchBbox: (bbox: BoundingBox | undefined) => void
       currentZoom: number | undefined
       setCurrentZoom: (zoom: number | undefined) => void
-      committedSearchZoom: number | undefined
-      setCommittedSearchZoom: (zoom: number | undefined) => void
-      isSearchZoneActive: boolean
-      setIsSearchZoneActive: (active: boolean) => void
       totalCount: number | undefined
       regulatoryAreas: RegulatoryAreaListItem[]
       setRegulatoryAreas: (areas: RegulatoryAreaListItem[]) => void
@@ -40,15 +34,12 @@ const RegulatoryAreasContext = createContext<
 >(undefined)
 
 export function RegulatoryAreasProvider({ children }: { children: React.ReactNode }) {
-  const [isSearchZoneActive, setIsSearchZoneActive] = useState(false)
   const [searchBbox, setSearchBbox] = useState<BoundingBox | undefined>(undefined)
-  const [committedSearchBbox, setCommittedSearchBbox] = useState<BoundingBox | undefined>(undefined)
   const [currentZoom, setCurrentZoom] = useState<number | undefined>(undefined)
-  const [committedSearchZoom, setCommittedSearchZoom] = useState<number | undefined>(undefined)
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
   const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
-  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(false)
+  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(true)
 
   const [filters, setFilters] = useState<Filters>({
     recentlyAddedOrModified: false,
@@ -70,22 +61,16 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     () => ({
       areRegulatoryAreasLayerVisible,
       clickedFeaturesList,
-      committedSearchBbox,
-      committedSearchZoom,
       currentZoom,
       filters,
-      isSearchZoneActive,
       isolatedRegulatoryAreaId,
       regulatoryAreas,
       searchBbox,
       selectedRegulatoryArea,
       setAreRegulatoryAreasLayerVisible,
       setClickedFeaturesList,
-      setCommittedSearchBbox,
-      setCommittedSearchZoom,
       setCurrentZoom,
       setFilters,
-      setIsSearchZoneActive,
       setIsolatedRegulatoryAreaId,
       setRegulatoryAreas,
       setSearchBbox,
@@ -95,11 +80,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     [
       areRegulatoryAreasLayerVisible,
       clickedFeaturesList,
-      committedSearchBbox,
-      committedSearchZoom,
       currentZoom,
       filters,
-      isSearchZoneActive,
       isolatedRegulatoryAreaId,
       regulatoryAreas,
       searchBbox,

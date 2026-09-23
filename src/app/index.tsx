@@ -6,14 +6,12 @@ import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 
 import { BottomBar } from '@components/BottomBar'
-import { useSearchByZoneLayer } from '@components/Layers/useSearchByZoneLayer'
 import { LocationButton } from '@components/Buttons/LocationButton'
 import { SwitchContextButton } from '@components/Buttons/SwitchContextButton'
 import { useRegulatoryAreasContext, type RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
-  GeoJSONSource,
   Images,
   Layer,
   LayerAnnotation,
@@ -104,9 +102,7 @@ function App() {
   const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData, config } = useAppContext()
   const {
     areRegulatoryAreasLayerVisible,
-    isSearchZoneActive,
     setSearchBbox,
-    setCommittedSearchBbox,
     setCurrentZoom,
     setSelectedRegulatoryArea,
     setClickedFeaturesList
@@ -115,7 +111,6 @@ function App() {
   const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
-  const searchByZone = useSearchByZoneLayer()
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)
@@ -184,6 +179,9 @@ function App() {
       }
 
       if (clickedRegulatoryAreas.length === 1) {
+        // Tapping the map directly has no list to return to: clear any stale origin so closing
+        // the details modal doesn't reopen a previous list/search sheet.
+        setRegulatoryAreaDetailsOrigin(undefined)
         setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
@@ -198,6 +196,7 @@ function App() {
       mapRef,
       regulatoryAreaLayer.ids,
       config.mode,
+      setRegulatoryAreaDetailsOrigin,
       setSelectedRegulatoryArea,
       setActiveModal,
       setClickedCoordinate,
@@ -207,10 +206,6 @@ function App() {
   )
 
   const onMapPress = (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
-    if (!isSearchZoneActive) {
-      return
-    }
-
     const coordinate = event.nativeEvent.lngLat
     const point = event.nativeEvent.point
     if (!coordinate || !point) {
@@ -226,21 +221,7 @@ function App() {
     })
   }
 
-  const searchByQuery = async () => {
-    const bounds = await mapRef.current?.getBounds()
-
-    if (!bounds) return undefined
-    const [lonA, latA, lonB, latB] = bounds
-
-    if (!isSearchZoneActive) {
-      setCommittedSearchBbox({
-        maxLat: Math.max(latA, latB),
-        maxLon: Math.max(lonA, lonB),
-        minLat: Math.min(latA, latB),
-        minLon: Math.min(lonA, lonB)
-      })
-    }
-
+  const searchByQuery = () => {
     setActiveModal(undefined)
     setTimeout(() => {
       router.navigate('/search')
@@ -262,7 +243,7 @@ function App() {
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 
-      {isSearchZoneActive && areRegulatoryAreasLayerVisible && (
+      {areRegulatoryAreasLayerVisible && (
         <VectorSource
           id={regulatoryAreaLayer.ids.source}
           tiles={[regulatoryAreaLayer.tilesUrl]}
@@ -282,12 +263,6 @@ function App() {
             paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
           />
         </VectorSource>
-      )}
-
-      {searchByZone.geoJSON && searchByZone.layer && (
-        <GeoJSONSource id={searchByZone.ids.source} data={searchByZone.geoJSON}>
-          <Layer {...searchByZone.layer} />
-        </GeoJSONSource>
       )}
 
       {clickedCoordinate && (
