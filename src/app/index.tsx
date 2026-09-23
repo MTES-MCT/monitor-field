@@ -26,7 +26,7 @@ import {
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -105,6 +105,8 @@ function App() {
   const {
     areRegulatoryAreasLayerVisible,
     currentZoom,
+    filters,
+    regulatoryAreas,
     setSearchBbox,
     setCurrentZoom,
     setSelectedRegulatoryArea,
@@ -116,6 +118,26 @@ function App() {
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
 
   const precisionLabel = `Précision ${formatTileError(estimateTileErrorMeters(currentZoom))}`
+
+  // When a search/filter is active, only show the zones the list returned (by id); otherwise the
+  // tiles render everything. The list is viewport-scoped, so this mirrors it on the map.
+  const regulatoryAreasFilter: any = useMemo(() => {
+    const hasActiveFilter =
+      !!filters.searchQuery?.trim() || filters.recentlyAddedOrModified || filters.themesAndSubThemes.length > 0
+
+    if (!hasActiveFilter) {
+      return undefined
+    }
+
+    const ids = regulatoryAreas.map(area => area.id)
+
+    if (ids.length === 0) {
+      // An active filter with no matches: hide every feature (area ids are positive).
+      return ['==', ['id'], -1]
+    }
+
+    return ['match', ['id'], ...ids.flatMap(id => [id, true]), false]
+  }, [filters, regulatoryAreas])
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)
@@ -259,12 +281,14 @@ function App() {
             type="fill"
             id={regulatoryAreaLayer.ids.fillLayer}
             source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreasFilter}
             paint={{ 'fill-color': fillColorExpression, 'fill-opacity': 0.4 }}
           />
           <Layer
             type="line"
             id={regulatoryAreaLayer.ids.outlineLayer}
             source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreasFilter}
             paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
           />
         </VectorSource>
