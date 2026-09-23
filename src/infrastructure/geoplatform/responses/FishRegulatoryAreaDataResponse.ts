@@ -1,7 +1,6 @@
 import { bbox } from '@turf/bbox'
 import type { Feature, MultiPolygon, Polygon } from 'geojson'
 import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRegulatoryArea'
-import { GEOMETRY_COARSE_SIMPLIFICATION_TOLERANCE, simplifyGeometry } from '@utils/simplifyGeometry'
 import { parseFeatureId } from '../parseFeatureId'
 
 export type FishRegulatoryAreaProperties = {
@@ -41,13 +40,6 @@ export function toFishRegulatoryArea(feature: FishRegulatoryAreaFeature): FishRe
     geometry: feature.geometry
       ? JSON.stringify({
           geometry: feature.geometry,
-          properties: {},
-          type: 'Feature'
-        })
-      : undefined,
-    geometryCoarse: feature.geometry
-      ? JSON.stringify({
-          geometry: simplifyGeometry(feature.geometry, GEOMETRY_COARSE_SIMPLIFICATION_TOLERANCE),
           properties: {},
           type: 'Feature'
         })

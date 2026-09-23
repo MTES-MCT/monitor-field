@@ -157,19 +157,4 @@ describe('toFishRegulatoryArea', () => {
 
     expect(parseGeoJSONFeature(area!.geometry)?.geometry).toEqual(buildFeature().geometry)
   })
-
-  it('stores a coarser geometry alongside the detailed one', () => {
-    // A large, densely-sampled circle: the 50m level keeps far more vertices than the 5km one.
-    const ring = Array.from({ length: 2000 }, (_, index) => {
-      const angle = (index / 2000) * 2 * Math.PI
-      return [3 * Math.cos(angle), 45 + 3 * Math.sin(angle)]
-    })
-    ring.push(ring[0]!)
-    const area = toFishRegulatoryArea(buildFeature({ geometry: { coordinates: [[ring]], type: 'MultiPolygon' } }))
-
-    const fine = JSON.parse(area!.geometry!)
-    const coarse = JSON.parse(area!.geometryCoarse!)
-
-    expect(coarse.geometry.coordinates[0][0].length).toBeLessThan(fine.geometry.coordinates[0][0].length)
-  })
 })

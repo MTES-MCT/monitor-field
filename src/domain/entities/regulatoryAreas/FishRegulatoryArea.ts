@@ -15,7 +15,6 @@ export type FishRegulatoryArea = {
   species: string | undefined
   generalRemarks: string | undefined
   geometry: string | undefined
-  geometryCoarse: string | undefined
   boundingBox: BoundingBox | undefined
 }
 

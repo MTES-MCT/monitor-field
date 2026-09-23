@@ -78,7 +78,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
           : await getEnvRegulatoryAreas(bbox, filters, currentZoom)
 
       if (requestIdRef.current === requestId) {
-        setRegulatoryAreas(result.listItems)
+        setRegulatoryAreas(result)
       }
     } catch (error) {
       logSentryError(error, 'Failed to load regulatory areas')

@@ -3,7 +3,7 @@ import type { BoundingBox } from '@/types/mapTypes'
 import { FISH_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { FishRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import { logSentryError } from '@utils/sentryLogger'
-import { isCoarseGeometryLevel, MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '@utils/simplifyGeometry'
+import { MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '../regulatoryAreasQueryConfig'
 
 export async function getFishRegulatoryAreasQuery(
   db: DB,
@@ -11,9 +11,6 @@ export async function getFishRegulatoryAreasQuery(
   zoom?: number
 ): Promise<FishRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
-  const geometrySelect = isCoarseGeometryLevel(zoom)
-    ? 'COALESCE(fish.geojson_coarse, fish.geojson) AS geojson'
-    : 'fish.geojson AS geojson'
   const minSize = minimumVisibleBboxSize(zoom)
 
   try {
@@ -29,7 +26,6 @@ export async function getFishRegulatoryAreasQuery(
           fish.gears,
           fish.species,
           fish.general_remarks as generalRemarks,
-          ${geometrySelect},
           fish.bbox_min_lon,
           fish.bbox_min_lat,
           fish.bbox_max_lon,

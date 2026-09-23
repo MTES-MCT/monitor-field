@@ -19,6 +19,5 @@ export type EnvRegulatoryArea = {
   location: string
   edition: string | undefined
   geometry: string | undefined
-  geometryCoarse: string | undefined
   boundingBox: BoundingBox | undefined
 }

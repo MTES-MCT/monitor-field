@@ -3,7 +3,7 @@ import type { BoundingBox } from '@/types/mapTypes'
 import { ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { EnvRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import { logSentryError } from '@utils/sentryLogger'
-import { isCoarseGeometryLevel, MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '@utils/simplifyGeometry'
+import { MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '../regulatoryAreasQueryConfig'
 
 export async function getEnvRegulatoryAreasQuery(
   db: DB,
@@ -11,9 +11,6 @@ export async function getEnvRegulatoryAreasQuery(
   zoom?: number
 ): Promise<EnvRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
-  const geometrySelect = isCoarseGeometryLevel(zoom)
-    ? 'COALESCE(env.geojson_coarse, env.geojson) AS geojson'
-    : 'env.geojson AS geojson'
   const minSize = minimumVisibleBboxSize(zoom)
 
   try {
@@ -35,7 +32,6 @@ export async function getEnvRegulatoryAreasQuery(
           env.prohibition_periods as prohibitionPeriods,
           env.additional_ref_reg as additionalRefReg,
           env.themes,
-          ${geometrySelect},
           env.location,
           env.edition,
           env.bbox_min_lon,

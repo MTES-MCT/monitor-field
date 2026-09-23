@@ -9,7 +9,6 @@ export type FishRegulatoryAreaFromDatabase = {
   gears: string | null
   species: string | null
   generalRemarks: string | null
-  geojson?: string
   bbox_min_lon: number
   bbox_min_lat: number
   bbox_max_lon: number
@@ -48,7 +47,6 @@ export type EnvRegulatoryAreaFromDatabase = {
   prohibitionPeriods: string
   additionalRefReg: string
   themes: string
-  geojson?: string
   bbox_min_lon: number
   bbox_min_lat: number
   bbox_max_lon: number

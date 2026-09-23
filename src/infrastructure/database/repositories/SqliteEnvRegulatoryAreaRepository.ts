@@ -74,9 +74,8 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
                   resume, plan, poly_name, authorization_periods, prohibition_periods,
                   additional_ref_reg, themes, location, fill_color, edition,
                   bbox_min_lon, bbox_min_lat, bbox_max_lon, bbox_max_lat,
-                  total_by_group,
-                  geojson_coarse
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  total_by_group
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
               `,
               [
                 area.id,
@@ -102,8 +101,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
                 area.boundingBox?.minLat ?? null,
                 area.boundingBox?.maxLon ?? null,
                 area.boundingBox?.maxLat ?? null,
-                totalsByGroup.get(buildGroupKey(area)) ?? 0,
-                area.geometryCoarse ?? null
+                totalsByGroup.get(buildGroupKey(area)) ?? 0
               ]
             )
           }

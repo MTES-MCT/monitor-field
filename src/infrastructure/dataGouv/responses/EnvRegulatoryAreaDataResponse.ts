@@ -1,7 +1,6 @@
 import { bbox } from '@turf/bbox'
 import type { EnvRegulatoryArea } from '@domain/entities/regulatoryAreas/EnvRegulatoryArea'
 import { parseWktToGeojson } from '@utils/parseWktToGeojson'
-import { GEOMETRY_COARSE_SIMPLIFICATION_TOLERANCE, simplifyGeometry } from '@utils/simplifyGeometry'
 
 export type EnvRegulatoryAreaRow = {
   additional_ref_reg: string
@@ -37,12 +36,6 @@ export function toEnvRegulatoryArea(row: EnvRegulatoryAreaRow): EnvRegulatoryAre
     edition: row.edition ?? undefined,
     facade: row.facade,
     geometry: feature ? JSON.stringify({ ...feature, geometry: feature.geometry }) : undefined,
-    geometryCoarse: feature
-      ? JSON.stringify({
-          ...feature,
-          geometry: simplifyGeometry(feature.geometry, GEOMETRY_COARSE_SIMPLIFICATION_TOLERANCE)
-        })
-      : undefined,
     id: row.id,
     layerName: row.layer_name,
     location: row.location,
