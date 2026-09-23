@@ -70,13 +70,13 @@ export function generateVectorTiles(
   // depth the index is built to. We decouple them via `detailZoom` so a pass can emit a simplified
   // top level (build only to `maxZoom`) while still declaring a deeper detail level.
   const index = new geojsonvt(collection as unknown as ConstructorParameters<typeof geojsonvt>[0], {
-    maxZoom: detailZoom,
-    indexMaxZoom: maxZoom,
-    indexMaxPoints: 0,
-    extent,
-    tolerance,
     buffer,
-    promoteId
+    extent,
+    indexMaxPoints: 0,
+    indexMaxZoom: maxZoom,
+    maxZoom: detailZoom,
+    promoteId,
+    tolerance
   })
 
   // Report the number of populated tiles before writing, so callers can show progress.
@@ -108,10 +108,10 @@ export function generateVectorTiles(
     }
 
     const vectorTile: VectorTile = {
-      z,
+      data: fromGeojsonVt({ [layerName]: tile }, { extent, version: 2 }),
       x,
       y,
-      data: fromGeojsonVt({ [layerName]: tile }, { extent, version: 2 })
+      z
     }
 
     if (onTile) {

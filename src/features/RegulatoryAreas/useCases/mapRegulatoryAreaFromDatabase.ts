@@ -1,4 +1,9 @@
-import type { EnvRegulatoryArea, EnvRegulatoryAreaFromDatabase, FishRegulatoryArea, FishRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
+import type {
+  EnvRegulatoryArea,
+  EnvRegulatoryAreaFromDatabase,
+  FishRegulatoryArea,
+  FishRegulatoryAreaFromDatabase
+} from '@/types/regulatoryAreasTypes'
 
 type MappedArea<T> = {
   props: Omit<T, 'bbox'>
@@ -7,6 +12,12 @@ type MappedArea<T> = {
 
 export function mapEnvAreaFromDatabase(area: EnvRegulatoryAreaFromDatabase): MappedArea<EnvRegulatoryArea> {
   return {
+    bbox: {
+      maxLat: area.bbox_max_lat,
+      maxLon: area.bbox_max_lon,
+      minLat: area.bbox_min_lat,
+      minLon: area.bbox_min_lon
+    },
     props: {
       additionalRefReg: area.additionalRefReg,
       authorizationPeriods: area.authorizationPeriods,
@@ -27,18 +38,18 @@ export function mapEnvAreaFromDatabase(area: EnvRegulatoryAreaFromDatabase): Map
       totalByGroup: area.totalByGroup,
       type: area.type,
       url: area.url
-    },
-    bbox: {
-      maxLat: area.bbox_max_lat,
-      maxLon: area.bbox_max_lon,
-      minLat: area.bbox_min_lat,
-      minLon: area.bbox_min_lon
     }
   }
 }
 
 export function mapFishAreaFromDatabase(area: FishRegulatoryAreaFromDatabase): MappedArea<FishRegulatoryArea> {
   return {
+    bbox: {
+      maxLat: area.bbox_max_lat,
+      maxLon: area.bbox_max_lon,
+      minLat: area.bbox_min_lat,
+      minLon: area.bbox_min_lon
+    },
     props: {
       fillColor: area.fillColor,
       fishingPeriods: area.fishingPeriods,
@@ -51,12 +62,6 @@ export function mapFishAreaFromDatabase(area: FishRegulatoryAreaFromDatabase): M
       totalByGroup: area.totalByGroup,
       type: area.type,
       zone: area.zone
-    },
-    bbox: {
-      maxLat: area.bbox_max_lat,
-      maxLon: area.bbox_max_lon,
-      minLat: area.bbox_min_lat,
-      minLon: area.bbox_min_lon
     }
   }
 }

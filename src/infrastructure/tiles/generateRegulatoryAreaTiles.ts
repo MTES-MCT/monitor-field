@@ -103,14 +103,14 @@ async function regenerateDatasetTiles(db: DB, dataset: RegulatoryDataset): Promi
 
     features.push({
       ...feature,
-      properties: { id: row.id, fillColor: resolveFillColor(row.fillColor) }
+      properties: { fillColor: resolveFillColor(row.fillColor), id: row.id }
     } as GeoJSONFeature)
   }
 
   // eslint-disable-next-line no-console
   console.log(`[tiles] ${dataset}: parsed ${features.length} features (${elapsedMs(stepStartedAt)}ms)`)
 
-  const collection: GeoJSONCollection = { type: 'FeatureCollection', features }
+  const collection: GeoJSONCollection = { features, type: 'FeatureCollection' }
   const directory = regulatoryTilesDirectory(dataset)
   clearVectorTiles(directory)
 

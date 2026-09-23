@@ -16,12 +16,12 @@ function polygonRing(centerLon: number, centerLat: number, radius: number, point
 
 function collectionWithPolygons(...rings: number[][][]): GeoJSONCollection {
   return {
-    type: 'FeatureCollection',
     features: rings.map((coordinates, index) => ({
-      type: 'Feature',
-      geometry: { type: 'Polygon', coordinates: [coordinates] },
-      properties: { id: index + 1, fillColor: '#000000' }
-    }))
+      geometry: { coordinates: [coordinates], type: 'Polygon' },
+      properties: { fillColor: '#000000', id: index + 1 },
+      type: 'Feature'
+    })),
+    type: 'FeatureCollection'
   }
 }
 
@@ -86,7 +86,7 @@ describe('generateVectorTiles', () => {
 
   it('keeps more detail at higher zoom levels', () => {
     const collection = collectionWithPolygons(polygonRing(3, 46, 2, 2000))
-    const index = new geojsonvt(collection, { maxZoom: 9, indexMaxZoom: 9, indexMaxPoints: 0 })
+    const index = new geojsonvt(collection, { indexMaxPoints: 0, indexMaxZoom: 9, maxZoom: 9 })
 
     const pointsAt = (zoom: number) => {
       let total = 0
@@ -103,7 +103,7 @@ describe('generateVectorTiles', () => {
 
   it('promotes the area id to the MVT feature id', () => {
     const collection = collectionWithPolygons(polygonRing(3, 46, 0.1, 8))
-    const index = new geojsonvt(collection, { maxZoom: 4, indexMaxZoom: 4, indexMaxPoints: 0, promoteId: 'id' })
+    const index = new geojsonvt(collection, { indexMaxPoints: 0, indexMaxZoom: 4, maxZoom: 4, promoteId: 'id' })
 
     const tile = index.tileCoords
       .map(({ z, x, y }) => index.getTile(z, x, y))
