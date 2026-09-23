@@ -3,15 +3,9 @@ import type { BoundingBox } from '@/types/mapTypes'
 import { ENV_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { EnvRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import { logSentryError } from '@utils/sentryLogger'
-import { MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '../regulatoryAreasQueryConfig'
 
-export async function getEnvRegulatoryAreasQuery(
-  db: DB,
-  bbox: BoundingBox,
-  zoom?: number
-): Promise<EnvRegulatoryAreaFromDatabase[]> {
+export async function getEnvRegulatoryAreasQuery(db: DB, bbox: BoundingBox): Promise<EnvRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
-  const minSize = minimumVisibleBboxSize(zoom)
 
   try {
     const result = await db.execute(
@@ -45,11 +39,9 @@ export async function getEnvRegulatoryAreasQuery(
           AND env.bbox_min_lon <= ?
           AND env.bbox_max_lat >= ?
           AND env.bbox_min_lat <= ?
-          AND (env.bbox_max_lon - env.bbox_min_lon >= ? OR env.bbox_max_lat - env.bbox_min_lat >= ?)
         ORDER BY (env.bbox_max_lon - env.bbox_min_lon) * (env.bbox_max_lat - env.bbox_min_lat) DESC
-        LIMIT ?
       `,
-      [minLon, maxLon, minLat, maxLat, minSize, minSize, MAX_REGULATORY_AREAS_PER_QUERY]
+      [minLon, maxLon, minLat, maxLat]
     )
 
     return result.rows as EnvRegulatoryAreaFromDatabase[]

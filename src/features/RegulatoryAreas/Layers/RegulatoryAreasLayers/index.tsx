@@ -31,7 +31,7 @@ const LIST_REFRESH_DEBOUNCE_MS = 200
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const [isLoading, setIsLoading] = useState(false)
 
-  const { searchBbox, currentZoom, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
+  const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
   const { config } = useAppContext()
 
   const requestIdRef = useRef(0)
@@ -39,7 +39,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     bbox: BoundingBox
     filters: typeof filters
     mode: typeof config.mode
-    zoom: number | undefined
   } | null>(null)
 
   const fetch = useCallback(async () => {
@@ -56,12 +55,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       previous &&
       isEqual(previous.bbox, bbox) &&
       isEqual(previous.filters, filters) &&
-      previous.mode === config.mode &&
-      previous.zoom === currentZoom
+      previous.mode === config.mode
     ) {
       return
     }
-    lastFetchParamsRef.current = { bbox, filters, mode: config.mode, zoom: currentZoom }
+    lastFetchParamsRef.current = { bbox, filters, mode: config.mode }
 
     setIsLoading(true)
 
@@ -74,8 +72,8 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
       const result =
         config.mode === 'MONITORFISH'
-          ? await getFishRegulatoryAreas(bbox, filters, currentZoom)
-          : await getEnvRegulatoryAreas(bbox, filters, currentZoom)
+          ? await getFishRegulatoryAreas(bbox, filters)
+          : await getEnvRegulatoryAreas(bbox, filters)
 
       if (requestIdRef.current === requestId) {
         setRegulatoryAreas(result)
@@ -87,7 +85,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [searchBbox, currentZoom, setRegulatoryAreas, filters, config.mode])
+  }, [searchBbox, setRegulatoryAreas, filters, config.mode])
 
   // The list/search follow the live viewport: debounced so pan/zoom/typing don't hit SQLite every frame.
   useEffect(() => {

@@ -6,13 +6,9 @@ import { getDatabase } from '@database/db'
 import { filterEnvRegulatoryArea } from '../utils/matchesRecentlyAddedOrModified'
 import { mapEnvAreaFromDatabase } from './mapRegulatoryAreaFromDatabase'
 
-export async function getEnvRegulatoryAreas(
-  bbox: BoundingBox,
-  filters: Filters,
-  zoom?: number
-): Promise<EnvRegulatoryArea[]> {
+export async function getEnvRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<EnvRegulatoryArea[]> {
   const db = await getDatabase()
-  const fetchedAreas = await getEnvRegulatoryAreasQuery(db, bbox, zoom)
+  const fetchedAreas = await getEnvRegulatoryAreasQuery(db, bbox)
   const listItems: EnvRegulatoryArea[] = []
 
   for (const area of fetchedAreas) {

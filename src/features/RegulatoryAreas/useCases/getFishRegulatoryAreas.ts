@@ -6,13 +6,9 @@ import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
 import { matchesRegulatoryAreaSearch } from '../utils/matchesRegulatoryAreaSearch'
 import { mapFishAreaFromDatabase } from './mapRegulatoryAreaFromDatabase'
 
-export async function getFishRegulatoryAreas(
-  bbox: BoundingBox,
-  filters: Filters,
-  zoom?: number
-): Promise<FishRegulatoryArea[]> {
+export async function getFishRegulatoryAreas(bbox: BoundingBox, filters: Filters): Promise<FishRegulatoryArea[]> {
   const db = await getDatabase()
-  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox, zoom)
+  const fetchedAreas = await getFishRegulatoryAreasQuery(db, bbox)
   const listItems: FishRegulatoryArea[] = []
 
   for (const area of fetchedAreas) {

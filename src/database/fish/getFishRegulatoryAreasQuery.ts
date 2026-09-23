@@ -3,15 +3,12 @@ import type { BoundingBox } from '@/types/mapTypes'
 import { FISH_REGULATORY_AREAS_TABLE } from '../db.schema'
 import type { FishRegulatoryAreaFromDatabase } from '@/types/regulatoryAreasTypes'
 import { logSentryError } from '@utils/sentryLogger'
-import { MAX_REGULATORY_AREAS_PER_QUERY, minimumVisibleBboxSize } from '../regulatoryAreasQueryConfig'
 
 export async function getFishRegulatoryAreasQuery(
   db: DB,
-  bbox: BoundingBox,
-  zoom?: number
+  bbox: BoundingBox
 ): Promise<FishRegulatoryAreaFromDatabase[]> {
   const { minLon, minLat, maxLon, maxLat } = bbox
-  const minSize = minimumVisibleBboxSize(zoom)
 
   try {
     const result = await db.execute(
@@ -37,11 +34,9 @@ export async function getFishRegulatoryAreasQuery(
           AND fish.bbox_min_lon <= ?
           AND fish.bbox_max_lat >= ?
           AND fish.bbox_min_lat <= ?
-          AND (fish.bbox_max_lon - fish.bbox_min_lon >= ? OR fish.bbox_max_lat - fish.bbox_min_lat >= ?)
         ORDER BY (fish.bbox_max_lon - fish.bbox_min_lon) * (fish.bbox_max_lat - fish.bbox_min_lat) DESC
-        LIMIT ?
       `,
-      [minLon, maxLon, minLat, maxLat, minSize, minSize, MAX_REGULATORY_AREAS_PER_QUERY]
+      [minLon, maxLon, minLat, maxLat]
     )
 
     return result.rows as FishRegulatoryAreaFromDatabase[]
