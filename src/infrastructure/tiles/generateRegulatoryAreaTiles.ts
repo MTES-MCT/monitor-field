@@ -4,12 +4,18 @@ import { getDatabase } from '@database/db'
 import { ENV_REGULATORY_AREAS_TABLE, FISH_REGULATORY_AREAS_TABLE } from '@database/db.schema'
 import { storage } from '@storage'
 import { parseGeoJSONFeature } from '@utils/parseGeoJSONFeature'
-import { generateVectorTiles } from '@utils/vectorTiles/generateVectorTiles'
+import { generateVectorTiles, type VectorTile } from '@utils/vectorTiles/generateVectorTiles'
 import type { GeoJSONCollection, GeoJSONFeature } from '@/types/mapTypes'
 import {
   MAX_REGULATORY_TILE_ZOOM,
+  MAX_ZOOM_TILE_BUFFER,
+  MAX_ZOOM_TILE_EXTENT,
   MIN_REGULATORY_TILE_ZOOM,
+  OVERVIEW_TILE_BUFFER,
+  OVERVIEW_TILE_EXTENT,
+  OVERVIEW_TILE_TOLERANCE,
   clearVectorTiles,
+  regulatoryTileGenerationConfig,
   regulatoryTilesDirectory,
   writeVectorTile,
   type RegulatoryDataset
@@ -47,11 +53,21 @@ function hashStrings(strings: string[]): string {
 }
 
 function cacheKey(dataset: RegulatoryDataset): string {
-  return `regulatory-tiles:${dataset}:z${MIN_REGULATORY_TILE_ZOOM}-${MAX_REGULATORY_TILE_ZOOM}:hash`
+  return `regulatory-tiles:${dataset}:${regulatoryTileGenerationConfig()}:hash`
 }
 
 function elapsedMs(since: number): number {
   return Date.now() - since
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`
+  }
+  if (bytes < 1024 ** 2) {
+    return `${(bytes / 1024).toFixed(1)} KB`
+  }
+  return `${(bytes / 1024 ** 2).toFixed(1)} MB`
 }
 
 async function regenerateDatasetTiles(db: DB, dataset: RegulatoryDataset): Promise<void> {
@@ -108,24 +124,53 @@ async function regenerateDatasetTiles(db: DB, dataset: RegulatoryDataset): Promi
   let count = 0
   let total = 0
 
+  const writeTile = (tile: VectorTile) => {
+    writeVectorTile(directory, tile)
+    count += 1
+
+    if (count % PROGRESS_INTERVAL === 0 || count === total) {
+      const percent = total > 0 ? ((count / total) * 100).toFixed(1) : '?'
+      // eslint-disable-next-line no-console
+      console.log(`[tiles] ${dataset}: ${count}/${total} (${percent}%)`)
+    }
+  }
+
+  const reportTotal = (reportedTotal: number) => {
+    total += reportedTotal
+    // eslint-disable-next-line no-console
+    console.log(`[tiles] ${dataset}: +${reportedTotal} tiles (total ${total})`)
+  }
+
+  // Overview levels (z0..zMax-1): default extent/tolerance, simplified. `detailZoom` is pushed up
+  // to the true detail level (zMax) so geojson-vt doesn't force `tolerance = 0` on zMax-1 — the
+  // deepest level we actually emit here — which would otherwise write it out un-simplified. The
+  // index is still only built down to `maxZoom`, so the full-precision zMax tiles are never built here.
   generateVectorTiles(
     collection,
-    { minZoom: MIN_REGULATORY_TILE_ZOOM, maxZoom: MAX_REGULATORY_TILE_ZOOM },
-    tile => {
-      writeVectorTile(directory, tile)
-      count += 1
-
-      if (count % PROGRESS_INTERVAL === 0 || count === total) {
-        const percent = total > 0 ? ((count / total) * 100).toFixed(1) : '?'
-        // eslint-disable-next-line no-console
-        console.log(`[tiles] ${dataset}: ${count}/${total} (${percent}%)`)
-      }
+    {
+      buffer: OVERVIEW_TILE_BUFFER,
+      detailZoom: MAX_REGULATORY_TILE_ZOOM,
+      extent: OVERVIEW_TILE_EXTENT,
+      maxZoom: MAX_REGULATORY_TILE_ZOOM - 1,
+      minZoom: MIN_REGULATORY_TILE_ZOOM,
+      tolerance: OVERVIEW_TILE_TOLERANCE
     },
-    reportedTotal => {
-      total = reportedTotal
-      // eslint-disable-next-line no-console
-      console.log(`[tiles] ${dataset}: ${total} tiles to write`)
-    }
+    writeTile,
+    reportTotal
+  )
+
+  // Finest level only (zMax): full precision — extent 2^21, no simplification.
+  generateVectorTiles(
+    collection,
+    {
+      buffer: MAX_ZOOM_TILE_BUFFER,
+      extent: MAX_ZOOM_TILE_EXTENT,
+      maxZoom: MAX_REGULATORY_TILE_ZOOM,
+      minZoom: MAX_REGULATORY_TILE_ZOOM,
+      tolerance: 0
+    },
+    writeTile,
+    reportTotal
   )
 
   storage.set(cacheKey(dataset), hash)
@@ -148,6 +193,14 @@ export async function regenerateRegulatoryAreaTiles(): Promise<void> {
   for (const dataset of ['env', 'fish'] as const) {
     await regenerateDatasetTiles(db, dataset)
   }
+
+  const envBytes = regulatoryTilesDirectory('env').size ?? 0
+  const fishBytes = regulatoryTilesDirectory('fish').size ?? 0
+
+  // eslint-disable-next-line no-console
+  console.log(
+    `[tiles] disk usage — env: ${formatBytes(envBytes)}, fish: ${formatBytes(fishBytes)}, total: ${formatBytes(envBytes + fishBytes)}`
+  )
 
   // eslint-disable-next-line no-console
   console.log(`[tiles] tile generation finished (${elapsedMs(overallStartedAt)}ms)`)

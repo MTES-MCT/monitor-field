@@ -1,4 +1,6 @@
 import geojsonvt from 'geojson-vt'
+import { VectorTile } from '@mapbox/vector-tile'
+import Pbf from 'pbf'
 import type { GeoJSONCollection } from '@/types/mapTypes'
 import { generateVectorTiles } from '../generateVectorTiles'
 
@@ -33,6 +35,31 @@ function countTilePoints(tile: NonNullable<ReturnType<GeoJSONVT['getTile']>>): n
       total += feature.geometry.length
     } else {
       for (const ring of feature.geometry) {
+        total += ring.length
+      }
+    }
+  }
+
+  return total
+}
+
+/** Total decoded coordinate count of every emitted tile at `zoom`. */
+function countEmittedPoints(tiles: ReturnType<typeof generateVectorTiles>, zoom: number): number {
+  let total = 0
+
+  for (const tile of tiles) {
+    if (tile.z !== zoom) {
+      continue
+    }
+
+    const layer = new VectorTile(new Pbf(tile.data)).layers['regulatory-areas']
+
+    if (!layer) {
+      continue
+    }
+
+    for (let i = 0; i < layer.length; i += 1) {
+      for (const ring of layer.feature(i).loadGeometry()) {
         total += ring.length
       }
     }
@@ -83,5 +110,24 @@ describe('generateVectorTiles', () => {
       .find(tile => tile && tile.features.length > 0)
 
     expect(tile?.features[0]?.id).toBe(1)
+  })
+
+  it('simplifies the deepest emitted zoom when detailZoom is set above maxZoom', () => {
+    // A dense ring gives Douglas-Peucker plenty to drop: at z6 the default `maxZoom` forces
+    // full detail (tolerance = 0), while `detailZoom: 7` makes z6 an interior, simplified zoom.
+    const collection = collectionWithPolygons(polygonRing(3, 46, 1, 2000))
+
+    const fullDetail = generateVectorTiles(collection, { maxZoom: 6 })
+    const simplified = generateVectorTiles(collection, { detailZoom: 7, maxZoom: 6 })
+
+    expect(countEmittedPoints(fullDetail, 6)).toBeGreaterThan(countEmittedPoints(simplified, 6))
+  })
+
+  it('does not emit tiles beyond maxZoom when detailZoom is higher', () => {
+    const collection = collectionWithPolygons(polygonRing(3, 46, 1, 200))
+
+    const tiles = generateVectorTiles(collection, { detailZoom: 8, maxZoom: 6 })
+
+    expect(tiles.some(tile => tile.z > 6)).toBe(false)
   })
 })

@@ -37,6 +37,7 @@ import {
 import * as Sentry from '@sentry/react-native'
 import { Image } from 'expo-image'
 import { LoaderIcon } from '@components/LoaderIcon'
+import { ThemedText } from '@components/Elements/Text'
 import { useGlobalStyle } from '@globalStyle'
 import {
   MAX_REGULATORY_TILE_ZOOM,
@@ -46,6 +47,7 @@ import {
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreaById } from '@features/RegulatoryAreas/useCases/getRegulatoryAreaById'
+import { estimateTileErrorMeters, formatTileError } from '@utils/estimateTileError'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -102,6 +104,7 @@ function App() {
   const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData, config } = useAppContext()
   const {
     areRegulatoryAreasLayerVisible,
+    currentZoom,
     setSearchBbox,
     setCurrentZoom,
     setSelectedRegulatoryArea,
@@ -111,6 +114,8 @@ function App() {
   const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
+
+  const precisionLabel = `Précision ${formatTileError(estimateTileErrorMeters(currentZoom))}`
 
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)
@@ -311,6 +316,14 @@ function App() {
 
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
+          {areRegulatoryAreasLayerVisible && (
+            <View pointerEvents="none" style={styles.precisionBadge}>
+              <View style={styles.precisionDot} />
+              <ThemedText type="small" themeColor="white">
+                {precisionLabel}
+              </ThemedText>
+            </View>
+          )}
           <BottomBar isLoading={regulatoryAreaLayer.isLoading} searchByQuery={searchByQuery} />
         </View>
       </SafeAreaView>
@@ -327,6 +340,22 @@ const styles = StyleSheet.create({
   boutonsWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between'
+  },
+  precisionBadge: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one
+  },
+  precisionDot: {
+    backgroundColor: '#F57C00',
+    borderRadius: 4,
+    height: 8,
+    width: 8
   },
   safeArea: {
     flex: 1,
