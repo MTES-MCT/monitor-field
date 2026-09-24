@@ -95,12 +95,11 @@ export function EnvRegulatoryAreaDetails({
         <ThemedText type="default" style={styles.horizontalPadding}>
           {regulatoryArea.themes}
         </ThemedText>
-        {/* TODO Subthemes are sent in the same string as the themes. See how to resolve this issue. */}
         <ThemedText type="small" style={styles.labelStyle}>
           Sous-thématiques
         </ThemedText>
         <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.themes}
+          {regulatoryArea.subThemes}
         </ThemedText>
         {regulatoryArea.authorizationPeriods && (
           <>
@@ -112,7 +111,7 @@ export function EnvRegulatoryAreaDetails({
               </ThemedText>
             </View>
             <ThemedText type="default" style={styles.horizontalPadding}>
-              tiutoriu{regulatoryArea.authorizationPeriods}
+              {regulatoryArea.authorizationPeriods}
             </ThemedText>
           </>
         )}
@@ -127,7 +126,7 @@ export function EnvRegulatoryAreaDetails({
               </ThemedText>
             </View>
             <ThemedText type="default" style={styles.horizontalPadding}>
-              fsdgfsdgf {regulatoryArea.prohibitionPeriods}
+              {regulatoryArea.prohibitionPeriods}
             </ThemedText>
           </>
         )}
