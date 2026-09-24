@@ -211,6 +211,10 @@ function App() {
     router.navigate('/search')
   }
 
+  const onSwitchContext = () => {
+    setRegulatoryAreaDetailsOrigin(undefined)
+  }
+
   return (
     <MapLibreMap
       ref={mapRef}
@@ -310,7 +314,7 @@ function App() {
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>
-          <SwitchContextButton />
+          <SwitchContextButton onSwitch={onSwitchContext} />
           <View>
             <Link href="/settings" asChild onPress={() => setActiveModal(undefined)}>
               <Pressable

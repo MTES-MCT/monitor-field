@@ -66,10 +66,9 @@ export type RegulatoryAreasLayerProps = {
 const LIST_REFRESH_DEBOUNCE_MS = 200
 
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
-  const [isLoading, setIsLoading] = useState(false)
   const [matchingAreaIds, setMatchingAreaIds] = useState<number[]>([])
 
-  const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
+  const { searchBbox, setRegulatoryAreas, filters, isLoading, setIsLoading } = useRegulatoryAreasContext()
   const { config } = useAppContext()
 
   const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters, config.mode)
