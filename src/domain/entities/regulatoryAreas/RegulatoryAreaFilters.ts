@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { normalizeText } from '@/utils/normalizeText'
 import type { EnvRegulatoryAreaSummary, FishRegulatoryAreaSummary } from './RegulatoryAreaSummary'
+import type { AppMode } from '@config/appModes'
 
 const RECENTLY_ADDED_OR_MODIFIED_IN_DAYS = 30
 
@@ -11,13 +12,12 @@ export type RegulatoryAreaFilters = {
   themesAndSubThemes: string[]
 }
 
-export function hasActiveRegulatoryAreaFilters(filters: RegulatoryAreaFilters): boolean {
-  return (
-    !!filters.searchQueryEnv?.trim() ||
-    !!filters.searchQueryFish?.trim() ||
-    filters.recentlyAddedOrModified ||
-    filters.themesAndSubThemes.length > 0
-  )
+export function hasActiveRegulatoryAreaFilters(filters: RegulatoryAreaFilters, mode: AppMode): boolean {
+  if (mode === 'MONITORFISH') {
+    return !!filters.searchQueryFish?.trim()
+  }
+
+  return !!filters.searchQueryEnv?.trim() || filters.recentlyAddedOrModified || filters.themesAndSubThemes.length > 0
 }
 
 function matchesSearchQuery(searchableFields: (string | null | undefined)[], searchQuery: string | undefined): boolean {

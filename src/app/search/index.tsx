@@ -1,4 +1,3 @@
-import { useTheme } from '@hooks/use-theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
@@ -6,13 +5,12 @@ import { useRouter } from 'expo-router'
 import { SearchInput } from '@features/Search/SearchInput'
 import { FlatList } from 'react-native-gesture-handler'
 import { ThemedText } from '@components/Elements/Text'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet } from 'react-native'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasList } from '@features/RegulatoryAreas/hooks/useRegulatoryAreasList'
 import { useMemo } from 'react'
 
 export default function SearchPage() {
-  const theme = useTheme()
   const router = useRouter()
   const { filters, setFilters } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
@@ -54,14 +52,6 @@ export default function SearchPage() {
             </ThemedText>
           ) : null
         }
-        ItemSeparatorComponent={() => (
-          <View
-            style={{
-              backgroundColor: theme.lightGray,
-              height: 1
-            }}
-          />
-        )}
       />
     </SafeAreaView>
   )

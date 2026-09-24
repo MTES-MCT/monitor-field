@@ -206,7 +206,7 @@ export function useRegulatoryAreasList({
                 borderColor: theme.lightGray
               }}
             />
-            <ThemedText type="default" style={{ flexShrink: 1 }}>
+            <ThemedText type="default" style={{ flexShrink: 1 }} numberOfLines={3}>
               {getRegulatoryAreaLabel(item.area, config.mode)}
             </ThemedText>
           </Pressable>

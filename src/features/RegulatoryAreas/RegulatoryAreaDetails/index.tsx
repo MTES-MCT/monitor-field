@@ -19,9 +19,6 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
-  // Only dismiss sheets that were actually presented: this avoids dismissing on mount and keeps
-  // `activeModal` as the single source of truth for which sheet (if any) is open.
-  const hasPresentedRef = useRef(false)
 
   const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
@@ -37,7 +34,6 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
 
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
-      hasPresentedRef.current = true
       modalRef.current?.present()
     } else {
       modalRef.current?.dismiss()

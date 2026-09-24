@@ -7,7 +7,12 @@ import {
 } from './fakes'
 
 const NOW = new Date('2026-09-16T10:00:00Z')
-const NO_FILTERS = { recentlyAddedOrModified: false, searchQuery: undefined, themesAndSubThemes: [] }
+const NO_FILTERS = {
+  recentlyAddedOrModified: false,
+  searchQueryEnv: undefined,
+  searchQueryFish: undefined,
+  themesAndSubThemes: []
+}
 const VIEWPORT = { maxLat: 50, maxLon: 0, minLat: 47, minLon: -5 }
 
 const SMALL = { maxLat: 48.1, maxLon: -3.9, minLat: 48, minLon: -4 }
@@ -60,7 +65,7 @@ describe('getRegulatoryAreasInBoundingBox', () => {
 
     const areas = await getRegulatoryAreasInBoundingBox(dependencies, 'fish', VIEWPORT, {
       ...NO_FILTERS,
-      searchQuery: 'SÉINE'
+      searchQueryFish: 'SÉINE'
     })
 
     expect(areas.map(area => area.id)).toEqual([1])

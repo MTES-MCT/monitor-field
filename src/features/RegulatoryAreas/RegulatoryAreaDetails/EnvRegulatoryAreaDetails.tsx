@@ -74,7 +74,11 @@ export function EnvRegulatoryAreaDetails({
           </ThemedText>
           <View style={styles.title}>
             <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
-            <ThemedText type="default" style={styles.titleText}>
+            <ThemedText
+              type="default"
+              style={styles.titleText}
+              numberOfLines={!regulatoryArea.polyName ? 3 : undefined}
+            >
               {getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
             </ThemedText>
           </View>

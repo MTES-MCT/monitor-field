@@ -32,7 +32,7 @@ import {
   OUTLINE_COLOR,
   fillColorExpression,
   useRegulatoryAreasLayer
-} from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
+} from '@features/RegulatoryAreas/hooks/useRegulatoryAreasLayer'
 import * as Sentry from '@sentry/react-native'
 import { Image } from 'expo-image'
 import { LoaderIcon } from '@components/LoaderIcon'
@@ -46,6 +46,7 @@ import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { useLocationStatus } from '@hooks/useLocationStatus'
+import { useRegulatoryAreaByIdLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreaByIdLayer'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -89,14 +90,7 @@ const LOCATION_FOCUS_ZOOM = 12
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
-  const {
-    cameraRef,
-    clickedCoordinate,
-    setClickedCoordinate,
-    zoomOnRegulatoryArea,
-    setIsFromFlyToBbox,
-    isFromFlyToBbox
-  } = useCameraContext()
+  const { cameraRef, clickedCoordinate, setClickedCoordinate, zoomOnRegulatoryArea } = useCameraContext()
   const globalStyle = useGlobalStyle()
 
   const { config, isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
@@ -104,22 +98,19 @@ function App() {
   const {
     areRegulatoryAreasLayerVisible,
     selectedRegulatoryArea,
-    setSearchBbox,
+    isolatedRegulatoryAreaId,
     setSelectedRegulatoryArea,
     setClickedFeaturesList,
-    setAreRegulatoryAreasLayerVisible
+    setAreRegulatoryAreasLayerVisible,
+    setSearchBbox
   } = useRegulatoryAreasContext()
 
   const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
+  const regulatoryAreaByIdLayer = useRegulatoryAreaByIdLayer()
 
   const onRegionDidChange = async () => {
-    if (isFromFlyToBbox) {
-      setIsFromFlyToBbox(false)
-      return
-    }
-
     const bounds = await mapRef.current?.getBounds()
     if (!bounds) return undefined
     const [lonA, latA, lonB, latB] = bounds
@@ -129,6 +120,7 @@ function App() {
       minLat: Math.min(latA, latB),
       minLon: Math.min(lonA, lonB)
     })
+
     if (!areRegulatoryAreasLayerVisible && !selectedRegulatoryArea) {
       setAreRegulatoryAreasLayerVisible(true)
     }
@@ -234,6 +226,37 @@ function App() {
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 
+      {(!!selectedRegulatoryArea || isolatedRegulatoryAreaId) && (
+        <VectorSource
+          key={regulatoryAreaByIdLayer.ids.source}
+          id={regulatoryAreaByIdLayer.ids.source}
+          tiles={[regulatoryAreaByIdLayer.tilesUrlTemplate]}
+          minzoom={MIN_REGULATORY_TILE_ZOOM}
+          maxzoom={MAX_REGULATORY_TILE_ZOOM}
+        >
+          <Layer
+            type="fill"
+            id={regulatoryAreaByIdLayer.ids.fillLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreaByIdLayer.filter}
+            paint={{
+              'fill-color': fillColorExpression,
+              'fill-opacity': 0.3
+            }}
+          />
+          <Layer
+            type="line"
+            id={regulatoryAreaByIdLayer.ids.outlineLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreaByIdLayer.filter}
+            paint={{
+              'line-color': OUTLINE_COLOR,
+              'line-width': 3
+            }}
+          />
+        </VectorSource>
+      )}
+
       {areRegulatoryAreasLayerVisible && (
         <VectorSource
           key={regulatoryAreaLayer.ids.source}
@@ -247,7 +270,10 @@ function App() {
             id={regulatoryAreaLayer.ids.fillLayer}
             source-layer={REGULATORY_AREAS_TILE_LAYER}
             filter={regulatoryAreaLayer.filter}
-            paint={{ 'fill-color': fillColorExpression, 'fill-opacity': 0.4 }}
+            paint={{
+              'fill-color': fillColorExpression,
+              'fill-opacity': !!selectedRegulatoryArea || isolatedRegulatoryAreaId ? 0 : 0.3
+            }}
           />
           <Layer
             type="line"
@@ -258,7 +284,6 @@ function App() {
           />
         </VectorSource>
       )}
-
       {clickedCoordinate && (
         // Keyed on the regulatory source: remounted after it, so drawn above its fills.
         <LayerAnnotation
