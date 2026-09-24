@@ -9,11 +9,13 @@ import {
   OVERVIEW_TILE_EXTENT,
   OVERVIEW_TILE_TOLERANCE
 } from '@constants/regulatoryAreaTiles'
-import { RENDERER_DISPLAY_PRECISION_METERS, estimateTileErrorMeters } from '@utils/estimateTileError'
 import type { GeoJSONCollection } from '@/types/mapTypes'
 import { generateVectorTiles } from '../generateVectorTiles'
 
 const EARTH_CIRCUMFERENCE_METERS = 40_075_016.686
+
+/** MapLibre rasterizes in float32, so the screen can't render finer than ~7 cm, whatever the tiles hold. */
+const RENDERER_DISPLAY_PRECISION_METERS = 0.07
 
 type Point = { x: number; y: number }
 type Ring = Point[]
@@ -162,35 +164,30 @@ function measureMaxErrorUnits(collection: GeoJSONCollection, zoom: number): numb
 
 describe('actual tile error vs source geometry', () => {
   // A dense circle gives Douglas-Peucker its worst case: the max dropped-point deviation lands right
-  // at the simplification tolerance, so the measured error is a tight upper bound on the badge.
+  // at the simplification tolerance, so the measured error is a tight upper bound.
   const collection = collectionWithPolygon(polygonRing(3, 46, 1, 3000))
 
   const metersPerUnit = (zoom: number, extent: number) => EARTH_CIRCUMFERENCE_METERS / (2 ** zoom * extent)
 
-  it('stays within the badge bound on the overview zooms', () => {
+  it('stays within the simplification tolerance on the overview zooms', () => {
     for (const zoom of [4, 6, 8]) {
       const actualUnits = measureMaxErrorUnits(collection, zoom)
       const actualMeters = actualUnits * metersPerUnit(zoom, OVERVIEW_TILE_EXTENT)
-      const boundMeters = estimateTileErrorMeters(zoom) ?? Number.POSITIVE_INFINITY
 
       // eslint-disable-next-line no-console
-      console.log(
-        `[tiles] z${zoom}: actual ~${(actualMeters * 100).toFixed(1)} cm (${actualUnits.toFixed(2)} units), badge bound ~${boundMeters.toFixed(1)} m`
-      )
+      console.log(`[tiles] z${zoom}: actual ~${(actualMeters * 100).toFixed(1)} cm (${actualUnits.toFixed(2)} units)`)
 
       expect(actualUnits).toBeLessThanOrEqual(OVERVIEW_TILE_TOLERANCE + 1)
     }
   })
 
-  it('stays within the badge bound at the max zoom', () => {
+  it('stays within the renderer precision floor at the max zoom', () => {
     const zoom = MAX_REGULATORY_TILE_ZOOM
     const actualUnits = measureMaxErrorUnits(collection, zoom)
     const actualMeters = actualUnits * metersPerUnit(zoom, MAX_ZOOM_TILE_EXTENT)
 
     // eslint-disable-next-line no-console
-    console.log(
-      `[tiles] z${zoom}: actual ~${(actualMeters * 100).toFixed(2)} cm, badge bound ~${estimateTileErrorMeters(zoom)!.toFixed(2)} m`
-    )
+    console.log(`[tiles] z${zoom}: actual ~${(actualMeters * 100).toFixed(2)} cm`)
 
     expect(actualMeters).toBeLessThanOrEqual(RENDERER_DISPLAY_PRECISION_METERS)
   })

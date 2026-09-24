@@ -58,14 +58,14 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
       stackBehavior="replace"
     >
       <BottomSheetScrollView>
-        {config.mode === 'MONITORFISH' && (
+        {selectedRegulatoryArea && config.mode === 'MONITORFISH' && (
           <FishRegulatoryAreaDetails
             color={color}
             regulatoryArea={selectedRegulatoryArea as FishRegulatoryAreaSummary}
             onDismiss={onDismiss}
           />
         )}
-        {config.mode === 'MONITORENV' && (
+        {selectedRegulatoryArea && config.mode === 'MONITORENV' && (
           <EnvRegulatoryAreaDetails
             color={color}
             regulatoryArea={selectedRegulatoryArea as EnvRegulatoryAreaSummary}
