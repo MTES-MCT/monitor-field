@@ -12,6 +12,7 @@ import { Image } from 'expo-image'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { Spacing } from '@constants/theme'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 
 type GroupRow = {
   type: 'group'
@@ -23,6 +24,7 @@ type AreaRow = {
   type: 'area'
   group: string
   area: RegulatoryAreaListItem
+  isLastInGroup: boolean
 }
 
 type RegulatoryRow = GroupRow | AreaRow
@@ -53,6 +55,7 @@ export function useRegulatoryAreasList({
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
+  const styles = useThemedStyles(createStyles)
 
   const isClickedFeatureList = origin === 'CLICKED_FEATURES_LIST_MODAL'
   const sourceRegulatoryAreas = useMemo(
@@ -153,9 +156,10 @@ export function useRegulatoryAreasList({
 
       if (expandedGroups[group]) {
         rows.push(
-          ...areas.map(area => ({
+          ...areas.map((area, index) => ({
             area,
             group,
+            isLastInGroup: index === areas.length - 1,
             type: 'area' as const
           }))
         )
@@ -168,9 +172,17 @@ export function useRegulatoryAreasList({
   const renderRow = useCallback(
     ({ item }: { item: RegulatoryRow }) => {
       if (item.type === 'group') {
+        const isGroupExpanded = expandedGroups[item.group]
         return (
-          <Pressable style={styles.groupButton} onPress={() => clickOnGroup(item.group)}>
-            <ThemedText type="defaultBold" style={{ flex: 1, flexWrap: 'wrap' }}>
+          <Pressable
+            style={[styles.groupButton, !isGroupExpanded && styles.border]}
+            onPress={() => clickOnGroup(item.group)}
+          >
+            <ThemedText
+              type="defaultBold"
+              style={{ flex: 1, flexWrap: 'wrap' }}
+              numberOfLines={!isGroupExpanded ? 1 : undefined}
+            >
               {item.group}
             </ThemedText>
             <ThemedText
@@ -185,7 +197,7 @@ export function useRegulatoryAreasList({
       const color = theme[colorKey] ?? theme.white
 
       return (
-        <View style={styles.wrapper}>
+        <View style={[styles.rowWrapper, item.isLastInGroup && styles.border]}>
           <Pressable onPress={() => selectRegulatoryArea(item.area)} style={[styles.areaRow]}>
             <View
               style={{
@@ -221,7 +233,9 @@ export function useRegulatoryAreasList({
       isClickedFeatureList,
       isolatedRegulatoryAreaId,
       theme,
-      config.mode
+      config.mode,
+      expandedGroups,
+      styles
     ]
   )
 
@@ -237,7 +251,12 @@ export function useRegulatoryAreasList({
 
     return (
       <View style={styles.headerRow}>
-        <ThemedText type="defaultBold">{`REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}</ThemedText>
+        <ThemedText type="defaultBold">
+          REG{' '}
+          <ThemedText type="default" themeColor="slateGray">
+            {`(${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
+          </ThemedText>
+        </ThemedText>
         {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
       </View>
     )
@@ -256,63 +275,68 @@ export function useRegulatoryAreasList({
   }
 }
 
-const styles = StyleSheet.create({
-  areaRow: {
-    alignItems: 'center',
-    flex: 1,
-    flexDirection: 'row',
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
-  },
-  emptyState: {
-    paddingHorizontal: Spacing.four
-  },
-  groupButton: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.four,
-    justifyContent: 'space-between',
-    minHeight: 48,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.three
-  },
-  headerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-    justifyContent: 'center',
-    paddingVertical: Spacing.two
-  },
-  headerRowWithTitle: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
-  },
-  isolatedButton: {
-    alignItems: 'center',
-    flexShrink: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
-  },
-  listContent: {
-    paddingBottom: Spacing.four
-  },
-  square: {
-    borderWidth: 1,
-    height: 20,
-    width: 20
-  },
-  targetIcon: {
-    height: 20,
-    width: 20
-  },
-  wrapper: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 48
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    areaRow: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.two
+    },
+    border: {
+      borderBottomColor: theme.lightGray,
+      borderBottomWidth: 1
+    },
+    emptyState: {
+      paddingHorizontal: Spacing.four
+    },
+    groupButton: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: Spacing.four,
+      justifyContent: 'space-between',
+      minHeight: 48,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.three
+    },
+    headerRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: Spacing.two,
+      justifyContent: 'center',
+      paddingVertical: Spacing.two
+    },
+    headerRowWithTitle: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.two
+    },
+    isolatedButton: {
+      alignItems: 'center',
+      flexShrink: 1,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.two
+    },
+    listContent: {
+      paddingBottom: Spacing.four
+    },
+    rowWrapper: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 48
+    },
+    square: {
+      borderWidth: 1,
+      height: 20,
+      width: 20
+    },
+    targetIcon: {
+      height: 20,
+      width: 20
+    }
+  })

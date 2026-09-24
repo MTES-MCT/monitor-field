@@ -92,7 +92,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       stackBehavior="replace"
       style={{ paddingBottom: 100 }}
     >
-      <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
+      <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.four }}>
         <View style={styles.searchBox}>
           <BackButton onBack={onCloseModal} style={{ marginLeft: Spacing.two }} />
 
@@ -133,14 +133,6 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
             </ThemedText>
           ) : null
         }
-        ItemSeparatorComponent={() => (
-          <View
-            style={{
-              backgroundColor: theme.lightGray,
-              height: 1
-            }}
-          />
-        )}
       />
     </BottomSheetModal>
   )

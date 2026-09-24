@@ -38,7 +38,7 @@ function createRegulatoryAreasLayers(sourceId: string): MapLayer[] {
       id: regulatoryAreaIds.fillLayer,
       paint: {
         'fill-color': fillColorExpression,
-        'fill-opacity': 0.4
+        'fill-opacity': 0.3
       },
       source: sourceId,
       type: 'fill'

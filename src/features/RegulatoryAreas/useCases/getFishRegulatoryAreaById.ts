@@ -30,8 +30,12 @@ export async function getFishRegulatoryAreaById(id: number): Promise<FishRegulat
 
   const area: Omit<FishRegulatoryArea, 'bbox'> = {
     fillColor: fetchedArea.fillColor,
+    fishingPeriods: fetchedArea.fishingPeriods,
+    gears: fetchedArea.gears,
+    generalRemarks: fetchedArea.generalRemarks,
     id: fetchedArea.id,
-    regulations: fetchedArea.regulations,
+    regulatoryReferences: fetchedArea.regulatoryReferences,
+    species: fetchedArea.species,
     theme: fetchedArea.theme,
     totalByGroup: fetchedArea.totalByGroup,
     type: fetchedArea.type,

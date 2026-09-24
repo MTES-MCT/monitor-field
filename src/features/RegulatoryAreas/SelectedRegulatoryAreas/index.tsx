@@ -7,7 +7,7 @@ import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 import { Spacing } from '@constants/theme'
 import { ThemedText } from '@components/Elements/Text'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet } from 'react-native'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 
 const ORIGIN = 'CLICKED_FEATURES_LIST_MODAL'
@@ -65,7 +65,7 @@ export const SelectedRegulatoryAreas = ({
       enablePanDownToClose={false}
       topInset={insets.top}
       handleStyle={{
-        backgroundColor: theme.white,
+        backgroundColor: theme.gainsboro,
         borderRadius: 0
       }}
       handleIndicatorStyle={{
@@ -88,14 +88,6 @@ export const SelectedRegulatoryAreas = ({
             </ThemedText>
           ) : null
         }
-        ItemSeparatorComponent={() => (
-          <View
-            style={{
-              backgroundColor: theme.lightGray,
-              height: 1
-            }}
-          />
-        )}
       />
     </BottomSheetModal>
   )
