@@ -3,7 +3,7 @@ import {
   MAX_ZOOM_TILE_EXTENT,
   OVERVIEW_TILE_EXTENT,
   OVERVIEW_TILE_TOLERANCE
-} from '@infrastructure/tiles/vectorTileStore'
+} from '@constants/regulatoryAreaTiles'
 
 /** MapLibre rasterizes in float32, so the screen can't render finer than ~7 cm, whatever the tiles hold. */
 export const RENDERER_DISPLAY_PRECISION_METERS = 0.07

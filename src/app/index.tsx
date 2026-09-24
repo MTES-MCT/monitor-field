@@ -8,7 +8,7 @@ import { useCameraContext } from '@contexts/CameraContext'
 import { BottomBar } from '@components/BottomBar'
 import { LocationButton } from '@components/Buttons/LocationButton'
 import { SwitchContextButton } from '@components/Buttons/SwitchContextButton'
-import { useRegulatoryAreasContext, type RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
+import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { SelectedRegulatoryAreas } from '@features/RegulatoryAreas/SelectedRegulatoryAreas'
 import {
   Camera,
@@ -26,7 +26,7 @@ import {
   type StyleSpecification,
   type ViewStateChangeEvent
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -43,10 +43,10 @@ import {
   MAX_REGULATORY_TILE_ZOOM,
   MIN_REGULATORY_TILE_ZOOM,
   REGULATORY_AREAS_TILE_LAYER
-} from '@infrastructure/tiles/vectorTileStore'
+} from '@constants/regulatoryAreaTiles'
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
-import { getRegulatoryAreaById } from '@features/RegulatoryAreas/useCases/getRegulatoryAreaById'
+import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { estimateTileErrorMeters, formatTileError } from '@utils/estimateTileError'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
@@ -117,23 +117,6 @@ function App() {
 
   const precisionLabel = `Précision ${formatTileError(estimateTileErrorMeters(currentZoom))}`
 
-  const { hasActiveFilter, visibleAreaIds } = regulatoryAreaLayer
-
-  // When a search/filter is active, only show the zones the (non-debounced) id source returned;
-  // otherwise the tiles render everything.
-  const regulatoryAreasFilter: any = useMemo(() => {
-    if (!hasActiveFilter) {
-      return undefined
-    }
-
-    if (visibleAreaIds.length === 0) {
-      // An active filter with no matches: hide every feature (area ids are positive).
-      return ['==', ['id'], -1]
-    }
-
-    return ['match', ['id'], ...visibleAreaIds.flatMap(id => [id, true]), false]
-  }, [hasActiveFilter, visibleAreaIds])
-
   const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
     setCurrentZoom(event.nativeEvent.zoom)
 
@@ -176,24 +159,13 @@ function App() {
       }
 
       // The area id is promoted to the MVT feature id, so it comes back directly here.
-      const ids = [
-        ...new Set(
-          features
-            .map(feature => feature.id)
-            .filter((id): id is number | string => typeof id === 'number' || typeof id === 'string')
-            .map(Number)
-            .filter(id => Number.isFinite(id))
-        )
-      ]
+      const ids = features
+        .map(feature => feature.id)
+        .filter((id): id is number | string => typeof id === 'number' || typeof id === 'string')
+        .map(Number)
+        .filter(id => Number.isFinite(id))
 
-      const clickedRegulatoryAreas: RegulatoryAreaListItem[] = []
-
-      for (const id of ids) {
-        const area = await getRegulatoryAreaById(id, config.mode)
-        if (area) {
-          clickedRegulatoryAreas.push(area)
-        }
-      }
+      const clickedRegulatoryAreas = await getRegulatoryAreasByIds(config.mode, ids)
 
       if (clickedRegulatoryAreas.length === 0) {
         setClickedCoordinate(undefined)
@@ -267,8 +239,9 @@ function App() {
 
       {areRegulatoryAreasLayerVisible && (
         <VectorSource
+          key={regulatoryAreaLayer.ids.source}
           id={regulatoryAreaLayer.ids.source}
-          tiles={[regulatoryAreaLayer.tilesUrl]}
+          tiles={[regulatoryAreaLayer.tilesUrlTemplate]}
           minzoom={MIN_REGULATORY_TILE_ZOOM}
           maxzoom={MAX_REGULATORY_TILE_ZOOM}
         >
@@ -276,21 +249,26 @@ function App() {
             type="fill"
             id={regulatoryAreaLayer.ids.fillLayer}
             source-layer={REGULATORY_AREAS_TILE_LAYER}
-            filter={regulatoryAreasFilter}
+            filter={regulatoryAreaLayer.filter}
             paint={{ 'fill-color': fillColorExpression, 'fill-opacity': 0.4 }}
           />
           <Layer
             type="line"
             id={regulatoryAreaLayer.ids.outlineLayer}
             source-layer={REGULATORY_AREAS_TILE_LAYER}
-            filter={regulatoryAreasFilter}
+            filter={regulatoryAreaLayer.filter}
             paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
           />
         </VectorSource>
       )}
 
       {clickedCoordinate && (
-        <LayerAnnotation id="clickedPoint" lngLat={clickedCoordinate}>
+        // Keyed on the regulatory source: remounted after it, so drawn above its fills.
+        <LayerAnnotation
+          key={`clickedPoint-${regulatoryAreaLayer.ids.source}-${areRegulatoryAreasLayerVisible}`}
+          id="clickedPoint"
+          lngLat={clickedCoordinate}
+        >
           <Layer
             id="clickedPointLayer"
             type="symbol"

@@ -37,6 +37,8 @@ export const SelectedRegulatoryAreas = ({
   useEffect(() => {
     if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
       modalRef.current?.present()
+    } else if (activeModal === undefined) {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
 

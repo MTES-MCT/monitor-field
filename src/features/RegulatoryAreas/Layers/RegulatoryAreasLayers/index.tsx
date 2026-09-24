@@ -1,47 +1,78 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { BoundingBox } from '@/types/mapTypes'
+import { appModeConfigs, type AppMode } from '@config/appModes'
+import { Colors } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { getFishRegulatoryAreaIds, getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
-import {
-  getEnvRegulatoryAreaIds,
-  getEnvRegulatoryAreas
-} from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
+import { hasActiveRegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
+import { getMatchingRegulatoryAreaIds } from '../../useCases/getMatchingRegulatoryAreaIds'
+import { getRegulatoryAreasInBoundingBox } from '../../useCases/getRegulatoryAreasInBoundingBox'
+import { getRegulatoryAreaTilesUrlTemplate } from '../../useCases/getRegulatoryAreaTilesUrlTemplate'
 import { logSentryError } from '@utils/sentryLogger'
-import { regulatoryTilesDirectory, tileUrlTemplate } from '@infrastructure/tiles/vectorTileStore'
 import isEqual from 'lodash/isEqual'
 
-export const regulatoryAreasIds = {
-  fillLayer: 'regulatory-areas-fill',
-  outlineLayer: 'regulatory-areas-outline',
-  source: 'regulatory-areas-source'
+export type RegulatoryAreasLayerIds = {
+  fillLayer: string
+  outlineLayer: string
+  source: string
 }
 
-export const DEFAULT_FISH_AREA_COLOR = '#67A9CF'
+// One source per mode: the native source ignores a new `tiles` URL once added to the map.
+function buildLayerIds(mode: AppMode): RegulatoryAreasLayerIds {
+  return {
+    fillLayer: `regulatory-areas-fill-${mode}`,
+    outlineLayer: `regulatory-areas-outline-${mode}`,
+    source: `regulatory-areas-source-${mode}`
+  }
+}
+
+export const DEFAULT_AREA_COLOR = '#67A9CF'
 export const OUTLINE_COLOR = '#05055eb3'
 
-export const fillColorExpression: any = ['coalesce', ['get', 'fillColor'], DEFAULT_FISH_AREA_COLOR]
+function buildFillColorExpression(): any {
+  const paletteKeys = [...new Set(Object.values(appModeConfigs).flatMap(config => config.colors))]
+  const cases = paletteKeys.flatMap(key => {
+    const color = Colors.light[key as keyof typeof Colors.light]
+
+    return color ? [key, color] : []
+  })
+
+  return ['match', ['coalesce', ['get', 'colorKey'], ''], ...cases, DEFAULT_AREA_COLOR]
+}
+
+export const fillColorExpression: any = buildFillColorExpression()
+
+function buildMatchingAreasFilter(hasActiveFilter: boolean, matchingAreaIds: number[]): any {
+  if (!hasActiveFilter) {
+    return undefined
+  }
+
+  if (matchingAreaIds.length === 0) {
+    // An active filter with no matches: hide every feature (area ids are positive).
+    return ['==', ['id'], -1]
+  }
+
+  return ['match', ['id'], ...matchingAreaIds.flatMap(id => [id, true]), false]
+}
 
 export type RegulatoryAreasLayerProps = {
-  hasActiveFilter: boolean
-  ids: typeof regulatoryAreasIds
+  filter: any
+  ids: RegulatoryAreasLayerIds
   isLoading: boolean
-  tilesUrl: string
-  visibleAreaIds: number[]
+  tilesUrlTemplate: string
 }
 
 const LIST_REFRESH_DEBOUNCE_MS = 200
 
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const [isLoading, setIsLoading] = useState(false)
-  const [visibleAreaIds, setVisibleAreaIds] = useState<number[]>([])
+  const [matchingAreaIds, setMatchingAreaIds] = useState<number[]>([])
 
   const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
   const { config } = useAppContext()
 
-  const hasActiveFilter =
-    !!filters.searchQuery?.trim() || filters.recentlyAddedOrModified || filters.themesAndSubThemes.length > 0
+  const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters)
 
   const requestIdRef = useRef(0)
   const idRequestIdRef = useRef(0)
@@ -59,7 +90,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       return
     }
 
-    // skip refetching when the bbox, filters and mode didn't actually change (only references may have)
+    // Only the references may have changed.
     const previous = lastFetchParamsRef.current
     if (
       previous &&
@@ -80,10 +111,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         return
       }
 
-      const result =
-        config.mode === 'MONITORFISH'
-          ? await getFishRegulatoryAreas(bbox, filters)
-          : await getEnvRegulatoryAreas(bbox, filters)
+      const result = await getRegulatoryAreasInBoundingBox(config.mode, bbox, filters)
 
       if (requestIdRef.current === requestId) {
         setRegulatoryAreas(result)
@@ -104,25 +132,21 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     return () => clearTimeout(timer)
   }, [fetch])
 
-  // The map filter needs the matching ids, regardless of viewport (the tiles already clip to the
-  // screen), so it only refetches when the filters themselves change — no per-frame work on pan/zoom.
+  // Not tied to the viewport (the tiles already clip to it): no refetch on pan/zoom.
   useEffect(() => {
     const requestId = ++idRequestIdRef.current
 
     if (!hasActiveFilter) {
-      setVisibleAreaIds([])
+      setMatchingAreaIds([])
       return
     }
 
     const resolve = async () => {
       try {
-        const ids =
-          config.mode === 'MONITORFISH'
-            ? await getFishRegulatoryAreaIds(filters)
-            : await getEnvRegulatoryAreaIds(filters)
+        const ids = await getMatchingRegulatoryAreaIds(config.mode, filters)
 
         if (idRequestIdRef.current === requestId) {
-          setVisibleAreaIds(ids)
+          setMatchingAreaIds(ids)
         }
       } catch (error) {
         logSentryError(error, 'Failed to resolve visible regulatory area ids')
@@ -132,17 +156,18 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     void resolve()
   }, [hasActiveFilter, filters, config.mode])
 
-  const tilesUrl = useMemo(() => {
-    const dataset = config.mode === 'MONITORFISH' ? 'fish' : 'env'
+  const ids = useMemo(() => buildLayerIds(config.mode), [config.mode])
+  const tilesUrlTemplate = useMemo(() => getRegulatoryAreaTilesUrlTemplate(config.mode), [config.mode])
 
-    return tileUrlTemplate(regulatoryTilesDirectory(dataset))
-  }, [config.mode])
+  const filter = useMemo(
+    () => buildMatchingAreasFilter(hasActiveFilter, matchingAreaIds),
+    [hasActiveFilter, matchingAreaIds]
+  )
 
   return {
-    hasActiveFilter,
-    ids: regulatoryAreasIds,
+    filter,
+    ids,
     isLoading,
-    tilesUrl,
-    visibleAreaIds
+    tilesUrlTemplate
   }
 }

@@ -1,6 +1,6 @@
-export type SyncedDataset = 'fish' | 'env'
+import type { RegulatoryAreaDataset } from '@domain/entities/regulatoryAreas/RegulatoryAreaDataset'
 
 export type SyncStateRepository = {
-  lastSyncedAt: (dataset: SyncedDataset) => Date | undefined
-  markSyncedAt: (dataset: SyncedDataset, syncedAt: Date) => void
+  lastSyncedAt: (dataset: RegulatoryAreaDataset) => Date | undefined
+  markSyncedAt: (dataset: RegulatoryAreaDataset, syncedAt: Date) => void
 }

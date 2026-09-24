@@ -177,7 +177,7 @@ export function useRegulatoryAreasList({
         )
       }
 
-      const colorKey = item.area.fillColor as keyof typeof theme
+      const colorKey = item.area.colorKey as keyof typeof theme
       const color = theme[colorKey] ?? theme.white
 
       return (

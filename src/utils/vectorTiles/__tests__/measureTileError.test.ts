@@ -8,7 +8,7 @@ import {
   MAX_ZOOM_TILE_EXTENT,
   OVERVIEW_TILE_EXTENT,
   OVERVIEW_TILE_TOLERANCE
-} from '@infrastructure/tiles/vectorTileStore'
+} from '@constants/regulatoryAreaTiles'
 import { RENDERER_DISPLAY_PRECISION_METERS, estimateTileErrorMeters } from '@utils/estimateTileError'
 import type { GeoJSONCollection } from '@/types/mapTypes'
 import { generateVectorTiles } from '../generateVectorTiles'

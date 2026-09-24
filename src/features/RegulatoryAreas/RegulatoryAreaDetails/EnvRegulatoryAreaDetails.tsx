@@ -2,7 +2,7 @@ import { ThemedText } from '@components/Elements/Text'
 import { View } from 'react-native'
 import { styles } from './style'
 import { useTheme } from '@hooks/use-theme'
-import type { EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import type { EnvRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { Spacing } from '@constants/theme'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import daysjs from 'dayjs'
@@ -21,7 +21,7 @@ export function EnvRegulatoryAreaDetails({
   onDismiss
 }: {
   color: string
-  regulatoryArea: EnvRegulatoryArea
+  regulatoryArea: EnvRegulatoryAreaSummary
   onDismiss: () => void
 }) {
   const theme = useTheme()

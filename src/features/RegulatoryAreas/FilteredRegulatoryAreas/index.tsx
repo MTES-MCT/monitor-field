@@ -45,6 +45,8 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
       modalRef.current?.present()
+    } else if (activeModal === undefined) {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
 

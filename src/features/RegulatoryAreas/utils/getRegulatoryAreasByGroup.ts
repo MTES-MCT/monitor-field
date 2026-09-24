@@ -1,5 +1,8 @@
 import type { RegulatoryAreaListItem } from '@contexts/RegulatoryAreasContext'
-import type { EnvRegulatoryArea, FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import type {
+  EnvRegulatoryAreaSummary,
+  FishRegulatoryAreaSummary
+} from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 
 export function getRegulatoryAreasByGroup(
   regulatoryAreas: RegulatoryAreaListItem[],
@@ -8,7 +11,7 @@ export function getRegulatoryAreasByGroup(
   let groupedAreas: Record<string, RegulatoryAreaListItem[]> = {}
 
   if (mode === 'MONITORFISH') {
-    for (const area of regulatoryAreas as FishRegulatoryArea[]) {
+    for (const area of regulatoryAreas as FishRegulatoryAreaSummary[]) {
       const groupKey = area.theme || 'Couche inconnue'
       if (!groupedAreas[groupKey]) {
         groupedAreas[groupKey] = []
@@ -16,7 +19,7 @@ export function getRegulatoryAreasByGroup(
       groupedAreas[groupKey].push(area)
     }
   } else {
-    for (const area of regulatoryAreas as EnvRegulatoryArea[]) {
+    for (const area of regulatoryAreas as EnvRegulatoryAreaSummary[]) {
       const groupKey = `${area.layerName} ${!!area.location ? `- ${area.location}` : ''}` || 'Couche inconnue'
       if (!groupedAreas[groupKey]) {
         groupedAreas[groupKey] = []

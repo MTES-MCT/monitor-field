@@ -4,7 +4,10 @@ import { useTheme } from '@hooks/use-theme'
 import { useEffect, useMemo, useRef } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FishRegulatoryAreaDetails } from './FishRegulatoryAreaDetails'
-import type { FishRegulatoryArea, EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import type {
+  FishRegulatoryAreaSummary,
+  EnvRegulatoryAreaSummary
+} from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 
@@ -17,7 +20,7 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const colorKey = selectedRegulatoryArea?.fillColor as keyof typeof theme
+  const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
 
   const onDismiss = () => {
@@ -29,6 +32,8 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
       modalRef.current?.present()
+    } else if (activeModal === undefined) {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
 
@@ -53,14 +58,14 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
         {config.mode === 'MONITORFISH' && (
           <FishRegulatoryAreaDetails
             color={color}
-            regulatoryArea={selectedRegulatoryArea as FishRegulatoryArea}
+            regulatoryArea={selectedRegulatoryArea as FishRegulatoryAreaSummary}
             onDismiss={onDismiss}
           />
         )}
         {config.mode === 'MONITORENV' && (
           <EnvRegulatoryAreaDetails
             color={color}
-            regulatoryArea={selectedRegulatoryArea as EnvRegulatoryArea}
+            regulatoryArea={selectedRegulatoryArea as EnvRegulatoryAreaSummary}
             onDismiss={onDismiss}
           />
         )}

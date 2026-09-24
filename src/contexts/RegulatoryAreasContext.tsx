@@ -1,14 +1,11 @@
 import type { BoundingBox } from '@/types/mapTypes'
-import type { EnvRegulatoryArea, FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import type { RegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
+import type { RegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 
-export type RegulatoryAreaListItem = FishRegulatoryArea | EnvRegulatoryArea
+export type RegulatoryAreaListItem = RegulatoryAreaSummary
 
-export type Filters = {
-  searchQuery: string | undefined
-  recentlyAddedOrModified: boolean
-  themesAndSubThemes: string[]
-}
+export type Filters = RegulatoryAreaFilters
 
 const RegulatoryAreasContext = createContext<
   | {

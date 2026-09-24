@@ -1,4 +1,4 @@
-import type { SyncedDataset } from '@domain/repositories/SyncStateRepository'
+import type { RegulatoryAreaDataset } from '@domain/entities/regulatoryAreas/RegulatoryAreaDataset'
 import type { SyncEnvRegulatoryAreasDependencies } from './syncEnvRegulatoryAreas'
 import { syncEnvRegulatoryAreas } from './syncEnvRegulatoryAreas'
 import type { SyncFishRegulatoryAreasDependencies } from './syncFishRegulatoryAreas'
@@ -13,7 +13,7 @@ export type SyncRegulatoryAreasOptions = {
 }
 
 export type SyncFailure = {
-  dataset: SyncedDataset
+  dataset: RegulatoryAreaDataset
   error: unknown
 }
 
