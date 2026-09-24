@@ -217,9 +217,7 @@ function App() {
 
   const searchByQuery = () => {
     setActiveModal(undefined)
-    setTimeout(() => {
-      router.navigate('/search')
-    }, 1000)
+    router.navigate('/search')
   }
 
   return (
