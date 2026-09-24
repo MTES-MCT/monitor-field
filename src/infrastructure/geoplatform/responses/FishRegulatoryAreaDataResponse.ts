@@ -38,7 +38,11 @@ export function toFishRegulatoryArea(feature: FishRegulatoryAreaFeature): FishRe
     generalRemarks: properties.remarques_generales ?? undefined,
     // Stored as a Feature, like the Env dataset
     geometry: feature.geometry
-      ? JSON.stringify({ geometry: feature.geometry, properties: {}, type: 'Feature' })
+      ? JSON.stringify({
+          geometry: feature.geometry,
+          properties: {},
+          type: 'Feature'
+        })
       : undefined,
     id,
     regulatoryReferences: properties.reglementations ?? undefined,

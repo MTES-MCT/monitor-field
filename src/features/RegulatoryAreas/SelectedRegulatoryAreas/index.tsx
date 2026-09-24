@@ -18,12 +18,12 @@ export const SelectedRegulatoryAreas = ({
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
+  const hasPresentedRef = useRef(false)
 
   const { activeModal, setActiveModal } = useAppContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, filters } = useRegulatoryAreasContext()
 
   const onClose = () => {
-    modalRef.current?.dismiss()
     setClickedFeaturesList(undefined)
     setIsolatedRegulatoryAreaId(undefined)
     setActiveModal(undefined)
@@ -36,7 +36,10 @@ export const SelectedRegulatoryAreas = ({
   })
   useEffect(() => {
     if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
+      hasPresentedRef.current = true
       modalRef.current?.present()
+    } else if (hasPresentedRef.current) {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
 

@@ -1,7 +1,7 @@
 import { ThemedText } from '@components/Elements/Text'
 import { View } from 'react-native'
 import { useTheme } from '@hooks/use-theme'
-import type { FishRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import type { FishRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { styles } from './style'
 import { CloseButton } from '@components/Buttons/CloseButton'
@@ -20,7 +20,7 @@ export function FishRegulatoryAreaDetails({
   onDismiss
 }: {
   color: string
-  regulatoryArea: FishRegulatoryArea
+  regulatoryArea: FishRegulatoryAreaSummary
   onDismiss: () => void
 }) {
   const theme = useTheme()

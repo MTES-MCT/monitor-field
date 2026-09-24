@@ -1,5 +1,7 @@
 import type { AppMode } from '@config/appModes'
 import { useAppContext } from '@contexts/AppContext'
+import { useCameraContext } from '@contexts/CameraContext'
+import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { Image } from 'expo-image'
@@ -24,11 +26,23 @@ function getVisualState(params: { mode: AppMode; selected: boolean; theme: Retur
 }
 
 export function SwitchContextButton() {
-  const { config, setMode } = useAppContext()
+  const { config, setActiveModal, setMode } = useAppContext()
+  const { setClickedCoordinate } = useCameraContext()
+  const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
 
   const switchContext = (mode: AppMode) => {
+    if (mode === config.mode) {
+      return
+    }
+
+    // A tap belongs to the dataset it was made on: its pointer, list and details don't apply to the other one.
+    setActiveModal(undefined)
+    setClickedCoordinate(undefined)
+    setClickedFeaturesList(undefined)
+    setIsolatedRegulatoryAreaId(undefined)
+    setSelectedRegulatoryArea(undefined)
     setMode(mode)
   }
 

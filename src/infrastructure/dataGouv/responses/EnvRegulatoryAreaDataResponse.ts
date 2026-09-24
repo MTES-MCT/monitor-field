@@ -25,17 +25,17 @@ export type EnvRegulatoryAreaRow = {
 
 /** See the `@turf/bbox` note in `FishRegulatoryAreaDataResponse`. */
 export function toEnvRegulatoryArea(row: EnvRegulatoryAreaRow): EnvRegulatoryArea {
-  const geometry = row.wkt ? parseWktToGeojson(row.wkt) : undefined
+  const feature = row.wkt ? parseWktToGeojson(row.wkt) : undefined
 
   return {
     additionalRefReg: row.additional_ref_reg,
     authorizationPeriods: row.authorization_periods,
-    boundingBox: toBoundingBox(geometry),
+    boundingBox: toBoundingBox(feature),
     date: row.date,
     dateFin: row.date_fin,
     edition: row.edition ?? undefined,
     facade: row.facade,
-    geometry: geometry ? JSON.stringify(geometry) : undefined,
+    geometry: feature ? JSON.stringify({ ...feature, geometry: feature.geometry }) : undefined,
     id: row.id,
     layerName: row.layer_name,
     location: row.location,

@@ -6,7 +6,6 @@ import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 
 import { BottomBar } from '@components/BottomBar'
-import { useSearchByZoneLayer } from '@components/Layers/useSearchByZoneLayer'
 import { LocationButton } from '@components/Buttons/LocationButton'
 import { SwitchContextButton } from '@components/Buttons/SwitchContextButton'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
@@ -18,25 +17,34 @@ import {
   LayerAnnotation,
   Map as MapLibreMap,
   UserLocation,
+  VectorSource,
   type LngLat,
   type MapRef,
+  type PixelPoint,
   type PressEvent,
   type PressEventWithFeatures,
-  type StyleSpecification,
-  type ViewStateChangeEvent
+  type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
-import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
+import {
+  OUTLINE_COLOR,
+  fillColorExpression,
+  useRegulatoryAreasLayer
+} from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
 import * as Sentry from '@sentry/react-native'
 import { Image } from 'expo-image'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useGlobalStyle } from '@globalStyle'
+import {
+  MAX_REGULATORY_TILE_ZOOM,
+  MIN_REGULATORY_TILE_ZOOM,
+  REGULATORY_AREAS_TILE_LAYER
+} from '@constants/regulatoryAreaTiles'
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
-import { isPointInGeometry } from '@utils/isPointInGeometry'
-import type { BoundingBox } from '@/types/mapTypes'
+import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -77,11 +85,6 @@ const baseMapStyle: StyleSpecification = {
 
 const LOCATION_FOCUS_ZOOM = 12
 
-/** Cheap rejection before the ray-cast: list items already carry a precomputed bbox. */
-function isPointInBoundingBox([lon, lat]: LngLat, bbox: BoundingBox): boolean {
-  return lon >= bbox.minLon && lon <= bbox.maxLon && lat >= bbox.minLat && lat <= bbox.maxLat
-}
-
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
@@ -95,66 +98,15 @@ function App() {
   } = useCameraContext()
   const globalStyle = useGlobalStyle()
 
-  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
-  const {
-    areRegulatoryAreasLayerVisible,
-    isSearchZoneActive,
-    setSearchBbox,
-    setCommittedSearchBbox,
-    setCurrentZoom,
-    regulatoryAreas,
-    setSelectedRegulatoryArea,
-    setClickedFeaturesList
-  } = useRegulatoryAreasContext()
+  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData, config } = useAppContext()
+  const { areRegulatoryAreasLayerVisible, setSearchBbox, setSelectedRegulatoryArea, setClickedFeaturesList } =
+    useRegulatoryAreasContext()
 
   const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
-  const searchByZone = useSearchByZoneLayer()
 
-  const mapStyle: StyleSpecification = useMemo(
-    () => ({
-      ...baseMapStyle,
-      layers: [
-        ...baseMapStyle.layers,
-        ...(isSearchZoneActive && areRegulatoryAreasLayerVisible ? regulatoryAreaLayer.layers : []),
-        ...(searchByZone.layer ? [searchByZone.layer] : [])
-      ],
-      sources: {
-        ...baseMapStyle.sources,
-        ...(searchByZone.source && {
-          [searchByZone.source.id]: searchByZone.source.definition
-        }),
-        ...(regulatoryAreaLayer.source && {
-          [regulatoryAreaLayer.source.id]: regulatoryAreaLayer.source.definition
-        })
-      }
-    }),
-    [
-      isSearchZoneActive,
-      areRegulatoryAreasLayerVisible,
-      regulatoryAreaLayer.layers,
-      regulatoryAreaLayer.source,
-      searchByZone.layer,
-      searchByZone.source
-    ]
-  )
-
-  /** Rebuilt only when the layer reloads, not on every tap. */
-  const geometriesById = useMemo(
-    () =>
-      new Map(
-        (regulatoryAreaLayer.source?.definition.data.features ?? []).map(feature => [
-          feature.properties?.id,
-          feature.geometry
-        ])
-      ),
-    [regulatoryAreaLayer.source]
-  )
-
-  const onRegionDidChange = async (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
-    setCurrentZoom(event.nativeEvent.zoom)
-
+  const onRegionDidChange = async () => {
     if (isFromFlyToBbox) {
       setIsFromFlyToBbox(false)
       return
@@ -183,16 +135,24 @@ function App() {
   }, [])
 
   const resolveClickedAreas = useCallback(
-    (coordinate: LngLat) => {
-      const clickedRegulatoryAreas = regulatoryAreas.filter(area => {
-        if (!isPointInBoundingBox(coordinate, area.bbox)) {
-          return false
-        }
-
-        const geometry = geometriesById.get(area.id)
-
-        return !!geometry && isPointInGeometry(coordinate, geometry)
+    async (point: PixelPoint) => {
+      const features = await mapRef.current?.queryRenderedFeatures(point, {
+        layers: [regulatoryAreaLayer.ids.fillLayer, regulatoryAreaLayer.ids.outlineLayer]
       })
+
+      if (!features || features.length === 0) {
+        setClickedCoordinate(undefined)
+        return
+      }
+
+      // The area id is promoted to the MVT feature id, so it comes back directly here.
+      const ids = features
+        .map(feature => feature.id)
+        .filter((id): id is number | string => typeof id === 'number' || typeof id === 'string')
+        .map(Number)
+        .filter(id => Number.isFinite(id))
+
+      const clickedRegulatoryAreas = await getRegulatoryAreasByIds(config.mode, ids)
 
       if (clickedRegulatoryAreas.length === 0) {
         setClickedCoordinate(undefined)
@@ -200,6 +160,9 @@ function App() {
       }
 
       if (clickedRegulatoryAreas.length === 1) {
+        // Tapping the map directly has no list to return to: clear any stale origin so closing
+        // the details modal doesn't reopen a previous list/search sheet.
+        setRegulatoryAreaDetailsOrigin(undefined)
         setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
@@ -211,8 +174,10 @@ function App() {
       setActiveModal('CLICKED_FEATURES_LIST_MODAL')
     },
     [
-      regulatoryAreas,
-      geometriesById,
+      mapRef,
+      regulatoryAreaLayer.ids,
+      config.mode,
+      setRegulatoryAreaDetailsOrigin,
       setSelectedRegulatoryArea,
       setActiveModal,
       setClickedCoordinate,
@@ -222,49 +187,30 @@ function App() {
   )
 
   const onMapPress = (event: NativeSyntheticEvent<PressEvent | PressEventWithFeatures>) => {
-    if (!isSearchZoneActive) {
-      return
-    }
-
     const coordinate = event.nativeEvent.lngLat
-    if (!coordinate) {
+    const point = event.nativeEvent.point
+    if (!coordinate || !point) {
       return
     }
 
     setClickedCoordinate(coordinate)
 
     // The first frame runs before this commit paints, the second after it: the cursor is on
-    // screen before the ray-cast takes the thread.
+    // screen before the feature query takes the thread.
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolveClickedAreas(coordinate))
+      requestAnimationFrame(() => resolveClickedAreas(point))
     })
   }
 
-  const searchByQuery = async () => {
-    const bounds = await mapRef.current?.getBounds()
-
-    if (!bounds) return undefined
-    const [lonA, latA, lonB, latB] = bounds
-
-    if (!isSearchZoneActive) {
-      setCommittedSearchBbox({
-        maxLat: Math.max(latA, latB),
-        maxLon: Math.max(lonA, lonB),
-        minLat: Math.min(latA, latB),
-        minLon: Math.min(lonA, lonB)
-      })
-    }
-
+  const searchByQuery = () => {
     setActiveModal(undefined)
-    setTimeout(() => {
-      router.navigate('/search')
-    }, 1000)
+    router.navigate('/search')
   }
 
   return (
     <MapLibreMap
       ref={mapRef}
-      mapStyle={mapStyle}
+      mapStyle={baseMapStyle}
       touchZoom
       doubleTapZoom
       doubleTapHoldZoom
@@ -276,8 +222,38 @@ function App() {
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 
+      {areRegulatoryAreasLayerVisible && (
+        <VectorSource
+          key={regulatoryAreaLayer.ids.source}
+          id={regulatoryAreaLayer.ids.source}
+          tiles={[regulatoryAreaLayer.tilesUrlTemplate]}
+          minzoom={MIN_REGULATORY_TILE_ZOOM}
+          maxzoom={MAX_REGULATORY_TILE_ZOOM}
+        >
+          <Layer
+            type="fill"
+            id={regulatoryAreaLayer.ids.fillLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreaLayer.filter}
+            paint={{ 'fill-color': fillColorExpression, 'fill-opacity': 0.4 }}
+          />
+          <Layer
+            type="line"
+            id={regulatoryAreaLayer.ids.outlineLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreaLayer.filter}
+            paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
+          />
+        </VectorSource>
+      )}
+
       {clickedCoordinate && (
-        <LayerAnnotation id="clickedPoint" lngLat={clickedCoordinate}>
+        // Keyed on the regulatory source: remounted after it, so drawn above its fills.
+        <LayerAnnotation
+          key={`clickedPoint-${regulatoryAreaLayer.ids.source}-${areRegulatoryAreasLayerVisible}`}
+          id="clickedPoint"
+          lngLat={clickedCoordinate}
+        >
           <Layer
             id="clickedPointLayer"
             type="symbol"
@@ -339,6 +315,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
+
   safeArea: {
     flex: 1,
     gap: Spacing.three,

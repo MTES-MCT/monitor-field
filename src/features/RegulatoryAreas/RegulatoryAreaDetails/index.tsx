@@ -4,45 +4,39 @@ import { useTheme } from '@hooks/use-theme'
 import { useEffect, useMemo, useRef } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FishRegulatoryAreaDetails } from './FishRegulatoryAreaDetails'
-import type { FishRegulatoryArea, EnvRegulatoryArea } from '@/types/regulatoryAreasTypes'
+import type {
+  FishRegulatoryAreaSummary,
+  EnvRegulatoryAreaSummary
+} from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
-import { useCameraContext } from '@contexts/CameraContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 
 export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const { activeModal, config, setActiveModal } = useAppContext()
-  const {
-    selectedRegulatoryArea,
-    setSelectedRegulatoryArea,
-    committedSearchBbox,
-    committedSearchZoom,
-    setCommittedSearchBbox
-  } = useRegulatoryAreasContext()
-  const { zoomToBbox } = useCameraContext()
+  const { selectedRegulatoryArea, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
   const theme = useTheme()
 
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
+  // Only dismiss sheets that were actually presented: this avoids dismissing on mount and keeps
+  // `activeModal` as the single source of truth for which sheet (if any) is open.
+  const hasPresentedRef = useRef(false)
 
-  const colorKey = selectedRegulatoryArea?.fillColor as keyof typeof theme
+  const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
 
   const onDismiss = () => {
-    modalRef.current?.dismiss()
     setActiveModal(origin)
     setSelectedRegulatoryArea(undefined)
-    if (committedSearchBbox) {
-      const centerLat = (committedSearchBbox.minLat + committedSearchBbox.maxLat) / 2
-      const centerLon = (committedSearchBbox.minLon + committedSearchBbox.maxLon) / 2
-      zoomToBbox({ centerLat, centerLon, zoom: committedSearchZoom })
-      setCommittedSearchBbox(committedSearchBbox)
-    }
   }
 
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
+      hasPresentedRef.current = true
       modalRef.current?.present()
+    } else if (hasPresentedRef.current) {
+      modalRef.current?.dismiss()
     }
   }, [activeModal])
 
@@ -64,17 +58,17 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
       stackBehavior="replace"
     >
       <BottomSheetScrollView>
-        {config.mode === 'MONITORFISH' && (
+        {selectedRegulatoryArea && config.mode === 'MONITORFISH' && (
           <FishRegulatoryAreaDetails
             color={color}
-            regulatoryArea={selectedRegulatoryArea as FishRegulatoryArea}
+            regulatoryArea={selectedRegulatoryArea as FishRegulatoryAreaSummary}
             onDismiss={onDismiss}
           />
         )}
-        {config.mode === 'MONITORENV' && (
+        {selectedRegulatoryArea && config.mode === 'MONITORENV' && (
           <EnvRegulatoryAreaDetails
             color={color}
-            regulatoryArea={selectedRegulatoryArea as EnvRegulatoryArea}
+            regulatoryArea={selectedRegulatoryArea as EnvRegulatoryAreaSummary}
             onDismiss={onDismiss}
           />
         )}

@@ -44,6 +44,7 @@ describe('syncRegulatoryAreas', () => {
     const result = await syncRegulatoryAreas(dependencies, SEA_FRONTS)
 
     expect(result.failures).toEqual([])
+    expect(result.changedDatasets).toEqual(['fish', 'env'])
     expect(localFish.storedIds).toEqual([1])
     expect(localEnv.storedIds).toEqual([10])
   })
@@ -54,6 +55,7 @@ describe('syncRegulatoryAreas', () => {
     const result = await syncRegulatoryAreas(dependencies, SEA_FRONTS, { syncFish: false })
 
     expect(result.failures).toEqual([])
+    expect(result.changedDatasets).toEqual(['env'])
     expect(localFish.replaceCallCount).toBe(0)
     expect(localEnv.storedIds).toEqual([10])
   })
@@ -71,6 +73,7 @@ describe('syncRegulatoryAreas', () => {
 
     expect(result.failures).toHaveLength(1)
     expect(result.failures[0]?.dataset).toBe('fish')
+    expect(result.changedDatasets).toEqual(['env'])
     expect(localEnv.storedIds).toEqual([10])
   })
 
@@ -88,5 +91,24 @@ describe('syncRegulatoryAreas', () => {
 
     expect(localFish.replaceCallCount).toBe(1)
     expect(localFish.storedIds).toEqual([1])
+  })
+
+  it('reports no changed datasets when both datasets are already fresh', async () => {
+    const localFish = createInMemoryLocalFishRepository([buildFishArea(1, 'NAMO')])
+    const localEnv = createInMemoryLocalEnvRepository([buildEnvArea(10, 'MEMN')])
+    const { dependencies } = buildDependencies({
+      localEnvRegulatoryAreaRepository: localEnv.repository,
+      localFishRegulatoryAreaRepository: localFish.repository,
+      syncStateRepository: createInMemorySyncStateRepository({
+        env: new Date('2026-09-17T07:59:00Z'),
+        fish: new Date('2026-09-17T07:59:00Z')
+      }).repository
+    })
+
+    const result = await syncRegulatoryAreas(dependencies, SEA_FRONTS)
+
+    expect(result.changedDatasets).toEqual([])
+    expect(localFish.replaceCallCount).toBe(0)
+    expect(localEnv.replaceCallCount).toBe(0)
   })
 })

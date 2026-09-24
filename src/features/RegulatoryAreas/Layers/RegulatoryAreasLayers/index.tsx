@@ -1,139 +1,96 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import type { BoundingBox, GeoJSONCollection, MapLayer } from '@/types/mapTypes'
+import type { BoundingBox } from '@/types/mapTypes'
+import { appModeConfigs, type AppMode } from '@config/appModes'
+import { Colors } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useTheme } from '@hooks/use-theme'
-import { getFishRegulatoryAreas } from '../../useCases/getFishRegulatoryAreas'
-import { getEnvRegulatoryAreas } from '@features/RegulatoryAreas/useCases/getEnvRegulatoryAreas'
+import { hasActiveRegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
+import { getMatchingRegulatoryAreaIds } from '../../useCases/getMatchingRegulatoryAreaIds'
+import { getRegulatoryAreasInBoundingBox } from '../../useCases/getRegulatoryAreasInBoundingBox'
+import { getRegulatoryAreaTilesUrlTemplate } from '../../useCases/getRegulatoryAreaTilesUrlTemplate'
 import { logSentryError } from '@utils/sentryLogger'
-import { usePathname } from 'expo-router'
 import isEqual from 'lodash/isEqual'
 
-export const regulatoryAreasIds = {
-  fillLayer: 'regulatory-areas-fill',
-  outlineLayer: 'regulatory-areas-outline',
-  source: 'regulatory-areas-source'
+export type RegulatoryAreasLayerIds = {
+  fillLayer: string
+  outlineLayer: string
+  source: string
 }
 
-const DEFAULT_FISH_AREA_COLOR = '#67A9CF'
-const OUTLINE_COLOR = '#05055eb3'
+// One source per mode: the native source ignores a new `tiles` URL once added to the map.
+function buildLayerIds(mode: AppMode): RegulatoryAreasLayerIds {
+  return {
+    fillLayer: `regulatory-areas-fill-${mode}`,
+    outlineLayer: `regulatory-areas-outline-${mode}`,
+    source: `regulatory-areas-source-${mode}`
+  }
+}
 
-const fillColorExpression: any = ['coalesce', ['get', 'fillColor'], DEFAULT_FISH_AREA_COLOR]
+export const DEFAULT_AREA_COLOR = '#67A9CF'
+export const OUTLINE_COLOR = '#05055eb3'
+
+function buildFillColorExpression(): any {
+  const paletteKeys = [...new Set(Object.values(appModeConfigs).flatMap(config => config.colors))]
+  const cases = paletteKeys.flatMap(key => {
+    const color = Colors.light[key as keyof typeof Colors.light]
+
+    return color ? [key, color] : []
+  })
+
+  return ['match', ['coalesce', ['get', 'colorKey'], ''], ...cases, DEFAULT_AREA_COLOR]
+}
+
+export const fillColorExpression: any = buildFillColorExpression()
+
+function buildMatchingAreasFilter(hasActiveFilter: boolean, matchingAreaIds: number[]): any {
+  if (!hasActiveFilter) {
+    return undefined
+  }
+
+  if (matchingAreaIds.length === 0) {
+    // An active filter with no matches: hide every feature (area ids are positive).
+    return ['==', ['id'], -1]
+  }
+
+  return ['match', ['id'], ...matchingAreaIds.flatMap(id => [id, true]), false]
+}
 
 export type RegulatoryAreasLayerProps = {
+  filter: any
+  ids: RegulatoryAreasLayerIds
   isLoading: boolean
-  source:
-    | {
-        id: string
-        definition: {
-          type: 'geojson'
-          data: GeoJSONCollection
-        }
-      }
-    | undefined
-  layers: MapLayer[]
-  ids: typeof regulatoryAreasIds
+  tilesUrlTemplate: string
 }
 
-function createRegulatoryAreasLayers(
-  sourceId: string,
-  isolatedRegulatoryAreaId: number | undefined,
-  selectedRegulatoryAreaId: number | undefined
-): MapLayer[] {
-  const isIsolated: boolean = !!isolatedRegulatoryAreaId || !!selectedRegulatoryAreaId
-  const isolatedRegulatoryAreaIdToUse: number | undefined = isolatedRegulatoryAreaId ?? selectedRegulatoryAreaId
-  const fillOpacityExpression: any = !isIsolated
-    ? 0.4
-    : ['case', ['==', ['get', 'id'], isolatedRegulatoryAreaIdToUse], 0.4, 0]
-
-  const selectedExpression: any = !selectedRegulatoryAreaId
-    ? 1
-    : ['case', ['==', ['get', 'id'], selectedRegulatoryAreaId], 3, 1]
-
-  const outlineWidthExpression: any = !isIsolated
-    ? selectedExpression
-    : ['case', ['==', ['get', 'id'], isolatedRegulatoryAreaIdToUse], 3, 1]
-
-  return [
-    {
-      id: regulatoryAreasIds.fillLayer,
-      paint: {
-        'fill-color': fillColorExpression,
-        'fill-opacity': fillOpacityExpression
-      },
-      source: sourceId,
-      type: 'fill'
-    },
-    {
-      id: regulatoryAreasIds.outlineLayer,
-      paint: {
-        'line-color': OUTLINE_COLOR,
-        'line-width': outlineWidthExpression
-      },
-      source: sourceId,
-      type: 'line'
-    }
-  ]
-}
+const LIST_REFRESH_DEBOUNCE_MS = 200
 
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
-  const [geoJSON, setGeoJSON] = useState<GeoJSONCollection | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
+  const [matchingAreaIds, setMatchingAreaIds] = useState<number[]>([])
 
-  const pathname = usePathname()
-
-  const {
-    isSearchZoneActive,
-    committedSearchBbox,
-    setRegulatoryAreas,
-    selectedRegulatoryArea,
-    filters,
-    isolatedRegulatoryAreaId
-  } = useRegulatoryAreasContext()
+  const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
   const { config } = useAppContext()
-  const theme = useTheme()
+
+  const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters)
+
   const requestIdRef = useRef(0)
+  const idRequestIdRef = useRef(0)
   const lastFetchParamsRef = useRef<{
     bbox: BoundingBox
     filters: typeof filters
     mode: typeof config.mode
   } | null>(null)
 
-  const geoJSONWithResolvedFillColor = useMemo(() => {
-    if (!geoJSON) {
-      return undefined
-    }
-
-    return {
-      ...geoJSON,
-      features: geoJSON.features.map(feature => {
-        const resolvedFillColor = theme[feature.properties?.fillColor as keyof typeof theme] ?? DEFAULT_FISH_AREA_COLOR
-
-        return {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            fillColor: resolvedFillColor
-          }
-        }
-      })
-    }
-    // added config.mode to prevent features of the previous context
-    // from being displayed before the new ones are generated
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [geoJSON, theme, config.mode])
-
   const fetch = useCallback(async () => {
-    const bbox = committedSearchBbox
+    const bbox = searchBbox
     if (!bbox) {
       lastFetchParamsRef.current = null
-      setGeoJSON(undefined)
       setRegulatoryAreas([])
       return
     }
 
-    // skip refetching when the bbox, filters and mode didn't actually change (only references may have)
+    // Only the references may have changed.
     const previous = lastFetchParamsRef.current
     if (
       previous &&
@@ -154,15 +111,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         return
       }
 
-      let result
-      if (config.mode === 'MONITORFISH') {
-        result = await getFishRegulatoryAreas(bbox, filters)
-      } else {
-        result = await getEnvRegulatoryAreas(bbox, filters)
-      }
+      const result = await getRegulatoryAreasInBoundingBox(config.mode, bbox, filters)
 
-      setRegulatoryAreas(result.listItems)
-      setGeoJSON(result.geoJSON)
+      if (requestIdRef.current === requestId) {
+        setRegulatoryAreas(result)
+      }
     } catch (error) {
       logSentryError(error, 'Failed to load regulatory areas')
     } finally {
@@ -170,46 +123,51 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [committedSearchBbox, setRegulatoryAreas, filters, config.mode, setGeoJSON])
+  }, [searchBbox, setRegulatoryAreas, filters, config.mode])
 
+  // The list/search follow the live viewport: debounced so pan/zoom/typing don't hit SQLite every frame.
   useEffect(() => {
-    if (!isSearchZoneActive && pathname === '/search' && !filters.searchQuery?.trim()) {
+    const timer = setTimeout(fetch, LIST_REFRESH_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [fetch])
+
+  // Not tied to the viewport (the tiles already clip to it): no refetch on pan/zoom.
+  useEffect(() => {
+    const requestId = ++idRequestIdRef.current
+
+    if (!hasActiveFilter) {
+      setMatchingAreaIds([])
       return
     }
 
-    fetch()
-  }, [fetch, isSearchZoneActive, pathname, filters.searchQuery])
+    const resolve = async () => {
+      try {
+        const ids = await getMatchingRegulatoryAreaIds(config.mode, filters)
 
-  // Both are memoised: Prevent rebuilding map style on every render
-  // (would re-serialise the whole FeatureCollection across the bridge on any state change).
-  const layers = useMemo(
-    () =>
-      geoJSONWithResolvedFillColor
-        ? createRegulatoryAreasLayers(regulatoryAreasIds.source, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id)
-        : [],
-    [geoJSONWithResolvedFillColor, isolatedRegulatoryAreaId, selectedRegulatoryArea?.id]
-  )
+        if (idRequestIdRef.current === requestId) {
+          setMatchingAreaIds(ids)
+        }
+      } catch (error) {
+        logSentryError(error, 'Failed to resolve visible regulatory area ids')
+      }
+    }
 
-  const source = useMemo(
-    () => ({
-      definition: {
-        data:
-          geoJSONWithResolvedFillColor ??
-          ({
-            features: [],
-            type: 'FeatureCollection'
-          } as GeoJSONCollection),
-        type: 'geojson' as const
-      },
-      id: regulatoryAreasIds.source
-    }),
-    [geoJSONWithResolvedFillColor]
+    void resolve()
+  }, [hasActiveFilter, filters, config.mode])
+
+  const ids = useMemo(() => buildLayerIds(config.mode), [config.mode])
+  const tilesUrlTemplate = useMemo(() => getRegulatoryAreaTilesUrlTemplate(config.mode), [config.mode])
+
+  const filter = useMemo(
+    () => buildMatchingAreasFilter(hasActiveFilter, matchingAreaIds),
+    [hasActiveFilter, matchingAreaIds]
   )
 
   return {
-    ids: regulatoryAreasIds,
+    filter,
+    ids,
     isLoading,
-    layers,
-    source
+    tilesUrlTemplate
   }
 }

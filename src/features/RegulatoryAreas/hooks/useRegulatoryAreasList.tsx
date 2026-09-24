@@ -45,8 +45,7 @@ export function useRegulatoryAreasList({
     filters: { searchQuery },
     setIsolatedRegulatoryAreaId,
     setSelectedRegulatoryArea,
-    isolatedRegulatoryAreaId,
-    isSearchZoneActive
+    isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
   const { setClickedCoordinate, zoomOnRegulatoryArea } = useCameraContext()
@@ -58,11 +57,14 @@ export function useRegulatoryAreasList({
   const { isLoading } = useRegulatoryAreasLayer()
 
   const isClickedFeatureList = origin === 'CLICKED_FEATURES_LIST_MODAL'
-  const sourceRegulatoryAreas = isClickedFeatureList ? regulatoryAreas : regulatoryAreas
+  const sourceRegulatoryAreas = useMemo(
+    () => (isClickedFeatureList ? (clickedFeaturesList ?? []) : regulatoryAreas),
+    [isClickedFeatureList, clickedFeaturesList, regulatoryAreas]
+  )
 
   const areResultsVisible = useMemo(() => {
-    return shouldShowResults || isSearchZoneActive || searchQuery?.trim() !== undefined
-  }, [isSearchZoneActive, searchQuery, shouldShowResults])
+    return shouldShowResults || searchQuery?.trim() !== undefined
+  }, [searchQuery, shouldShowResults])
 
   const groupedRegulatoryAreas = useMemo(
     () =>
@@ -75,7 +77,7 @@ export function useRegulatoryAreasList({
 
   const selectRegulatoryArea = useCallback(
     (area: RegulatoryAreaListItem) => {
-      const hasArea = regulatoryAreas.some(currentArea => currentArea.id === area.id)
+      const hasArea = sourceRegulatoryAreas.some(currentArea => currentArea.id === area.id)
       if (!hasArea) {
         return
       }
@@ -101,7 +103,7 @@ export function useRegulatoryAreasList({
     },
     [
       zoomOnRegulatoryArea,
-      regulatoryAreas,
+      sourceRegulatoryAreas,
       setSelectedRegulatoryArea,
       setActiveModal,
       setClickedCoordinate,
@@ -175,7 +177,7 @@ export function useRegulatoryAreasList({
         )
       }
 
-      const colorKey = item.area.fillColor as keyof typeof theme
+      const colorKey = item.area.colorKey as keyof typeof theme
       const color = theme[colorKey] ?? theme.white
 
       return (
