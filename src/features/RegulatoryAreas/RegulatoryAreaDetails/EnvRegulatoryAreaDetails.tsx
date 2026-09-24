@@ -100,19 +100,27 @@ export function EnvRegulatoryAreaDetails({
         <ThemedText type="default" style={styles.horizontalPadding}>
           {regulatoryArea.type}
         </ThemedText>
-        <ThemedText type="small" style={styles.labelStyle}>
-          Thématiques
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.themes}
-        </ThemedText>
+        {regulatoryArea.themes && (
+          <>
+            <ThemedText type="small" style={styles.labelStyle}>
+              Thématiques
+            </ThemedText>
+            <ThemedText type="default" style={styles.horizontalPadding}>
+              {regulatoryArea.themes}
+            </ThemedText>
+          </>
+        )}
         {/* TODO Subthemes are sent in the same string as the themes. See how to resolve this issue. */}
-        <ThemedText type="small" style={styles.labelStyle}>
-          Sous-thématiques
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.themes}
-        </ThemedText>
+        {regulatoryArea.themes && (
+          <>
+            <ThemedText type="small" style={styles.labelStyle}>
+              Sous-thématiques
+            </ThemedText>
+            <ThemedText type="default" style={styles.horizontalPadding}>
+              {regulatoryArea.themes}
+            </ThemedText>
+          </>
+        )}
         {regulatoryArea.authorizationPeriods && (
           <>
             <View style={globalStyle.separator} />

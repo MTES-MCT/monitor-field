@@ -128,10 +128,10 @@ export function useRegulatoryAreasList({
     [expandedGroups]
   )
 
-  const closeModal = useCallback(() => {
-    setExpandedGroups({})
+  const closeModal = () => {
     onClose()
-  }, [onClose])
+    setExpandedGroups({})
+  }
 
   const isolateRegulatoryArea = useCallback(
     (area: RegulatoryAreaListItem) => {
@@ -228,7 +228,7 @@ export function useRegulatoryAreasList({
   const renderHeader = () => {
     if (isClickedFeatureList) {
       return (
-        <View style={[styles.headerRowWithTitle, { backgroundColor: theme.lightGray }]}>
+        <View style={[styles.headerRowWithTitle, { backgroundColor: theme.gainsboro }]}>
           <ThemedText type="default">{`${clickedFeaturesList?.length ?? 0} zones superposées sur ce point`}</ThemedText>
           <CloseButton onClose={closeModal} />
         </View>

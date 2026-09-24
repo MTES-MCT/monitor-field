@@ -178,6 +178,7 @@ function App() {
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
         zoomOnRegulatoryArea(clickedRegulatoryAreas[0])
+
         return
       }
 
@@ -286,7 +287,7 @@ function App() {
         <View style={styles.boutonsWrapper}>
           <SwitchContextButton />
           <View>
-            <Link href="/settings" asChild>
+            <Link href="/settings" asChild onPress={() => setActiveModal(undefined)}>
               <Pressable
                 accessibilityRole="link"
                 accessibilityState={{ disabled: false }}

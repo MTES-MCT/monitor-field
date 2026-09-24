@@ -19,9 +19,9 @@ export function useGlobalStyle() {
       borderRadius: 10,
       height: 20,
       justifyContent: 'center',
-      left: 35,
+      left: 33,
       position: 'absolute',
-      top: -10,
+      top: -5,
       width: 20
     },
     iconLarge: {

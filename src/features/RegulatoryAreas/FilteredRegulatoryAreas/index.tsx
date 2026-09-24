@@ -19,6 +19,8 @@ type FilteredRegulatoryAreasProps = {
   setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
 }
 
+const ORIGIN = 'REGULATORY_AREAS_LIST_MODAL'
+
 export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: FilteredRegulatoryAreasProps) => {
   const theme = useTheme()
   const styles = createStyles(theme)
@@ -39,7 +41,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onCloseRegulatoryAreaDetails = useCallback(() => {
-    setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL')
+    setRegulatoryAreaDetailsOrigin(ORIGIN)
     setActiveModal(undefined)
     modalRef.current?.dismiss()
   }, [setActiveModal, setRegulatoryAreaDetailsOrigin])
@@ -51,8 +53,8 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onClose: onCloseRegulatoryAreaDetails,
-    onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL'),
-    origin: 'REGULATORY_AREAS_LIST_MODAL',
+    onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
+    origin: ORIGIN,
     shouldShowResults: true
   })
 

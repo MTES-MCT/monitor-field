@@ -26,10 +26,13 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
   const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
 
-  const onDismiss = () => {
-    setActiveModal(origin)
-    setSelectedRegulatoryArea(undefined)
+  const onClose = () => {
     modalRef.current?.dismiss()
+  }
+
+  const onDismiss = () => {
+    setSelectedRegulatoryArea(undefined)
+    setActiveModal(origin)
   }
 
   useEffect(() => {
@@ -57,20 +60,21 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
         backgroundColor: theme.lightGray
       }}
       stackBehavior="replace"
+      onDismiss={onDismiss}
     >
       <BottomSheetScrollView>
         {selectedRegulatoryArea && config.mode === 'MONITORFISH' && (
           <FishRegulatoryAreaDetails
             color={color}
             regulatoryArea={selectedRegulatoryArea as FishRegulatoryAreaSummary}
-            onDismiss={onDismiss}
+            onDismiss={onClose}
           />
         )}
         {selectedRegulatoryArea && config.mode === 'MONITORENV' && (
           <EnvRegulatoryAreaDetails
             color={color}
             regulatoryArea={selectedRegulatoryArea as EnvRegulatoryAreaSummary}
-            onDismiss={onDismiss}
+            onDismiss={onClose}
           />
         )}
       </BottomSheetScrollView>
