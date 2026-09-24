@@ -28,11 +28,11 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
+  const hasPresentedRef = useRef(false)
 
   const onClose = useCallback(() => {
     setRegulatoryAreaDetailsOrigin('REGULATORY_AREAS_LIST_MODAL')
     setActiveModal(undefined)
-    modalRef.current?.dismiss()
   }, [setActiveModal, setRegulatoryAreaDetailsOrigin])
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
@@ -44,8 +44,9 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
+      hasPresentedRef.current = true
       modalRef.current?.present()
-    } else if (activeModal === undefined) {
+    } else if (hasPresentedRef.current) {
       modalRef.current?.dismiss()
     }
   }, [activeModal])
