@@ -10,6 +10,10 @@ export type SyncEnvRegulatoryAreasDependencies = {
   syncStateRepository: SyncStateRepository
 }
 
+/**
+ * Syncs the env dataset and reports whether its stored data actually changed, so callers can
+ * decide whether the tiles need to be rebuilt.
+ */
 export async function syncEnvRegulatoryAreas(
   {
     envRegulatoryAreaRepository,
@@ -19,14 +23,14 @@ export async function syncEnvRegulatoryAreas(
   }: SyncEnvRegulatoryAreasDependencies,
   seaFronts: string[],
   forceRefresh = false
-): Promise<void> {
+): Promise<boolean> {
   const selectedSeaFronts = seaFronts.filter(Boolean)
 
   if (selectedSeaFronts.length === 0) {
     await localEnvRegulatoryAreaRepository.deleteAll()
     syncStateRepository.markSyncedAt('env', now())
 
-    return
+    return true
   }
 
   const skip = shouldSkipSync({
@@ -37,7 +41,7 @@ export async function syncEnvRegulatoryAreas(
   })
 
   if (skip) {
-    return
+    return false
   }
 
   const areas = await envRegulatoryAreaRepository.findBySeaFronts(selectedSeaFronts)
@@ -45,10 +49,12 @@ export async function syncEnvRegulatoryAreas(
   // Treated as "nothing published yet", not "everything was withdrawn": stale zones on a
   // field device beat a blank map.
   if (areas.length === 0) {
-    return
+    return false
   }
 
   await localEnvRegulatoryAreaRepository.replaceForSeaFronts(selectedSeaFronts, areas)
 
   syncStateRepository.markSyncedAt('env', now())
+
+  return true
 }

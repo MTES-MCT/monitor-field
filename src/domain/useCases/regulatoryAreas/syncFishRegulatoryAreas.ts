@@ -10,6 +10,10 @@ export type SyncFishRegulatoryAreasDependencies = {
   syncStateRepository: SyncStateRepository
 }
 
+/**
+ * Syncs the fish dataset and reports whether its stored data actually changed, so callers can
+ * decide whether the tiles need to be rebuilt.
+ */
 export async function syncFishRegulatoryAreas(
   {
     fishRegulatoryAreaRepository,
@@ -19,14 +23,14 @@ export async function syncFishRegulatoryAreas(
   }: SyncFishRegulatoryAreasDependencies,
   seaFronts: string[],
   forceRefresh = false
-): Promise<void> {
+): Promise<boolean> {
   const selectedSeaFronts = seaFronts.filter(Boolean)
 
   if (selectedSeaFronts.length === 0) {
     await localFishRegulatoryAreaRepository.deleteAll()
     syncStateRepository.markSyncedAt('fish', now())
 
-    return
+    return true
   }
 
   const skip = shouldSkipSync({
@@ -37,7 +41,7 @@ export async function syncFishRegulatoryAreas(
   })
 
   if (skip) {
-    return
+    return false
   }
 
   const areas = await fishRegulatoryAreaRepository.findBySeaFronts(selectedSeaFronts)
@@ -45,10 +49,12 @@ export async function syncFishRegulatoryAreas(
   // Treated as "nothing published yet", not "everything was withdrawn": stale zones on a
   // field device beat a blank map.
   if (areas.length === 0) {
-    return
+    return false
   }
 
   await localFishRegulatoryAreaRepository.replaceForSeaFronts(selectedSeaFronts, areas)
 
   syncStateRepository.markSyncedAt('fish', now())
+
+  return true
 }

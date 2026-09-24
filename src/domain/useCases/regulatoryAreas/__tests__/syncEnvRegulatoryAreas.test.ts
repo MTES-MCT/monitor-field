@@ -33,8 +33,7 @@ describe('syncEnvRegulatoryAreas', () => {
       remote: createRemoteRepository([buildEnvArea(1), buildEnvArea(2)])
     })
 
-    await syncEnvRegulatoryAreas(dependencies, ['MEMN'])
-
+    expect(await syncEnvRegulatoryAreas(dependencies, ['MEMN'])).toBe(true)
     expect(local.storedIds).toEqual([1, 2])
   })
 
@@ -69,8 +68,7 @@ describe('syncEnvRegulatoryAreas', () => {
     const local = createInMemoryLocalEnvRepository([buildEnvArea(1)])
     const { dependencies, syncState } = setup({ local })
 
-    await syncEnvRegulatoryAreas(dependencies, [])
-
+    expect(await syncEnvRegulatoryAreas(dependencies, [])).toBe(true)
     expect(local.storedIds).toEqual([])
     expect(syncState.syncedAt.get('env')).toEqual(NOW)
   })
@@ -83,8 +81,7 @@ describe('syncEnvRegulatoryAreas', () => {
       syncState: createInMemorySyncStateRepository({ env: SIX_DAYS_AGO })
     })
 
-    await syncEnvRegulatoryAreas(dependencies, ['MEMN'])
-
+    expect(await syncEnvRegulatoryAreas(dependencies, ['MEMN'])).toBe(false)
     expect(local.replaceCallCount).toBe(0)
   })
 
@@ -114,8 +111,7 @@ describe('syncEnvRegulatoryAreas', () => {
     const local = createInMemoryLocalEnvRepository([buildEnvArea(1)])
     const { dependencies } = setup({ local })
 
-    await syncEnvRegulatoryAreas(dependencies, ['MEMN'], true)
-
+    expect(await syncEnvRegulatoryAreas(dependencies, ['MEMN'], true)).toBe(false)
     expect(local.storedIds).toEqual([1])
   })
 })

@@ -115,6 +115,9 @@ export function createFileSystemRegulatoryAreaTileRepository(): RegulatoryAreaTi
   return {
     getUrlTemplate: (dataset: RegulatoryAreaDataset) => buildTileUrlTemplate(getRegulatoryTilesDirectory(dataset)),
 
+    isGenerationCurrent: (dataset: RegulatoryAreaDataset) =>
+      storage.getString(buildHashStorageKey(dataset)) !== undefined,
+
     replaceAll: async (dataset: RegulatoryAreaDataset, geometries: RegulatoryAreaGeometry[]) => {
       const startedAt = Date.now()
       const hash = hashGeometries(geometries)

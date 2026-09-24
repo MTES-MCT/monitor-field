@@ -34,8 +34,7 @@ describe('syncFishRegulatoryAreas', () => {
       remote: createRemoteRepository([buildFishArea(1), buildFishArea(2), buildFishArea(3)])
     })
 
-    await syncFishRegulatoryAreas(dependencies, ['NAMO'])
-
+    expect(await syncFishRegulatoryAreas(dependencies, ['NAMO'])).toBe(true)
     expect(local.storedIds).toEqual([1, 2, 3])
   })
 
@@ -70,8 +69,7 @@ describe('syncFishRegulatoryAreas', () => {
     const local = createInMemoryLocalFishRepository([buildFishArea(1)])
     const { dependencies, syncState } = setup({ local })
 
-    await syncFishRegulatoryAreas(dependencies, [])
-
+    expect(await syncFishRegulatoryAreas(dependencies, [])).toBe(true)
     expect(local.storedIds).toEqual([])
     expect(syncState.syncedAt.get('fish')).toEqual(NOW)
   })
@@ -93,8 +91,7 @@ describe('syncFishRegulatoryAreas', () => {
         syncState: createInMemorySyncStateRepository({ fish: SIX_DAYS_AGO })
       })
 
-      await syncFishRegulatoryAreas(dependencies, ['NAMO'])
-
+      expect(await syncFishRegulatoryAreas(dependencies, ['NAMO'])).toBe(false)
       expect(local.replaceCallCount).toBe(0)
       expect(local.storedIds).toEqual([1])
     })
@@ -164,8 +161,7 @@ describe('syncFishRegulatoryAreas', () => {
       const local = createInMemoryLocalFishRepository([buildFishArea(1)])
       const { dependencies, syncState } = setup({ local, syncState: createInMemorySyncStateRepository() })
 
-      await syncFishRegulatoryAreas(dependencies, ['NAMO'], true)
-
+      expect(await syncFishRegulatoryAreas(dependencies, ['NAMO'], true)).toBe(false)
       expect(local.storedIds).toEqual([1])
       expect(syncState.syncedAt.get('fish')).toBeUndefined()
     })

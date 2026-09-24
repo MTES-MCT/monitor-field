@@ -19,6 +19,7 @@ export type SyncFailure = {
 
 export type SyncRegulatoryAreasResult = {
   failures: SyncFailure[]
+  changedDatasets: RegulatoryAreaDataset[]
 }
 
 /**
@@ -38,14 +39,19 @@ export async function syncRegulatoryAreas(
   ])
 
   const failures: SyncFailure[] = []
+  const changedDatasets: RegulatoryAreaDataset[] = []
 
   if (fish.status === 'rejected') {
     failures.push({ dataset: 'fish', error: fish.reason })
+  } else if (fish.value === true) {
+    changedDatasets.push('fish')
   }
 
   if (env.status === 'rejected') {
     failures.push({ dataset: 'env', error: env.reason })
+  } else if (env.value === true) {
+    changedDatasets.push('env')
   }
 
-  return { failures }
+  return { changedDatasets, failures }
 }

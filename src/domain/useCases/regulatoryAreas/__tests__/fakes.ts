@@ -155,6 +155,7 @@ export function createInMemoryTileRepository() {
 
   const repository: RegulatoryAreaTileRepository = {
     getUrlTemplate: (dataset: RegulatoryAreaDataset) => `memory://${dataset}/{z}/{x}/{y}.pbf`,
+    isGenerationCurrent: (dataset: RegulatoryAreaDataset) => tiles.has(dataset),
     replaceAll: async (dataset: RegulatoryAreaDataset, geometries: RegulatoryAreaGeometry[]) => {
       replacedDatasets.push(dataset)
       tiles.set(dataset, geometries)

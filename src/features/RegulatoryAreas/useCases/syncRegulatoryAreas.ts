@@ -24,7 +24,7 @@ export async function syncRegulatoryAreas(
   // eslint-disable-next-line no-console
   console.log('[tiles] tile generation started')
 
-  await regenerateRegulatoryAreaTiles(dependencies)
+  await regenerateRegulatoryAreaTiles(dependencies, result.changedDatasets)
 
   // eslint-disable-next-line no-console
   console.log(`[tiles] tile generation finished (${Date.now() - tilesStartedAt}ms)`)
