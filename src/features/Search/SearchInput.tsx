@@ -1,43 +1,39 @@
 import { BackButton } from '@components/Buttons/BackButton'
 import { CloseButton } from '@components/Buttons/CloseButton'
-import { ThemedText } from '@components/Elements/Text'
-import { Spacing } from '@constants/theme'
+import { Fonts, Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useAppContext } from '@contexts/AppContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 type SearchInputProps = {
   onClose: () => void
+  text?: string
+  setText: (text: string) => void
 }
 
-export function SearchInput({ onClose }: SearchInputProps) {
+export function SearchInput({ onClose, text, setText }: SearchInputProps) {
   const router = useRouter()
   const inputRef = useRef<TextInput>(null)
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
-  const { filters, setFilters } = useRegulatoryAreasContext()
-  const { setActiveModal } = useAppContext()
-  const [text, setText] = useState(filters.searchQuery ?? '')
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const { setFilters } = useRegulatoryAreasContext()
+  const { config, setActiveModal } = useAppContext()
 
   const onChangeText = (newText: string) => {
     setText(newText)
+  }
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setFilters(currentFilters => ({
-        ...currentFilters,
-        searchQuery: newText.trim() ? newText.trim() : undefined
-      }))
-    }, 300)
+  const clearText = () => {
+    setText('')
+    setFilters(currentFilters => ({
+      ...currentFilters,
+      ...(config.mode === 'MONITORENV' ? { searchQueryEnv: undefined } : { searchQueryFish: undefined })
+    }))
   }
 
   const onCloseSearchInput = () => {
@@ -46,9 +42,16 @@ export function SearchInput({ onClose }: SearchInputProps) {
   }
 
   const onSubmit = useCallback(() => {
-    router.navigate('/')
+    const trimmedText = text?.trim()
+    setFilters(currentFilters => ({
+      ...currentFilters,
+      ...(config.mode === 'MONITORENV'
+        ? { searchQueryEnv: trimmedText ?? undefined }
+        : { searchQueryFish: trimmedText ?? undefined })
+    }))
+    router.back()
     setActiveModal('REGULATORY_AREAS_LIST_MODAL')
-  }, [setActiveModal, router])
+  }, [setActiveModal, router, text, config.mode, setFilters])
 
   return (
     <>
@@ -67,8 +70,8 @@ export function SearchInput({ onClose }: SearchInputProps) {
             onSubmitEditing={onSubmit}
           />
 
-          {text.length > 0 ? (
-            <CloseButton onClose={() => onChangeText('')} isSmall style={{ marginRight: Spacing.two }} />
+          {text && text.length > 0 ? (
+            <CloseButton onClose={clearText} isSmall style={{ marginRight: Spacing.two }} />
           ) : (
             <Image
               source={require('@assets/icons/search.svg')}
@@ -76,12 +79,6 @@ export function SearchInput({ onClose }: SearchInputProps) {
             />
           )}
         </View>
-      </View>
-      <View style={styles.informationMessage}>
-        <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
-        <ThemedText type="small" themeColor="slateGray">
-          La recherche se fait dans la zone affichée à l’écran
-        </ThemedText>
       </View>
       <View style={globalStyle.separator} />
     </>
@@ -94,12 +91,13 @@ const createStyles = theme =>
       alignItems: 'center',
       flexDirection: 'row',
       gap: Spacing.two,
-      marginHorizontal: Spacing.two,
+      marginHorizontal: Spacing.three,
       marginVertical: Spacing.two
     },
     input: {
       color: '#2b3a4a',
       flex: 1,
+      fontFamily: Fonts.sans,
       fontSize: 17,
       paddingVertical: 0
     },

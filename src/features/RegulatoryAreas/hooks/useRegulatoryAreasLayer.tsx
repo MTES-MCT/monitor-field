@@ -6,9 +6,9 @@ import { Colors } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { hasActiveRegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
-import { getMatchingRegulatoryAreaIds } from '../../useCases/getMatchingRegulatoryAreaIds'
-import { getRegulatoryAreasInBoundingBox } from '../../useCases/getRegulatoryAreasInBoundingBox'
-import { getRegulatoryAreaTilesUrlTemplate } from '../../useCases/getRegulatoryAreaTilesUrlTemplate'
+import { getMatchingRegulatoryAreaIds } from '../useCases/getMatchingRegulatoryAreaIds'
+import { getRegulatoryAreasInBoundingBox } from '../useCases/getRegulatoryAreasInBoundingBox'
+import { getRegulatoryAreaTilesUrlTemplate } from '../useCases/getRegulatoryAreaTilesUrlTemplate'
 import { logSentryError } from '@utils/sentryLogger'
 import isEqual from 'lodash/isEqual'
 
@@ -66,13 +66,12 @@ export type RegulatoryAreasLayerProps = {
 const LIST_REFRESH_DEBOUNCE_MS = 200
 
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
-  const [isLoading, setIsLoading] = useState(false)
   const [matchingAreaIds, setMatchingAreaIds] = useState<number[]>([])
 
-  const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
+  const { searchBbox, setRegulatoryAreas, filters, isLoading, setIsLoading } = useRegulatoryAreasContext()
   const { config } = useAppContext()
 
-  const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters)
+  const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters, config.mode)
 
   const requestIdRef = useRef(0)
   const idRequestIdRef = useRef(0)
@@ -100,7 +99,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     ) {
       return
     }
-    lastFetchParamsRef.current = { bbox, filters, mode: config.mode }
+    lastFetchParamsRef.current = {
+      bbox,
+      filters,
+      mode: config.mode
+    }
 
     setIsLoading(true)
 

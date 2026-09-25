@@ -8,7 +8,7 @@ import { useMemo, useRef, useState } from 'react'
 import { storage } from '@storage'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { Image } from 'expo-image'
-import { Spacing } from '@constants/theme'
+import { Fonts, Spacing } from '@constants/theme'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
@@ -99,6 +99,7 @@ const createStyles = theme =>
     input: {
       color: '#2b3a4a',
       flex: 1,
+      fontFamily: Fonts.sans,
       fontSize: 17,
       paddingVertical: 0
     },

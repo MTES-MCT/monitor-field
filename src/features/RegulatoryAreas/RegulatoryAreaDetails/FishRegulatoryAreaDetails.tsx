@@ -41,6 +41,10 @@ export function FishRegulatoryAreaDetails({
     }
   }, [])
 
+  if (!regulatoryArea) {
+    return null
+  }
+
   return (
     <>
       <View style={styles.titleWrapper}>

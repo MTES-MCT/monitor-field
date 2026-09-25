@@ -7,7 +7,12 @@ import {
 } from './fakes'
 
 const NOW = new Date('2026-09-16T10:00:00Z')
-const NO_FILTERS = { recentlyAddedOrModified: false, searchQuery: undefined, themesAndSubThemes: [] }
+const NO_FILTERS = {
+  recentlyAddedOrModified: false,
+  searchQueryEnv: undefined,
+  searchQueryFish: undefined,
+  themesAndSubThemes: []
+}
 
 describe('getMatchingRegulatoryAreaIds', () => {
   it('matches areas wherever they lie, not only in the viewport', async () => {
@@ -20,7 +25,7 @@ describe('getMatchingRegulatoryAreaIds', () => {
       now: () => NOW
     }
 
-    const ids = await getMatchingRegulatoryAreaIds(dependencies, 'fish', { ...NO_FILTERS, searchQuery: 'corse' })
+    const ids = await getMatchingRegulatoryAreaIds(dependencies, 'fish', { ...NO_FILTERS, searchQueryFish: 'corse' })
 
     expect(ids).toEqual([1])
   })
