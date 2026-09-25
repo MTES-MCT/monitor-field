@@ -36,7 +36,7 @@ export function useRegulatoryAreasList({
   onSelectRegulatoryArea
 }: {
   shouldShowResults?: boolean
-  onClose: () => void
+  onClose?: () => void
   origin?: ModalType
   onSelectRegulatoryArea?: () => void
 }) {
@@ -132,7 +132,7 @@ export function useRegulatoryAreasList({
   )
 
   const closeModal = () => {
-    onClose()
+    onClose?.()
     setExpandedGroups({})
   }
 

@@ -22,7 +22,7 @@ export const SelectedRegulatoryAreas = ({
   const snapPoints = useMemo(() => ['25%', '66%'], [])
   const modalRef = useRef<BottomSheetModal>(null)
 
-  const { config, activeModal, setActiveModal } = useAppContext()
+  const { config, activeModal } = useAppContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, filters } = useRegulatoryAreasContext()
   const { setClickedCoordinate } = useCameraContext()
 
@@ -33,11 +33,13 @@ export const SelectedRegulatoryAreas = ({
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onClose = () => {
-    setActiveModal(undefined)
-    setClickedFeaturesList(undefined)
-    setIsolatedRegulatoryAreaId(undefined)
-    setClickedCoordinate(undefined)
     modalRef.current?.dismiss()
+    setClickedFeaturesList(undefined)
+    setClickedCoordinate(undefined)
+  }
+
+  const onDismiss = () => {
+    setIsolatedRegulatoryAreaId(undefined)
   }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
@@ -47,7 +49,7 @@ export const SelectedRegulatoryAreas = ({
   })
 
   useEffect(() => {
-    if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
+    if (activeModal === ORIGIN) {
       modalRef.current?.present()
     } else {
       modalRef.current?.dismiss()
@@ -70,6 +72,7 @@ export const SelectedRegulatoryAreas = ({
         backgroundColor: theme.lightGray
       }}
       stackBehavior="replace"
+      onDismiss={onDismiss}
     >
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}

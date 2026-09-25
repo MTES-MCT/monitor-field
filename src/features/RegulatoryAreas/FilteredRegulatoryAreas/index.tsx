@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { StyleSheet, TextInput, View } from 'react-native'
-import { Spacing } from '@constants/theme'
+import { Fonts, Spacing } from '@constants/theme'
 import { BackButton } from '@components/Buttons/BackButton'
 import { useRouter } from 'expo-router'
 import { EnvFilters } from './EnvFilters'
@@ -39,19 +39,15 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       : (filters.searchQueryFish?.trim() ?? undefined)
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
-  const onCloseRegulatoryAreaDetails = useCallback(() => {
-    setRegulatoryAreaDetailsOrigin(ORIGIN)
-    setActiveModal(undefined)
+  const onClose = useCallback(() => {
     modalRef.current?.dismiss()
-  }, [setActiveModal, setRegulatoryAreaDetailsOrigin])
+  }, [])
 
-  const onCloseModal = useCallback(() => {
+  const onDismiss = () => {
     setActiveModal(undefined)
-    modalRef.current?.dismiss()
-  }, [setActiveModal])
+  }
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
-    onClose: onCloseRegulatoryAreaDetails,
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
     origin: ORIGIN,
     shouldShowResults: true
@@ -89,17 +85,18 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       }}
       stackBehavior="replace"
       style={{ paddingBottom: 100 }}
+      onDismiss={onDismiss}
     >
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.four }}>
         <View style={styles.searchBox}>
-          <BackButton onBack={onCloseModal} style={{ marginLeft: Spacing.two }} />
+          <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
             style={styles.input}
             value={searchQuery}
             onChangeText={() => {}}
             onFocus={() => {
-              onCloseModal()
+              onClose()
               router.push('/search')
             }}
             placeholder="Rechercher"
@@ -144,6 +141,7 @@ const createStyles = theme =>
     input: {
       color: '#2b3a4a',
       flex: 1,
+      fontFamily: Fonts.sans,
       fontSize: 17,
       paddingVertical: 0
     },
