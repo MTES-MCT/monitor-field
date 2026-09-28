@@ -1,3 +1,5 @@
+import { getAndroidId } from 'react-native-device-info'
+
 interface MatomoOptions {
   urlBase: string
   siteId: number
@@ -57,12 +59,18 @@ class MatomoTracker {
    * @param {boolean} [options.disabled=false] - Indicates if Matomo tracking is disabled.
    * @param {boolean} [options.log=false] - Indicates if logging is enabled.
    */
-  initialize({ urlBase, trackerUrl, siteId, userId, disabled = false, log = false }: MatomoOptions): void {
+  async initialize({
+    urlBase,
+    trackerUrl,
+    siteId,
+    userId,
+    disabled = false,
+    log = false
+  }: MatomoOptions): Promise<void> {
     const normalizedUrlBase = urlBase[urlBase.length - 1] !== '/' ? `${urlBase}/` : urlBase
 
     this.disabled = disabled
     this.log = log
-
     if (disabled) {
       if (log) {
         // eslint-disable-next-line no-console
@@ -76,8 +84,12 @@ class MatomoTracker {
     this.siteId = siteId
     this.userInfo = {}
 
+    const androidId = await getAndroidId()
+
     if (userId) {
       this.userId = userId
+    } else {
+      this.userId = androidId
     }
 
     if (log) {
@@ -102,7 +114,7 @@ class MatomoTracker {
   trackAppStart({ userInfo = {} }: { userInfo?: UserInfo } = {}): Promise<Response | Error> {
     this.updateUserInfo(userInfo)
 
-    return this.trackAction({ name: 'App / start' })
+    return this.trackAction({ name: 'App - ouverture' })
   }
 
   /**
@@ -231,7 +243,6 @@ class MatomoTracker {
       throw new Error('Error: The "action" parameter is required for tracking an event.')
     }
     this.updateUserInfo(userInfo)
-    // console.log({ category, action, name, value, campaign, url, userInfo })
     return this.track({
       e_a: action,
       e_c: category,
@@ -484,7 +495,6 @@ class MatomoTracker {
 
     return fetch(this.trackerUrl, fetchObj)
       .then(response => {
-        // console.log('Matomo tracking response:', response)
         if (!response.ok) {
           throw Error(response.statusText)
         }

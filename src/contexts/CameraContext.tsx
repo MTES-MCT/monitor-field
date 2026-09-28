@@ -14,6 +14,8 @@ const CameraContext = createContext<
       setClickedCoordinate: (coordinate: LngLat | undefined) => void
       isFromFlyToBbox: boolean
       setIsFromFlyToBbox: (isFromFlyToBbox: boolean) => void
+      currentZoom: number | undefined
+      setCurrentZoom: (zoom: number | undefined) => void
     }
   | undefined
 >(undefined)
@@ -29,6 +31,7 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
 
   const [clickedCoordinate, setClickedCoordinate] = useState<LngLat | undefined>(undefined)
   const [isFromFlyToBbox, setIsFromFlyToBbox] = useState(false)
+  const [currentZoom, setCurrentZoom] = useState<number | undefined>(undefined)
 
   const zoomToBbox = ({ centerLat, centerLon, zoom = undefined, withPadding = false }: ZoomToBboxOptions): void => {
     cameraRef.current?.flyTo({
@@ -59,8 +62,10 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
       value={{
         cameraRef,
         clickedCoordinate,
+        currentZoom,
         isFromFlyToBbox,
         setClickedCoordinate,
+        setCurrentZoom,
         setIsFromFlyToBbox,
         zoomOnRegulatoryArea,
         zoomToBbox

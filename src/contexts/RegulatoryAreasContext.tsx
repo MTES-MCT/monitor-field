@@ -39,7 +39,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
   const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
-  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(false)
+  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
   const [filters, setFilters] = useState<Filters>({

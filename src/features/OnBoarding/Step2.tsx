@@ -6,11 +6,13 @@ import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
+import useMatomo from '@matomo/useMatomo'
 
 export function Step2({ onNext }: { onNext: (seaFronts: string[]) => void }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
   const [selectedSeaFronts, setSelectedSeaFronts] = useState<string[]>([])
+  const { trackEvent } = useMatomo()
 
   const isButtonDisabled = selectedSeaFronts.length === 0
 
@@ -18,6 +20,7 @@ export function Step2({ onNext }: { onNext: (seaFronts: string[]) => void }) {
     if (isButtonDisabled) {
       return
     }
+    trackEvent({ action: 'Ajout de façades', category: 'Façades', name: selectedSeaFronts.sort().join(', ') })
 
     onNext(selectedSeaFronts)
   }
