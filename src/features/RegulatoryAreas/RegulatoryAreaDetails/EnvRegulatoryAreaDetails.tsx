@@ -6,7 +6,7 @@ import type { EnvRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/
 import { Spacing } from '@constants/theme'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import daysjs from 'dayjs'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { Image } from 'expo-image'
 import { logToSentry } from '@utils/sentryLogger'
@@ -53,17 +53,32 @@ export function EnvRegulatoryAreaDetails({
     }
   }, [])
 
+  const groupTitle = useMemo(() => {
+    if (!regulatoryArea || !regulatoryArea.layerName) {
+      return ''
+    }
+
+    return `${regulatoryArea.layerName} ${!!regulatoryArea.location ? `- ${regulatoryArea.location}` : ''}`
+  }, [regulatoryArea])
+
+  if (!regulatoryArea) {
+    return null
+  }
+
   return (
     <>
       <View style={styles.titleWrapper}>
         <View style={{ flex: 1 }}>
-          <ThemedText
-            type="small"
-            style={styles.titleText}
-          >{`${regulatoryArea.layerName} ${!!regulatoryArea.location ? `- ${regulatoryArea.location}` : ''}`}</ThemedText>
+          <ThemedText type="small" style={styles.titleText}>
+            {groupTitle}
+          </ThemedText>
           <View style={styles.title}>
             <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
-            <ThemedText type="default" style={styles.titleText}>
+            <ThemedText
+              type="default"
+              style={styles.titleText}
+              numberOfLines={!regulatoryArea.polyName ? 3 : undefined}
+            >
               {getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
             </ThemedText>
           </View>
@@ -89,19 +104,27 @@ export function EnvRegulatoryAreaDetails({
         <ThemedText type="default" style={styles.horizontalPadding}>
           {regulatoryArea.type}
         </ThemedText>
-        <ThemedText type="small" style={styles.labelStyle}>
-          Thématiques
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.themes}
-        </ThemedText>
+        {regulatoryArea.themes && (
+          <>
+            <ThemedText type="small" style={styles.labelStyle}>
+              Thématiques
+            </ThemedText>
+            <ThemedText type="default" style={styles.horizontalPadding}>
+              {regulatoryArea.themes}
+            </ThemedText>
+          </>
+        )}
         {/* TODO Subthemes are sent in the same string as the themes. See how to resolve this issue. */}
-        <ThemedText type="small" style={styles.labelStyle}>
-          Sous-thématiques
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.themes}
-        </ThemedText>
+        {regulatoryArea.themes && (
+          <>
+            <ThemedText type="small" style={styles.labelStyle}>
+              Sous-thématiques
+            </ThemedText>
+            <ThemedText type="default" style={styles.horizontalPadding}>
+              {regulatoryArea.themes}
+            </ThemedText>
+          </>
+        )}
         {regulatoryArea.authorizationPeriods && (
           <>
             <View style={globalStyle.separator} />

@@ -6,6 +6,7 @@ import { syncRegulatoryAreas as runSyncRegulatoryAreas } from '@domain/useCases/
 import { regenerateRegulatoryAreaTiles } from '@domain/useCases/regulatoryAreas/regenerateRegulatoryAreaTiles'
 import { getRegulatoryAreasDependencies } from '@infrastructure/di/regulatoryAreas'
 import { logSentryError } from '@utils/sentryLogger'
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
 
 export type { SyncRegulatoryAreasOptions, SyncRegulatoryAreasResult }
 
@@ -13,6 +14,7 @@ export async function syncRegulatoryAreas(
   seaFronts: string[],
   options?: SyncRegulatoryAreasOptions
 ): Promise<SyncRegulatoryAreasResult> {
+  activateKeepAwakeAsync('SYNC_REGULATORY_AREAS')
   const dependencies = await getRegulatoryAreasDependencies()
   const result = await runSyncRegulatoryAreas(dependencies, seaFronts, options)
 
@@ -28,6 +30,8 @@ export async function syncRegulatoryAreas(
 
   // eslint-disable-next-line no-console
   console.log(`[tiles] tile generation finished (${Date.now() - tilesStartedAt}ms)`)
+
+  deactivateKeepAwake('SYNC_REGULATORY_AREAS')
 
   return result
 }

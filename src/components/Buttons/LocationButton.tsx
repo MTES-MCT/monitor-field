@@ -8,6 +8,7 @@ import * as Location from 'expo-location'
 import { useCallback, useEffect } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { logSentryError } from '@utils/sentryLogger'
+import isEqual from 'lodash/isEqual'
 
 type LocationButtonProps = {
   onLocate: (coordinates: { longitude: number; latitude: number }) => void
@@ -39,10 +40,12 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
       }
 
       const currentPosition = await Location.getCurrentPositionAsync({})
-      onLocate({
-        latitude: currentPosition.coords.latitude,
-        longitude: currentPosition.coords.longitude
-      })
+      if (!isEqual(currentPosition.coords, lastPosition?.coords)) {
+        onLocate({
+          latitude: currentPosition.coords.latitude,
+          longitude: currentPosition.coords.longitude
+        })
+      }
     } catch (error) {
       logSentryError(error, 'Unable to retrieve current location')
     }

@@ -12,7 +12,7 @@ import { Image } from 'expo-image'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { Spacing } from '@constants/theme'
-import { useRegulatoryAreasLayer } from '../Layers/RegulatoryAreasLayers'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 
 type GroupRow = {
   type: 'group'
@@ -24,43 +24,50 @@ type AreaRow = {
   type: 'area'
   group: string
   area: RegulatoryAreaListItem
+  isLastInGroup: boolean
 }
 
 type RegulatoryRow = GroupRow | AreaRow
 
 export function useRegulatoryAreasList({
+  skip = false,
   shouldShowResults = true,
   onClose,
   origin = undefined,
   onSelectRegulatoryArea
 }: {
   shouldShowResults?: boolean
-  onClose: () => void
+  onClose?: () => void
   origin?: ModalType
   onSelectRegulatoryArea?: () => void
+  skip?: boolean
 }) {
   const {
+    isLoading,
     clickedFeaturesList,
     regulatoryAreas,
-    filters: { searchQuery },
+    filters: { searchQueryEnv, searchQueryFish },
     setIsolatedRegulatoryAreaId,
     setSelectedRegulatoryArea,
     isolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
-  const { setClickedCoordinate, zoomOnRegulatoryArea } = useCameraContext()
+  const { zoomOnRegulatoryArea } = useCameraContext()
 
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
+  const styles = useThemedStyles(createStyles)
 
-  const { isLoading } = useRegulatoryAreasLayer()
-
-  const isClickedFeatureList = origin === 'CLICKED_FEATURES_LIST_MODAL'
+  const isClickedFeatureList = useMemo(() => origin === 'CLICKED_FEATURES_LIST_MODAL', [origin])
   const sourceRegulatoryAreas = useMemo(
     () => (isClickedFeatureList ? (clickedFeaturesList ?? []) : regulatoryAreas),
     [isClickedFeatureList, clickedFeaturesList, regulatoryAreas]
   )
+
+  const searchQuery = useMemo(() => {
+    return config.mode === 'MONITORENV' ? (searchQueryEnv?.trim() ?? undefined) : (searchQueryFish?.trim() ?? undefined)
+  }, [config.mode, searchQueryEnv, searchQueryFish])
 
   const areResultsVisible = useMemo(() => {
     return shouldShowResults || searchQuery?.trim() !== undefined
@@ -82,9 +89,13 @@ export function useRegulatoryAreasList({
         return
       }
 
+      if (pathname !== '/search') {
+        zoomOnRegulatoryArea(area)
+      }
+
       setSelectedRegulatoryArea(area)
+      setIsolatedRegulatoryAreaId(undefined)
       setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
-      setClickedCoordinate(undefined)
       setExpandedGroups({})
       onSelectRegulatoryArea?.()
 
@@ -98,18 +109,16 @@ export function useRegulatoryAreasList({
 
         return
       }
-
-      zoomOnRegulatoryArea(area)
     },
     [
       zoomOnRegulatoryArea,
       sourceRegulatoryAreas,
       setSelectedRegulatoryArea,
       setActiveModal,
-      setClickedCoordinate,
       pathname,
       router,
-      onSelectRegulatoryArea
+      onSelectRegulatoryArea,
+      setIsolatedRegulatoryAreaId
     ]
   )
 
@@ -124,10 +133,10 @@ export function useRegulatoryAreasList({
     [expandedGroups]
   )
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
+    onClose?.()
     setExpandedGroups({})
-    onClose()
-  }
+  }, [onClose])
 
   const isolateRegulatoryArea = useCallback(
     (area: RegulatoryAreaListItem) => {
@@ -149,9 +158,10 @@ export function useRegulatoryAreasList({
 
       if (expandedGroups[group]) {
         rows.push(
-          ...areas.map(area => ({
+          ...areas.map((area, index) => ({
             area,
             group,
+            isLastInGroup: index === areas.length - 1,
             type: 'area' as const
           }))
         )
@@ -164,15 +174,23 @@ export function useRegulatoryAreasList({
   const renderRow = useCallback(
     ({ item }: { item: RegulatoryRow }) => {
       if (item.type === 'group') {
+        const isGroupExpanded = expandedGroups[item.group]
         return (
-          <Pressable style={styles.groupButton} onPress={() => clickOnGroup(item.group)}>
-            <ThemedText type="defaultBold" style={{ flex: 1, flexWrap: 'wrap' }}>
+          <Pressable
+            style={[styles.groupButton, !isGroupExpanded && styles.border]}
+            onPress={() => clickOnGroup(item.group)}
+          >
+            <ThemedText
+              type="defaultBold"
+              style={{ flex: 1, flexWrap: 'wrap' }}
+              numberOfLines={!isGroupExpanded ? 1 : undefined}
+            >
               {item.group}
             </ThemedText>
             <ThemedText
               type="defaultBold"
               themeColor="slateGray"
-            >{`${item.areas.length} / ${item.areas[0]?.totalByGroup}`}</ThemedText>
+            >{`${item.areas.length}/${item.areas[0]?.totalByGroup}`}</ThemedText>
           </Pressable>
         )
       }
@@ -181,7 +199,7 @@ export function useRegulatoryAreasList({
       const color = theme[colorKey] ?? theme.white
 
       return (
-        <View style={styles.wrapper}>
+        <View style={[styles.rowWrapper, item.isLastInGroup && styles.border]}>
           <Pressable onPress={() => selectRegulatoryArea(item.area)} style={[styles.areaRow]}>
             <View
               style={{
@@ -190,7 +208,7 @@ export function useRegulatoryAreasList({
                 borderColor: theme.lightGray
               }}
             />
-            <ThemedText type="default" style={{ flexShrink: 1 }}>
+            <ThemedText type="default" style={{ flexShrink: 1 }} numberOfLines={3}>
               {getRegulatoryAreaLabel(item.area, config.mode)}
             </ThemedText>
           </Pressable>
@@ -217,14 +235,16 @@ export function useRegulatoryAreasList({
       isClickedFeatureList,
       isolatedRegulatoryAreaId,
       theme,
-      config.mode
+      config.mode,
+      expandedGroups,
+      styles
     ]
   )
 
-  const renderHeader = () => {
+  const renderHeader = useCallback(() => {
     if (isClickedFeatureList) {
       return (
-        <View style={[styles.headerRowWithTitle, { backgroundColor: theme.lightGray }]}>
+        <View style={[styles.headerRowWithTitle, { backgroundColor: theme.gainsboro }]}>
           <ThemedText type="default">{`${clickedFeaturesList?.length ?? 0} zones superposées sur ce point`}</ThemedText>
           <CloseButton onClose={closeModal} />
         </View>
@@ -233,10 +253,33 @@ export function useRegulatoryAreasList({
 
     return (
       <View style={styles.headerRow}>
-        <ThemedText type="defaultBold">{`REG (${sourceRegulatoryAreas.length ?? 0}) sur la zone`}</ThemedText>
+        <ThemedText type="defaultBold">
+          REG{' '}
+          <ThemedText type="default" themeColor="slateGray">
+            {`(${sourceRegulatoryAreas.length ?? 0}) sur la zone`}
+          </ThemedText>
+        </ThemedText>
         {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
       </View>
     )
+  }, [
+    isClickedFeatureList,
+    clickedFeaturesList?.length,
+    closeModal,
+    theme,
+    sourceRegulatoryAreas.length,
+    isLoading,
+    styles
+  ])
+
+  if (skip) {
+    return {
+      areResultsVisible: false,
+      expandedGroups: {},
+      flattenedRows: [],
+      renderHeader: () => null,
+      renderRow: () => null
+    }
   }
 
   return {
@@ -252,63 +295,68 @@ export function useRegulatoryAreasList({
   }
 }
 
-const styles = StyleSheet.create({
-  areaRow: {
-    alignItems: 'center',
-    flex: 1,
-    flexDirection: 'row',
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
-  },
-  emptyState: {
-    paddingHorizontal: Spacing.four
-  },
-  groupButton: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.four,
-    justifyContent: 'space-between',
-    minHeight: 48,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.three
-  },
-  headerRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-    justifyContent: 'center',
-    paddingVertical: Spacing.two
-  },
-  headerRowWithTitle: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
-  },
-  isolatedButton: {
-    alignItems: 'center',
-    flexShrink: 1,
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two
-  },
-  listContent: {
-    paddingBottom: Spacing.four
-  },
-  square: {
-    borderWidth: 1,
-    height: 20,
-    width: 20
-  },
-  targetIcon: {
-    height: 20,
-    width: 20
-  },
-  wrapper: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 48
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    areaRow: {
+      alignItems: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.two
+    },
+    border: {
+      borderBottomColor: theme.lightGray,
+      borderBottomWidth: 1
+    },
+    emptyState: {
+      paddingHorizontal: Spacing.four
+    },
+    groupButton: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: Spacing.four,
+      justifyContent: 'space-between',
+      minHeight: 48,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.three
+    },
+    headerRow: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: Spacing.two,
+      justifyContent: 'center',
+      paddingVertical: Spacing.two
+    },
+    headerRowWithTitle: {
+      alignItems: 'flex-start',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.two
+    },
+    isolatedButton: {
+      alignItems: 'center',
+      flexShrink: 1,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.two
+    },
+    listContent: {
+      paddingBottom: Spacing.four
+    },
+    rowWrapper: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      minHeight: 48
+    },
+    square: {
+      borderWidth: 1,
+      height: 20,
+      width: 20
+    },
+    targetIcon: {
+      height: 20,
+      width: 20
+    }
+  })

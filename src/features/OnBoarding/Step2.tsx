@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   wrapper: {
-    alignItems: 'center',
     flex: 1,
     gap: Spacing.four,
     justifyContent: 'center',

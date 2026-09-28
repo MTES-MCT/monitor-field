@@ -25,7 +25,7 @@ function getVisualState(params: { mode: AppMode; selected: boolean; theme: Retur
   }
 }
 
-export function SwitchContextButton() {
+export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
   const { config, setActiveModal, setMode } = useAppContext()
   const { setClickedCoordinate } = useCameraContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
@@ -38,6 +38,7 @@ export function SwitchContextButton() {
     }
 
     // A tap belongs to the dataset it was made on: its pointer, list and details don't apply to the other one.
+    onSwitch()
     setActiveModal(undefined)
     setClickedCoordinate(undefined)
     setClickedFeaturesList(undefined)

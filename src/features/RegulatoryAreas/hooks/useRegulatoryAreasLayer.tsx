@@ -6,9 +6,9 @@ import { Colors } from '@constants/theme'
 import { useAppContext } from '@contexts/AppContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { hasActiveRegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
-import { getMatchingRegulatoryAreaIds } from '../../useCases/getMatchingRegulatoryAreaIds'
-import { getRegulatoryAreasInBoundingBox } from '../../useCases/getRegulatoryAreasInBoundingBox'
-import { getRegulatoryAreaTilesUrlTemplate } from '../../useCases/getRegulatoryAreaTilesUrlTemplate'
+import { getMatchingRegulatoryAreaIds } from '../useCases/getMatchingRegulatoryAreaIds'
+import { getRegulatoryAreasInBoundingBox } from '../useCases/getRegulatoryAreasInBoundingBox'
+import { getRegulatoryAreaTilesUrlTemplate } from '../useCases/getRegulatoryAreaTilesUrlTemplate'
 import { logSentryError } from '@utils/sentryLogger'
 import isEqual from 'lodash/isEqual'
 
@@ -66,13 +66,12 @@ export type RegulatoryAreasLayerProps = {
 const LIST_REFRESH_DEBOUNCE_MS = 200
 
 export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
-  const [isLoading, setIsLoading] = useState(false)
   const [matchingAreaIds, setMatchingAreaIds] = useState<number[]>([])
 
-  const { searchBbox, setRegulatoryAreas, filters } = useRegulatoryAreasContext()
-  const { config } = useAppContext()
+  const { searchBbox, setRegulatoryAreas, filters, isLoading, setIsLoading } = useRegulatoryAreasContext()
+  const { config, activeModal } = useAppContext()
 
-  const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters)
+  const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters, config.mode)
 
   const requestIdRef = useRef(0)
   const idRequestIdRef = useRef(0)
@@ -90,6 +89,10 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       return
     }
 
+    if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
+      return
+    }
+
     // Only the references may have changed.
     const previous = lastFetchParamsRef.current
     if (
@@ -100,7 +103,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     ) {
       return
     }
-    lastFetchParamsRef.current = { bbox, filters, mode: config.mode }
+    lastFetchParamsRef.current = {
+      bbox,
+      filters,
+      mode: config.mode
+    }
 
     setIsLoading(true)
 
@@ -110,7 +117,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       if (requestIdRef.current !== requestId) {
         return
       }
-
       const result = await getRegulatoryAreasInBoundingBox(config.mode, bbox, filters)
 
       if (requestIdRef.current === requestId) {
@@ -123,7 +129,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [searchBbox, setRegulatoryAreas, filters, config.mode])
+  }, [searchBbox, activeModal, setRegulatoryAreas, filters, config.mode, setIsLoading])
 
   // The list/search follow the live viewport: debounced so pan/zoom/typing don't hit SQLite every frame.
   useEffect(() => {

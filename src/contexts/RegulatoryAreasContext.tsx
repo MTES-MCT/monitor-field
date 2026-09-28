@@ -1,7 +1,9 @@
 import type { BoundingBox } from '@/types/mapTypes'
+
 import type { RegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
 import type { RegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import type { ModalType } from './AppContext'
 
 export type RegulatoryAreaListItem = RegulatoryAreaSummary
 
@@ -24,6 +26,10 @@ const RegulatoryAreasContext = createContext<
       setIsolatedRegulatoryAreaId: (areaId: number | undefined) => void
       areRegulatoryAreasLayerVisible: boolean
       setAreRegulatoryAreasLayerVisible: (visible: boolean) => void
+      isLoading: boolean
+      setIsLoading: (loading: boolean) => void
+      regulatoryAreaDetailsOrigin: ModalType | undefined
+      setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
     }
   | undefined
 >(undefined)
@@ -33,16 +39,20 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [totalCount, setTotalCount] = useState<number | undefined>(undefined)
   const [regulatoryAreas, setLocalRegulatoryAreas] = useState<RegulatoryAreaListItem[]>([])
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
-  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(true)
+  const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const [filters, setFilters] = useState<Filters>({
     recentlyAddedOrModified: false,
-    searchQuery: undefined,
+    searchQueryEnv: undefined,
+    searchQueryFish: undefined,
     themesAndSubThemes: []
   })
 
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
   const [isolatedRegulatoryAreaId, setIsolatedRegulatoryAreaId] = useState<number | undefined>(undefined)
+
+  const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
   const setRegulatoryAreas = useCallback((areas: RegulatoryAreaListItem[]) => {
     setLocalRegulatoryAreas(areas)
@@ -56,14 +66,18 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       areRegulatoryAreasLayerVisible,
       clickedFeaturesList,
       filters,
+      isLoading,
       isolatedRegulatoryAreaId,
+      regulatoryAreaDetailsOrigin,
       regulatoryAreas,
       searchBbox,
       selectedRegulatoryArea,
       setAreRegulatoryAreasLayerVisible,
       setClickedFeaturesList,
       setFilters,
+      setIsLoading,
       setIsolatedRegulatoryAreaId,
+      setRegulatoryAreaDetailsOrigin,
       setRegulatoryAreas,
       setSearchBbox,
       setSelectedRegulatoryArea,
@@ -78,7 +92,12 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       searchBbox,
       selectedRegulatoryArea,
       setRegulatoryAreas,
-      totalCount
+      setSearchBbox,
+      isLoading,
+      setIsLoading,
+      totalCount,
+      regulatoryAreaDetailsOrigin,
+      setRegulatoryAreaDetailsOrigin
     ]
   )
 

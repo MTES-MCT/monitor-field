@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
-import { useAppContext, type ModalType } from '@contexts/AppContext'
+import { useAppContext } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 
 import { BottomBar } from '@components/BottomBar'
@@ -25,14 +25,14 @@ import {
   type PressEventWithFeatures,
   type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
   OUTLINE_COLOR,
   fillColorExpression,
   useRegulatoryAreasLayer
-} from '@features/RegulatoryAreas/Layers/RegulatoryAreasLayers'
+} from '@features/RegulatoryAreas/hooks/useRegulatoryAreasLayer'
 import * as Sentry from '@sentry/react-native'
 import { Image } from 'expo-image'
 import { LoaderIcon } from '@components/LoaderIcon'
@@ -45,6 +45,8 @@ import {
 import { Link, useRouter } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
+import { useLocationStatus } from '@hooks/useLocationStatus'
+import { useRegulatoryAreaByIdLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreaByIdLayer'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -88,30 +90,25 @@ const LOCATION_FOCUS_ZOOM = 12
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
-  const {
-    cameraRef,
-    clickedCoordinate,
-    setClickedCoordinate,
-    zoomOnRegulatoryArea,
-    setIsFromFlyToBbox,
-    isFromFlyToBbox
-  } = useCameraContext()
+  const { cameraRef, clickedCoordinate, setClickedCoordinate, zoomOnRegulatoryArea } = useCameraContext()
   const globalStyle = useGlobalStyle()
 
-  const { isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData, config } = useAppContext()
-  const { areRegulatoryAreasLayerVisible, setSearchBbox, setSelectedRegulatoryArea, setClickedFeaturesList } =
-    useRegulatoryAreasContext()
-
-  const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
+  const { config, isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
+  const { isLocationEnabled } = useLocationStatus()
+  const {
+    areRegulatoryAreasLayerVisible,
+    selectedRegulatoryArea,
+    isolatedRegulatoryAreaId,
+    setSelectedRegulatoryArea,
+    setClickedFeaturesList,
+    setRegulatoryAreaDetailsOrigin,
+    setSearchBbox
+  } = useRegulatoryAreasContext()
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
+  const regulatoryAreaByIdLayer = useRegulatoryAreaByIdLayer()
 
   const onRegionDidChange = async () => {
-    if (isFromFlyToBbox) {
-      setIsFromFlyToBbox(false)
-      return
-    }
-
     const bounds = await mapRef.current?.getBounds()
     if (!bounds) return undefined
     const [lonA, latA, lonB, latB] = bounds
@@ -164,9 +161,11 @@ function App() {
         // the details modal doesn't reopen a previous list/search sheet.
         setRegulatoryAreaDetailsOrigin(undefined)
         setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
+
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
         zoomOnRegulatoryArea(clickedRegulatoryAreas[0])
+
         return
       }
 
@@ -174,9 +173,9 @@ function App() {
       setActiveModal('CLICKED_FEATURES_LIST_MODAL')
     },
     [
+      config,
       mapRef,
       regulatoryAreaLayer.ids,
-      config.mode,
       setRegulatoryAreaDetailsOrigin,
       setSelectedRegulatoryArea,
       setActiveModal,
@@ -207,6 +206,10 @@ function App() {
     router.navigate('/search')
   }
 
+  const onSwitchContext = () => {
+    setRegulatoryAreaDetailsOrigin(undefined)
+  }
+
   return (
     <MapLibreMap
       ref={mapRef}
@@ -222,6 +225,37 @@ function App() {
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 
+      {(!!selectedRegulatoryArea || isolatedRegulatoryAreaId) && (
+        <VectorSource
+          key={regulatoryAreaByIdLayer.ids.source}
+          id={regulatoryAreaByIdLayer.ids.source}
+          tiles={[regulatoryAreaByIdLayer.tilesUrlTemplate]}
+          minzoom={MIN_REGULATORY_TILE_ZOOM}
+          maxzoom={MAX_REGULATORY_TILE_ZOOM}
+        >
+          <Layer
+            type="fill"
+            id={regulatoryAreaByIdLayer.ids.fillLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreaByIdLayer.filter}
+            paint={{
+              'fill-color': fillColorExpression,
+              'fill-opacity': 0.3
+            }}
+          />
+          <Layer
+            type="line"
+            id={regulatoryAreaByIdLayer.ids.outlineLayer}
+            source-layer={REGULATORY_AREAS_TILE_LAYER}
+            filter={regulatoryAreaByIdLayer.filter}
+            paint={{
+              'line-color': OUTLINE_COLOR,
+              'line-width': 3
+            }}
+          />
+        </VectorSource>
+      )}
+
       {areRegulatoryAreasLayerVisible && (
         <VectorSource
           key={regulatoryAreaLayer.ids.source}
@@ -235,7 +269,10 @@ function App() {
             id={regulatoryAreaLayer.ids.fillLayer}
             source-layer={REGULATORY_AREAS_TILE_LAYER}
             filter={regulatoryAreaLayer.filter}
-            paint={{ 'fill-color': fillColorExpression, 'fill-opacity': 0.4 }}
+            paint={{
+              'fill-color': fillColorExpression,
+              'fill-opacity': !!selectedRegulatoryArea || isolatedRegulatoryAreaId ? 0 : 0.3
+            }}
           />
           <Layer
             type="line"
@@ -246,7 +283,6 @@ function App() {
           />
         </VectorSource>
       )}
-
       {clickedCoordinate && (
         // Keyed on the regulatory source: remounted after it, so drawn above its fills.
         <LayerAnnotation
@@ -262,7 +298,7 @@ function App() {
         </LayerAnnotation>
       )}
 
-      {isLocationButtonEnabled && <UserLocation accuracy />}
+      {isLocationButtonEnabled && isLocationEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
         initialViewState={{
@@ -273,9 +309,9 @@ function App() {
       />
       <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
         <View style={styles.boutonsWrapper}>
-          <SwitchContextButton />
+          <SwitchContextButton onSwitch={onSwitchContext} />
           <View>
-            <Link href="/settings" asChild>
+            <Link href="/settings" asChild onPress={() => setActiveModal(undefined)}>
               <Pressable
                 accessibilityRole="link"
                 accessibilityState={{ disabled: false }}
@@ -292,14 +328,15 @@ function App() {
             <UserFeedback />
           </View>
         </View>
-        <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
-        <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
-        <RegulatoryAreaDetails origin={regulatoryAreaDetailsOrigin} />
 
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
-          <BottomBar isLoading={regulatoryAreaLayer.isLoading} searchByQuery={searchByQuery} />
+          <BottomBar searchByQuery={searchByQuery} />
         </View>
+
+        <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
+        <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
+        <RegulatoryAreaDetails />
       </SafeAreaView>
     </MapLibreMap>
   )

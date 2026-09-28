@@ -1,4 +1,4 @@
-import { Spacing } from '@constants/theme'
+import { Fonts, Spacing } from '@constants/theme'
 import { useTheme } from '@hooks/use-theme'
 import { StyleSheet } from 'react-native'
 
@@ -19,9 +19,9 @@ export function useGlobalStyle() {
       borderRadius: 10,
       height: 20,
       justifyContent: 'center',
-      left: 35,
+      left: 33,
       position: 'absolute',
-      top: -10,
+      top: -5,
       width: 20
     },
     iconLarge: {
@@ -62,12 +62,14 @@ export function useGlobalStyle() {
       borderColor: theme.lightGray,
       borderWidth: 1,
       flexDirection: 'row',
+      fontFamily: Fonts.sans,
       height: 48
     },
     textInputGray: {
       alignItems: 'center',
       backgroundColor: theme.gainsboro,
       flexDirection: 'row',
+      fontFamily: Fonts.sans,
       height: 48
     },
     textUnderline: {

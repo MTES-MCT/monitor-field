@@ -98,7 +98,7 @@ export function EnvFilters() {
                   accessibilityState={{ disabled: false }}
                   style={styles.filterRow}
                 >
-                  <ThemedText type="default">Thématiques et sous them.</ThemedText>
+                  <ThemedText type="default">Thématiques et sous-thématiques</ThemedText>
                   <Image source={require('@assets/icons/chevron.svg')} style={styles.chevronIcon} />
                 </Pressable>
               </View>

@@ -53,9 +53,14 @@ export default function TabLayout() {
           <CameraProvider>
             <BottomSheetModalProvider>
               <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <StatusBar barStyle="dark-content" />
+                <StatusBar barStyle="light-content" />
                 {!!isOnBoardingFinished ? (
-                  <Stack screenOptions={{ contentStyle: { backgroundColor: '#FFFFFF' }, headerShown: false }}>
+                  <Stack
+                    screenOptions={{
+                      contentStyle: { backgroundColor: '#FFFFFF' },
+                      headerShown: false
+                    }}
+                  >
                     <Stack.Screen name="index" />
                     <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="search" options={{ presentation: 'modal' }} />

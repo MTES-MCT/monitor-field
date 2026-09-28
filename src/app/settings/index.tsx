@@ -41,6 +41,8 @@ export default function Settings() {
 
   const formattedLastUpdateDate = oldestLastUpdate?.format('DD/MM/YYYY à HH[h]mm')
 
+  const isRefreshing = isRefreshingDataLocal || isRefreshingSettingsData
+
   const refreshDataFromSettings = () => {
     setIsRefreshingDataLocal(true)
     setIsRefreshingSettingsData(true)
@@ -81,11 +83,11 @@ export default function Settings() {
           <Pressable
             onPress={refreshDataFromSettings}
             accessibilityRole="button"
-            accessibilityState={{ disabled: isRefreshingDataLocal }}
+            accessibilityState={{ disabled: isRefreshing }}
             style={styles.refreshButton}
-            disabled={isRefreshingDataLocal}
+            disabled={isRefreshing}
           >
-            {isRefreshingDataLocal ? (
+            {isRefreshing ? (
               <LoaderIcon />
             ) : (
               <Image
@@ -94,7 +96,7 @@ export default function Settings() {
               />
             )}
             <ThemedText type="defaultSans">
-              {isRefreshingDataLocal ? 'Mise à jour en cours...' : 'Mise à jour manuelle des données'}
+              {isRefreshing ? 'Mise à jour en cours...' : 'Mettre à jour maintenant'}
             </ThemedText>
           </Pressable>
           <ThemedText themeColor="slateGray" type="small" style={styles.refreshDate}>
