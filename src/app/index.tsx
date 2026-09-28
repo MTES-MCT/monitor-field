@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
-import { useAppContext, type ModalType } from '@contexts/AppContext'
+import { useAppContext } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 
 import { BottomBar } from '@components/BottomBar'
@@ -25,7 +25,7 @@ import {
   type PressEventWithFeatures,
   type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -102,10 +102,9 @@ function App() {
     setSelectedRegulatoryArea,
     setClickedFeaturesList,
     setAreRegulatoryAreasLayerVisible,
+    setRegulatoryAreaDetailsOrigin,
     setSearchBbox
   } = useRegulatoryAreasContext()
-
-  const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const regulatoryAreaByIdLayer = useRegulatoryAreaByIdLayer()
@@ -167,6 +166,7 @@ function App() {
         // the details modal doesn't reopen a previous list/search sheet.
         setRegulatoryAreaDetailsOrigin(undefined)
         setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
+
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
         zoomOnRegulatoryArea(clickedRegulatoryAreas[0])
@@ -333,14 +333,15 @@ function App() {
             <UserFeedback />
           </View>
         </View>
-        <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
-        <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
-        <RegulatoryAreaDetails origin={regulatoryAreaDetailsOrigin} />
 
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
           <BottomBar searchByQuery={searchByQuery} />
         </View>
+
+        <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
+        <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
+        <RegulatoryAreaDetails />
       </SafeAreaView>
     </MapLibreMap>
   )

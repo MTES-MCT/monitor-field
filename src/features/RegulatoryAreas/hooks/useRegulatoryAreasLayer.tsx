@@ -69,7 +69,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const [matchingAreaIds, setMatchingAreaIds] = useState<number[]>([])
 
   const { searchBbox, setRegulatoryAreas, filters, isLoading, setIsLoading } = useRegulatoryAreasContext()
-  const { config } = useAppContext()
+  const { config, activeModal } = useAppContext()
 
   const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters, config.mode)
 
@@ -86,6 +86,10 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
     if (!bbox) {
       lastFetchParamsRef.current = null
       setRegulatoryAreas([])
+      return
+    }
+
+    if (activeModal === 'CLICKED_FEATURES_LIST_MODAL') {
       return
     }
 
@@ -113,7 +117,6 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       if (requestIdRef.current !== requestId) {
         return
       }
-
       const result = await getRegulatoryAreasInBoundingBox(config.mode, bbox, filters)
 
       if (requestIdRef.current === requestId) {
@@ -126,7 +129,7 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
         setIsLoading(false)
       }
     }
-  }, [searchBbox, setRegulatoryAreas, filters, config.mode])
+  }, [searchBbox, activeModal, setRegulatoryAreas, filters, config.mode, setIsLoading])
 
   // The list/search follow the live viewport: debounced so pan/zoom/typing don't hit SQLite every frame.
   useEffect(() => {

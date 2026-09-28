@@ -1,4 +1,4 @@
-import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet'
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -14,6 +14,7 @@ import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
 import { CloseButton } from '@components/Buttons/CloseButton'
+import { animationConfigs } from '../RegulatoryAreaDetails'
 
 type FilteredRegulatoryAreasProps = {
   setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
@@ -31,7 +32,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
-  const modalRef = useRef<BottomSheetModal>(null)
+  const modalRef = useRef<BottomSheet>(null)
 
   const searchQuery = useMemo(() => {
     return config.mode === 'MONITORENV'
@@ -39,11 +40,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       : (filters.searchQueryFish?.trim() ?? undefined)
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
-  const onClose = useCallback(() => {
-    modalRef.current?.dismiss()
-  }, [])
-
-  const onDismiss = () => {
+  const onClose = () => {
     setActiveModal(undefined)
   }
 
@@ -61,18 +58,19 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   }, [config.mode, setFilters])
 
   useEffect(() => {
-    if (activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
-      modalRef.current?.present()
+    if (activeModal === ORIGIN) {
+      modalRef.current?.snapToIndex(1)
     } else {
-      modalRef.current?.dismiss()
+      modalRef.current?.close()
     }
   }, [activeModal])
 
   return (
-    <BottomSheetModal
+    <BottomSheet
       ref={modalRef}
       snapPoints={snapPoints}
-      index={1}
+      index={-1}
+      animationConfigs={animationConfigs}
       enableDynamicSizing={false}
       enablePanDownToClose={false}
       topInset={insets.top}
@@ -83,9 +81,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
-      stackBehavior="replace"
       style={{ paddingBottom: 100 }}
-      onDismiss={onDismiss}
     >
       <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.four }}>
         <View style={styles.searchBox}>
@@ -129,7 +125,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
           ) : null
         }
       />
-    </BottomSheetModal>
+    </BottomSheet>
   )
 }
 

@@ -1,6 +1,6 @@
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet'
-import { useEffect, useMemo, useRef } from 'react'
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
@@ -9,6 +9,7 @@ import { Spacing } from '@constants/theme'
 import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet } from 'react-native'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
+import { animationConfigs } from '../RegulatoryAreaDetails'
 
 const ORIGIN = 'CLICKED_FEATURES_LIST_MODAL'
 
@@ -20,9 +21,9 @@ export const SelectedRegulatoryAreas = ({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%'], [])
-  const modalRef = useRef<BottomSheetModal>(null)
+  const modalRef = useRef<BottomSheet>(null)
 
-  const { config, activeModal } = useAppContext()
+  const { config, activeModal, setActiveModal } = useAppContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, filters } = useRegulatoryAreasContext()
   const { setClickedCoordinate } = useCameraContext()
 
@@ -32,35 +33,34 @@ export const SelectedRegulatoryAreas = ({
       : (filters.searchQueryFish?.trim() ?? undefined)
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
-  const onClose = () => {
-    modalRef.current?.dismiss()
+  const onClose = useCallback(() => {
+    setActiveModal(undefined)
     setClickedFeaturesList(undefined)
     setClickedCoordinate(undefined)
-  }
-
-  const onDismiss = () => {
     setIsolatedRegulatoryAreaId(undefined)
-  }
+  }, [setActiveModal, setClickedFeaturesList, setClickedCoordinate, setIsolatedRegulatoryAreaId])
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onClose,
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
-    origin: ORIGIN
+    origin: ORIGIN,
+    skip: activeModal !== ORIGIN
   })
 
   useEffect(() => {
     if (activeModal === ORIGIN) {
-      modalRef.current?.present()
+      modalRef.current?.snapToIndex(1)
     } else {
-      modalRef.current?.dismiss()
+      modalRef.current?.close()
     }
   }, [activeModal])
 
   return (
-    <BottomSheetModal
+    <BottomSheet
       ref={modalRef}
       snapPoints={snapPoints}
-      index={1}
+      index={-1}
+      animationConfigs={animationConfigs}
       enableDynamicSizing={false}
       enablePanDownToClose={false}
       topInset={insets.top}
@@ -71,8 +71,6 @@ export const SelectedRegulatoryAreas = ({
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
-      stackBehavior="replace"
-      onDismiss={onDismiss}
     >
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}
@@ -90,7 +88,7 @@ export const SelectedRegulatoryAreas = ({
           ) : null
         }
       />
-    </BottomSheetModal>
+    </BottomSheet>
   )
 }
 

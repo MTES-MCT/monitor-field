@@ -49,8 +49,9 @@ export function SearchInput({ onClose, text, setText }: SearchInputProps) {
         ? { searchQueryEnv: trimmedText ?? undefined }
         : { searchQueryFish: trimmedText ?? undefined })
     }))
-    router.back()
+
     setActiveModal('REGULATORY_AREAS_LIST_MODAL')
+    router.back()
   }, [setActiveModal, router, text, config.mode, setFilters])
 
   return (

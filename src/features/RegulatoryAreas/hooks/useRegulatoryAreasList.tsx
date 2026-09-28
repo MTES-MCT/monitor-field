@@ -30,6 +30,7 @@ type AreaRow = {
 type RegulatoryRow = GroupRow | AreaRow
 
 export function useRegulatoryAreasList({
+  skip = false,
   shouldShowResults = true,
   onClose,
   origin = undefined,
@@ -39,6 +40,7 @@ export function useRegulatoryAreasList({
   onClose?: () => void
   origin?: ModalType
   onSelectRegulatoryArea?: () => void
+  skip?: boolean
 }) {
   const {
     isLoading,
@@ -57,7 +59,7 @@ export function useRegulatoryAreasList({
   const router = useRouter()
   const styles = useThemedStyles(createStyles)
 
-  const isClickedFeatureList = origin === 'CLICKED_FEATURES_LIST_MODAL'
+  const isClickedFeatureList = useMemo(() => origin === 'CLICKED_FEATURES_LIST_MODAL', [origin])
   const sourceRegulatoryAreas = useMemo(
     () => (isClickedFeatureList ? (clickedFeaturesList ?? []) : regulatoryAreas),
     [isClickedFeatureList, clickedFeaturesList, regulatoryAreas]
@@ -131,10 +133,10 @@ export function useRegulatoryAreasList({
     [expandedGroups]
   )
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     onClose?.()
     setExpandedGroups({})
-  }
+  }, [onClose])
 
   const isolateRegulatoryArea = useCallback(
     (area: RegulatoryAreaListItem) => {
@@ -239,7 +241,7 @@ export function useRegulatoryAreasList({
     ]
   )
 
-  const renderHeader = () => {
+  const renderHeader = useCallback(() => {
     if (isClickedFeatureList) {
       return (
         <View style={[styles.headerRowWithTitle, { backgroundColor: theme.gainsboro }]}>
@@ -260,6 +262,24 @@ export function useRegulatoryAreasList({
         {isLoading && <LoaderIcon tintColor="slateGray" size="SMALL" />}
       </View>
     )
+  }, [
+    isClickedFeatureList,
+    clickedFeaturesList?.length,
+    closeModal,
+    theme,
+    sourceRegulatoryAreas.length,
+    isLoading,
+    styles
+  ])
+
+  if (skip) {
+    return {
+      areResultsVisible: false,
+      expandedGroups: {},
+      flattenedRows: [],
+      renderHeader: () => null,
+      renderRow: () => null
+    }
   }
 
   return {

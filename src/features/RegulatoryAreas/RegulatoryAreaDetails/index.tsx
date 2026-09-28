@@ -1,53 +1,57 @@
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet'
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet'
 import { useTheme } from '@hooks/use-theme'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FishRegulatoryAreaDetails } from './FishRegulatoryAreaDetails'
 import type {
   FishRegulatoryAreaSummary,
   EnvRegulatoryAreaSummary
 } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
-import { useAppContext, type ModalType } from '@contexts/AppContext'
+import { useAppContext } from '@contexts/AppContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 
-export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
-  const { activeModal, config, setActiveModal } = useAppContext()
-  const { selectedRegulatoryArea, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
-  const theme = useTheme()
+export const animationConfigs = {
+  damping: 150,
+  overshootClamping: true,
+  restDisplacementThreshold: 0.1,
+  restSpeedThreshold: 0.1,
+  stiffness: 500
+}
 
+export const RegulatoryAreaDetails = () => {
+  const { activeModal, config, setActiveModal } = useAppContext()
+  const { selectedRegulatoryArea, setSelectedRegulatoryArea, regulatoryAreaDetailsOrigin } = useRegulatoryAreasContext()
+  const theme = useTheme()
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
-  const modalRef = useRef<BottomSheetModal>(null)
+  const modalRef = useRef<BottomSheet>(null)
 
   const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
 
   const onClose = () => {
-    modalRef.current?.dismiss()
-  }
-
-  const onDismiss = () => {
+    setActiveModal(regulatoryAreaDetailsOrigin)
     setSelectedRegulatoryArea(undefined)
-    setActiveModal(origin)
   }
 
   useEffect(() => {
     if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
-      modalRef.current?.present()
+      modalRef.current?.snapToIndex(1)
     } else {
-      modalRef.current?.dismiss()
+      modalRef.current?.close()
     }
   }, [activeModal])
 
   return (
-    <BottomSheetModal
+    <BottomSheet
       ref={modalRef}
       snapPoints={snapPoints}
-      index={1}
+      index={-1}
       enableDynamicSizing={false}
       enablePanDownToClose={false}
       topInset={insets?.top}
+      animationConfigs={animationConfigs}
       handleStyle={{
         backgroundColor: theme.white,
         borderRadius: 0
@@ -55,8 +59,6 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
       handleIndicatorStyle={{
         backgroundColor: theme.lightGray
       }}
-      stackBehavior="replace"
-      onDismiss={onDismiss}
     >
       <BottomSheetScrollView>
         {selectedRegulatoryArea && config.mode === 'MONITORFISH' && (
@@ -74,6 +76,6 @@ export const RegulatoryAreaDetails = ({ origin }: { origin: ModalType }) => {
           />
         )}
       </BottomSheetScrollView>
-    </BottomSheetModal>
+    </BottomSheet>
   )
 }

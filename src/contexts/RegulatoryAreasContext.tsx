@@ -1,7 +1,9 @@
 import type { BoundingBox } from '@/types/mapTypes'
+
 import type { RegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
 import type { RegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import type { ModalType } from './AppContext'
 
 export type RegulatoryAreaListItem = RegulatoryAreaSummary
 
@@ -26,6 +28,8 @@ const RegulatoryAreasContext = createContext<
       setAreRegulatoryAreasLayerVisible: (visible: boolean) => void
       isLoading: boolean
       setIsLoading: (loading: boolean) => void
+      regulatoryAreaDetailsOrigin: ModalType | undefined
+      setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
     }
   | undefined
 >(undefined)
@@ -48,6 +52,8 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)
   const [isolatedRegulatoryAreaId, setIsolatedRegulatoryAreaId] = useState<number | undefined>(undefined)
 
+  const [regulatoryAreaDetailsOrigin, setRegulatoryAreaDetailsOrigin] = useState<ModalType>(undefined)
+
   const setRegulatoryAreas = useCallback((areas: RegulatoryAreaListItem[]) => {
     setLocalRegulatoryAreas(areas)
     setTotalCount(areas.length)
@@ -62,6 +68,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       filters,
       isLoading,
       isolatedRegulatoryAreaId,
+      regulatoryAreaDetailsOrigin,
       regulatoryAreas,
       searchBbox,
       selectedRegulatoryArea,
@@ -70,6 +77,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       setFilters,
       setIsLoading,
       setIsolatedRegulatoryAreaId,
+      setRegulatoryAreaDetailsOrigin,
       setRegulatoryAreas,
       setSearchBbox,
       setSelectedRegulatoryArea,
@@ -84,9 +92,12 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       searchBbox,
       selectedRegulatoryArea,
       setRegulatoryAreas,
+      setSearchBbox,
       isLoading,
       setIsLoading,
-      totalCount
+      totalCount,
+      regulatoryAreaDetailsOrigin,
+      setRegulatoryAreaDetailsOrigin
     ]
   )
 
