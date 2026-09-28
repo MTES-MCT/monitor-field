@@ -1,7 +1,9 @@
 import type { AppMode, AppModeConfig } from '@config/appModes'
 import { monitorEnvConfig } from '@config/appModes/monitorenv.config'
 import { monitorFishConfig } from '@config/appModes/monitorfish.config'
+import { storage } from '@storage'
 import { createContext, useContext, useMemo, useRef, useState } from 'react'
+import { useMMKVString } from 'react-native-mmkv'
 
 const configs: Record<AppMode, AppModeConfig> = {
   MONITORENV: monitorEnvConfig,
@@ -17,9 +19,6 @@ export type ModalType =
 const AppContext = createContext<
   | {
       config: AppModeConfig
-      isLocationButtonEnabled: boolean
-      setIsLocationButtonEnabled: (isEnabled: boolean) => void
-      setMode: (mode: AppMode) => void
       activeModal: ModalType
       setActiveModal: (modal: ModalType) => void
       isRefreshingSettingsData: boolean
@@ -32,11 +31,12 @@ const AppContext = createContext<
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const hasAutoLocatedRef = useRef(false)
 
-  const [mode, setMode] = useState<AppMode>('MONITORENV')
-  const [isLocationButtonEnabled, setIsLocationButtonEnabled] = useState<boolean>(true)
   const [activeModal, setActiveModal] = useState<ModalType>(undefined)
   const [isRefreshingSettingsData, setIsRefreshingSettingsData] = useState<boolean>(false)
 
+  const [storedMode] = useMMKVString('mode', storage)
+
+  const mode = useMemo(() => storedMode ?? 'MONITORENV', [storedMode])
   const config = configs[mode]
 
   // Memoised: without it every state change here re-renders the map screen, which rebuilds
@@ -46,14 +46,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       activeModal,
       config,
       hasAutoLocatedRef,
-      isLocationButtonEnabled,
       isRefreshingSettingsData,
       setActiveModal,
-      setIsLocationButtonEnabled,
-      setIsRefreshingSettingsData,
-      setMode
+      setIsRefreshingSettingsData
     }),
-    [activeModal, config, isLocationButtonEnabled, isRefreshingSettingsData]
+    [activeModal, config, isRefreshingSettingsData]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
