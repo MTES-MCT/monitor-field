@@ -97,7 +97,7 @@ function App() {
   const globalStyle = useGlobalStyle()
   const { trackEvent } = useMatomo()
 
-  const { config, isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
+  const { config, setActiveModal, isRefreshingSettingsData } = useAppContext()
   const { isLocationEnabled } = useLocationStatus()
   const {
     areRegulatoryAreasLayerVisible,
@@ -345,7 +345,7 @@ function App() {
         </LayerAnnotation>
       )}
 
-      {isLocationButtonEnabled && isLocationEnabled && <UserLocation accuracy />}
+      {isLocationEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}
         initialViewState={{

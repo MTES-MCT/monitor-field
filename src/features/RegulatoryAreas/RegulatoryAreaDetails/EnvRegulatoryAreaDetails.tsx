@@ -93,7 +93,7 @@ export function EnvRegulatoryAreaDetails({
             <ThemedText
               type="default"
               style={styles.titleText}
-              numberOfLines={!regulatoryArea.polyName ? 3 : undefined}
+              numberOfLines={!regulatoryArea.polyName ? 1 : undefined}
             >
               {getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
             </ThemedText>
@@ -151,7 +151,7 @@ export function EnvRegulatoryAreaDetails({
               </ThemedText>
             </View>
             <ThemedText type="default" style={styles.horizontalPadding}>
-              tiutoriu{regulatoryArea.authorizationPeriods}
+              {regulatoryArea.authorizationPeriods}
             </ThemedText>
           </>
         )}
@@ -166,7 +166,7 @@ export function EnvRegulatoryAreaDetails({
               </ThemedText>
             </View>
             <ThemedText type="default" style={styles.horizontalPadding}>
-              fsdgfsdgf {regulatoryArea.prohibitionPeriods}
+              {regulatoryArea.prohibitionPeriods}
             </ThemedText>
           </>
         )}

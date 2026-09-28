@@ -16,17 +16,15 @@ type LocationButtonProps = {
 
 export function LocationButton({ onLocate }: LocationButtonProps) {
   const { isLocationEnabled, isLocationGranted } = useLocationStatus()
-  const { isLocationButtonEnabled, setIsLocationButtonEnabled, hasAutoLocatedRef } = useAppContext()
+  const { hasAutoLocatedRef } = useAppContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
 
   const isButtonDisabled = !isLocationEnabled || !isLocationGranted
-  const iconTintColor = isLocationButtonEnabled && !isButtonDisabled ? theme.blueGray : theme.slateGray
+  const iconTintColor = isButtonDisabled ? theme.slateGray : theme.blueGray
 
   const getLocation = useCallback(async () => {
     if (!isLocationEnabled) return
-
-    setIsLocationButtonEnabled(true)
 
     try {
       // Show the last known position first to hide the latency of getCurrentPositionAsync
@@ -49,7 +47,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
     } catch (error) {
       logSentryError(error, 'Unable to retrieve current location')
     }
-  }, [isLocationEnabled, onLocate, setIsLocationButtonEnabled])
+  }, [isLocationEnabled, onLocate])
 
   useEffect(() => {
     if (isLocationGranted && !hasAutoLocatedRef.current) {
@@ -61,7 +59,7 @@ export function LocationButton({ onLocate }: LocationButtonProps) {
   return (
     <View style={styles.wrapper}>
       <Pressable
-        onPress={isLocationButtonEnabled ? () => setIsLocationButtonEnabled(false) : getLocation}
+        onPress={getLocation}
         accessibilityRole="button"
         accessibilityState={{
           disabled: isButtonDisabled

@@ -20,8 +20,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAppContext } from '@contexts/AppContext'
 import useMatomo from '@matomo/useMatomo'
 import { logToSentry } from '@utils/sentryLogger'
+import { getModel, getSystemVersion, getVersion } from 'react-native-device-info'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
+const VERSION = getVersion()
+const TEL_MODEL = getModel()
+const OS_VERSION = getSystemVersion()
 
 export default function Settings() {
   const router = useRouter()
@@ -169,6 +173,16 @@ export default function Settings() {
             </ThemedText>
           </ThemedText>
         </View>
+        <View style={globalStyle.separator} />
+        <View style={styles.section}>
+          <ThemedText type="small">Informations sur le téléphone</ThemedText>
+          <ThemedText type="default">Version de l&apos;application</ThemedText>
+          <ThemedText type="small">v{VERSION}</ThemedText>
+          <ThemedText type="default">Version Android</ThemedText>
+          <ThemedText type="small">{OS_VERSION}</ThemedText>
+          <ThemedText type="default">Modèle du téléphone</ThemedText>
+          <ThemedText type="small">{TEL_MODEL}</ThemedText>
+        </View>
       </ScrollView>
     </SafeAreaView>
   )
@@ -209,7 +223,7 @@ const createStyles = theme =>
       borderTopWidth: 1,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingVertical: Spacing.two
+      paddingVertical: Spacing.four
     },
     seaFrontsSelectorText: {
       alignItems: 'center',
@@ -220,6 +234,6 @@ const createStyles = theme =>
     },
     section: {
       gap: Spacing.two,
-      padding: Spacing.four
+      paddingHorizontal: Spacing.four
     }
   })

@@ -7,6 +7,8 @@ import { useTheme } from '@hooks/use-theme'
 import useMatomo from '@matomo/useMatomo'
 import { Image } from 'expo-image'
 import { Pressable, StyleSheet, View } from 'react-native'
+import { useMMKVString } from 'react-native-mmkv'
+import { storage } from '@storage'
 
 function getVisualState(params: { mode: AppMode; selected: boolean; theme: ReturnType<typeof useTheme> }) {
   const { mode, selected, theme } = params
@@ -27,15 +29,16 @@ function getVisualState(params: { mode: AppMode; selected: boolean; theme: Retur
 }
 
 export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
-  const { config, setActiveModal, setMode } = useAppContext()
+  const { setActiveModal } = useAppContext()
   const { setClickedCoordinate } = useCameraContext()
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
   const { trackEvent } = useMatomo()
+  const [mode, setMode] = useMMKVString('mode', storage)
 
-  const switchContext = (mode: AppMode) => {
-    if (mode === config.mode) {
+  const switchContext = (nextMode: AppMode) => {
+    if (nextMode === mode) {
       return
     }
 
@@ -46,12 +49,12 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
     setClickedFeaturesList(undefined)
     setIsolatedRegulatoryAreaId(undefined)
     setSelectedRegulatoryArea(undefined)
-    setMode(mode)
     trackEvent({
       action: `Switch vers ${mode}`,
-      category: 'Utilisation ENV / FISH',
+      category: 'Navigation',
       name: 'Switch Environnement / Pêche depuis le bouton contextuel'
     })
+    setMode(nextMode)
   }
 
   return (
@@ -61,13 +64,13 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
         accessibilityRole="button"
         accessibilityState={{
           disabled: false,
-          selected: config.mode === 'MONITORENV'
+          selected: mode === 'MONITORENV'
         }}
         style={() => [
           globalStyle.squareButton,
           getVisualState({
             mode: 'MONITORENV',
-            selected: config.mode === 'MONITORENV',
+            selected: mode === 'MONITORENV',
             theme
           }).container
         ]}
@@ -78,7 +81,7 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
             globalStyle.iconNormal,
             getVisualState({
               mode: 'MONITORENV',
-              selected: config.mode === 'MONITORENV',
+              selected: mode === 'MONITORENV',
               theme
             }).icon
           ]}
@@ -89,13 +92,13 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
         accessibilityRole="button"
         accessibilityState={{
           disabled: false,
-          selected: config.mode === 'MONITORFISH'
+          selected: mode === 'MONITORFISH'
         }}
         style={() => [
           globalStyle.squareButton,
           getVisualState({
             mode: 'MONITORFISH',
-            selected: config.mode === 'MONITORFISH',
+            selected: mode === 'MONITORFISH',
             theme
           }).container
         ]}
@@ -106,7 +109,7 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
             globalStyle.iconNormal,
             getVisualState({
               mode: 'MONITORFISH',
-              selected: config.mode === 'MONITORFISH',
+              selected: mode === 'MONITORFISH',
               theme
             }).icon
           ]}
