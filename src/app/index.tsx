@@ -101,7 +101,6 @@ function App() {
     isolatedRegulatoryAreaId,
     setSelectedRegulatoryArea,
     setClickedFeaturesList,
-    setAreRegulatoryAreasLayerVisible,
     setRegulatoryAreaDetailsOrigin,
     setSearchBbox
   } = useRegulatoryAreasContext()
@@ -119,10 +118,6 @@ function App() {
       minLat: Math.min(latA, latB),
       minLon: Math.min(lonA, lonB)
     })
-
-    if (!areRegulatoryAreasLayerVisible && !selectedRegulatoryArea) {
-      setAreRegulatoryAreasLayerVisible(true)
-    }
   }
 
   const handleLocate = useCallback((coordinates: { longitude: number; latitude: number }) => {
