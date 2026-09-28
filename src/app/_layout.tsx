@@ -14,6 +14,13 @@ import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreas'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
+import MatomoProvider from '@matomo/MatomoProvider'
+import MatomoTracker from '@matomo'
+
+const tracker = new MatomoTracker({
+  siteId: 283,
+  urlBase: 'https://stats.beta.gouv.fr/'
+})
 
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()
@@ -48,31 +55,33 @@ export default function TabLayout() {
 
   return (
     <GestureHandlerRootView>
-      <AppProvider>
-        <RegulatoryAreasProvider>
-          <CameraProvider>
-            <BottomSheetModalProvider>
-              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <StatusBar barStyle="light-content" />
-                {!!isOnBoardingFinished ? (
-                  <Stack
-                    screenOptions={{
-                      contentStyle: { backgroundColor: '#FFFFFF' },
-                      headerShown: false
-                    }}
-                  >
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="search" options={{ presentation: 'modal' }} />
-                  </Stack>
-                ) : (
-                  <OnBoarding />
-                )}
-              </ThemeProvider>
-            </BottomSheetModalProvider>
-          </CameraProvider>
-        </RegulatoryAreasProvider>
-      </AppProvider>
+      <MatomoProvider instance={tracker}>
+        <AppProvider>
+          <RegulatoryAreasProvider>
+            <CameraProvider>
+              <BottomSheetModalProvider>
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                  <StatusBar barStyle="light-content" />
+                  {!!isOnBoardingFinished ? (
+                    <Stack
+                      screenOptions={{
+                        contentStyle: { backgroundColor: '#FFFFFF' },
+                        headerShown: false
+                      }}
+                    >
+                      <Stack.Screen name="index" />
+                      <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+                      <Stack.Screen name="search" options={{ presentation: 'modal' }} />
+                    </Stack>
+                  ) : (
+                    <OnBoarding />
+                  )}
+                </ThemeProvider>
+              </BottomSheetModalProvider>
+            </CameraProvider>
+          </RegulatoryAreasProvider>
+        </AppProvider>
+      </MatomoProvider>
     </GestureHandlerRootView>
   )
 }

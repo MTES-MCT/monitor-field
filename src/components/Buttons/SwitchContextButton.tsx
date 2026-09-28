@@ -4,6 +4,7 @@ import { useCameraContext } from '@contexts/CameraContext'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
+import useMatomo from '@matomo/useMatomo'
 import { Image } from 'expo-image'
 import { Pressable, StyleSheet, View } from 'react-native'
 
@@ -31,6 +32,7 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
   const { setClickedFeaturesList, setIsolatedRegulatoryAreaId, setSelectedRegulatoryArea } = useRegulatoryAreasContext()
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
+  const { trackEvent } = useMatomo()
 
   const switchContext = (mode: AppMode) => {
     if (mode === config.mode) {
@@ -45,6 +47,11 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
     setIsolatedRegulatoryAreaId(undefined)
     setSelectedRegulatoryArea(undefined)
     setMode(mode)
+    trackEvent({
+      action: `Switch vers ${mode}`,
+      category: 'Utilisation ENV / FISH',
+      name: 'Switch Environnement / Pêche depuis le bouton contextuel'
+    })
   }
 
   return (

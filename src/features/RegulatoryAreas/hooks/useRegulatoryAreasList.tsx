@@ -13,6 +13,7 @@ import { CloseButton } from '@components/Buttons/CloseButton'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { Spacing } from '@constants/theme'
 import { useThemedStyles } from '@hooks/use-themed-styles'
+import useMatomo from '@matomo/useMatomo'
 
 type GroupRow = {
   type: 'group'
@@ -53,6 +54,7 @@ export function useRegulatoryAreasList({
   } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
   const { zoomOnRegulatoryArea } = useCameraContext()
+  const { trackEvent } = useMatomo()
 
   const theme = useTheme()
   const pathname = usePathname()
@@ -88,6 +90,11 @@ export function useRegulatoryAreasList({
       if (!hasArea) {
         return
       }
+      trackEvent({
+        action: "Consultation d'une zone réglementaire",
+        category: 'Consultation',
+        name: `Consultation d'une zone réglementaire depuis ${origin}`
+      })
 
       if (pathname !== '/search') {
         zoomOnRegulatoryArea(area)
@@ -118,7 +125,9 @@ export function useRegulatoryAreasList({
       pathname,
       router,
       onSelectRegulatoryArea,
-      setIsolatedRegulatoryAreaId
+      setIsolatedRegulatoryAreaId,
+      trackEvent,
+      origin
     ]
   )
 

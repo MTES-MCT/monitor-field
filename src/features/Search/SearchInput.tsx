@@ -51,6 +51,7 @@ export function SearchInput({ onClose, text, setText }: SearchInputProps) {
     }))
 
     setActiveModal('REGULATORY_AREAS_LIST_MODAL')
+
     router.back()
   }, [setActiveModal, router, text, config.mode, setFilters])
 

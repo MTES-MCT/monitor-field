@@ -25,7 +25,7 @@ import {
   type PressEventWithFeatures,
   type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -47,6 +47,8 @@ import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { useLocationStatus } from '@hooks/useLocationStatus'
 import { useRegulatoryAreaByIdLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreaByIdLayer'
+import useMatomo from '@matomo/useMatomo'
+import { getAndroidId, getModel, getSystemName, getSystemVersion, getVersion } from 'react-native-device-info'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -90,8 +92,10 @@ const LOCATION_FOCUS_ZOOM = 12
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
-  const { cameraRef, clickedCoordinate, setClickedCoordinate, zoomOnRegulatoryArea } = useCameraContext()
+  const { cameraRef, clickedCoordinate, setClickedCoordinate, zoomOnRegulatoryArea, currentZoom, setCurrentZoom } =
+    useCameraContext()
   const globalStyle = useGlobalStyle()
+  const { trackEvent } = useMatomo()
 
   const { config, isLocationButtonEnabled, setActiveModal, isRefreshingSettingsData } = useAppContext()
   const { isLocationEnabled } = useLocationStatus()
@@ -110,6 +114,8 @@ function App() {
 
   const onRegionDidChange = async () => {
     const bounds = await mapRef.current?.getBounds()
+    const zoom = await mapRef.current?.getZoom()
+
     if (!bounds) return undefined
     const [lonA, latA, lonB, latB] = bounds
     setSearchBbox({
@@ -118,6 +124,16 @@ function App() {
       minLat: Math.min(latA, latB),
       minLon: Math.min(lonA, lonB)
     })
+
+    if (zoom !== currentZoom) {
+      setCurrentZoom(Math.round(zoom ?? 0))
+      trackEvent({
+        action: 'Changement de zoom',
+        category: 'Navigation',
+        name: String(Math.round(zoom ?? 0)),
+        value: Math.round(zoom ?? 0)
+      })
+    }
   }
 
   const handleLocate = useCallback((coordinates: { longitude: number; latitude: number }) => {
@@ -165,6 +181,11 @@ function App() {
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
         zoomOnRegulatoryArea(clickedRegulatoryAreas[0])
+        trackEvent({
+          action: "Consultation d'une zone réglementaire",
+          category: 'Consultation',
+          name: `Consultation d'une zone réglementaire depuis la carte`
+        })
 
         return
       }
@@ -181,7 +202,8 @@ function App() {
       setActiveModal,
       setClickedCoordinate,
       zoomOnRegulatoryArea,
-      setClickedFeaturesList
+      setClickedFeaturesList,
+      trackEvent
     ]
   )
 
@@ -210,6 +232,30 @@ function App() {
     setRegulatoryAreaDetailsOrigin(undefined)
   }
 
+  const { trackAppStart } = useMatomo()
+
+  useEffect(() => {
+    async function initMatomo() {
+      const os = `${getSystemName()} ${getSystemVersion()}`
+      const model = getModel()
+      const version = getVersion()
+      const androidId = await getAndroidId()
+      trackAppStart({
+        userInfo: {
+          androidId: androidId,
+          appVersion: version,
+          environment: ENV,
+          model,
+          os
+        }
+      })
+    }
+
+    initMatomo()
+    // we intentionally leave the dependency array empty to run this effect only once on mount.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <MapLibreMap
       ref={mapRef}
@@ -222,6 +268,7 @@ function App() {
       touchRotate={false}
       onRegionDidChange={onRegionDidChange}
       onPress={onMapPress}
+      // onRegionDidChange={() => console.log('Map finished loading')}
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 

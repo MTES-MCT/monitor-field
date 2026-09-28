@@ -12,6 +12,7 @@ import { Image } from 'expo-image'
 import { logToSentry } from '@utils/sentryLogger'
 import { useGlobalStyle } from '@globalStyle'
 import * as Linking from 'expo-linking'
+import useMatomo from '@matomo/useMatomo'
 
 const CACEM_TEL_NUMBER = process.env.EXPO_PUBLIC_CACEM_NUMBER
 
@@ -26,23 +27,38 @@ export function EnvRegulatoryAreaDetails({
 }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
+  const { trackEvent } = useMatomo()
 
-  const goToLegicem = useCallback(async (url: string) => {
-    const supported = await Linking.canOpenURL(url)
+  const goToLegicem = useCallback(
+    async (url: string) => {
+      const supported = await Linking.canOpenURL(url)
 
-    if (supported) {
-      await Linking.openURL(url)
-    } else {
-      logToSentry(`Don't know how to open this URL: ${url}`, 'info', {
-        extra: { label: 'EnvRegulatoryAreaDetails' }
-      })
-    }
-  }, [])
+      if (supported) {
+        await Linking.openURL(url)
+        trackEvent({
+          action: "Consultation d'un lien Légicem",
+          category: 'Consultation',
+          name: "Consultation d'un lien Légicemen depuis une zone réglementaire"
+        })
+      } else {
+        logToSentry(`Don't know how to open this URL: ${url}`, 'info', {
+          extra: { label: 'EnvRegulatoryAreaDetails' }
+        })
+      }
+    },
+    [trackEvent]
+  )
+
   const callCacem = useCallback(async () => {
     const url = `tel:${CACEM_TEL_NUMBER}`
 
     try {
       await Linking.openURL(url)
+      trackEvent({
+        action: 'Appel CACEM',
+        category: 'Support',
+        name: 'Appel CACEM depuis une zone réglementaire'
+      })
     } catch (error) {
       logToSentry(`Failed to open URL: ${url}`, 'error', {
         extra: {

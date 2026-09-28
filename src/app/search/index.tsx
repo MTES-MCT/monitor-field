@@ -6,15 +6,17 @@ import { useRouter } from 'expo-router'
 import { SearchInput } from '@features/Search/SearchInput'
 import { View } from 'react-native'
 import { Spacing } from '@constants/theme'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Image } from 'expo-image'
 import { ThemedText } from '@components/Elements/Text'
+import useMatomo from '@matomo/useMatomo'
 
 export default function SearchPage() {
   const router = useRouter()
   const { filters, setFilters } = useRegulatoryAreasContext()
   const { config, setActiveModal } = useAppContext()
   const globalStyle = useGlobalStyle()
+  const { trackScreenView } = useMatomo()
 
   const searchQuery = useMemo(() => {
     return config.mode === 'MONITORENV'
@@ -32,6 +34,10 @@ export default function SearchPage() {
     router.back()
     setActiveModal(undefined)
   }
+
+  useEffect(() => {
+    trackScreenView({ name: 'Page Recherche' })
+  }, [trackScreenView])
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

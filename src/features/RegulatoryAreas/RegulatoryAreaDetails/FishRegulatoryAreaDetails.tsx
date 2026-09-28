@@ -8,6 +8,7 @@ import { CloseButton } from '@components/Buttons/CloseButton'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useCallback } from 'react'
+import useMatomo from '@matomo/useMatomo'
 import { logToSentry } from '@utils/sentryLogger'
 import { useGlobalStyle } from '@globalStyle'
 import * as Linking from 'expo-linking'
@@ -25,12 +26,18 @@ export function FishRegulatoryAreaDetails({
 }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
+  const { trackEvent } = useMatomo()
 
   const callCnsp = useCallback(async () => {
     const url = `tel:${CNSP_TEL_NUMBER}`
 
     try {
       await Linking.openURL(url)
+      trackEvent({
+        action: 'Appel CNSP',
+        category: 'Support',
+        name: 'Appel CNSP depuis une zone réglementaire'
+      })
     } catch (error) {
       logToSentry(`Failed to open URL: ${url}`, 'error', {
         extra: {
@@ -39,7 +46,7 @@ export function FishRegulatoryAreaDetails({
         }
       })
     }
-  }, [])
+  }, [trackEvent])
 
   if (!regulatoryArea) {
     return null

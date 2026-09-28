@@ -1,6 +1,6 @@
 import { Image } from 'expo-image'
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as Linking from 'expo-linking'
 
 import { LoaderIcon } from '@components/LoaderIcon'
@@ -18,6 +18,8 @@ import { useGlobalStyle } from '@globalStyle'
 import daysjs from 'dayjs'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAppContext } from '@contexts/AppContext'
+import useMatomo from '@matomo/useMatomo'
+import { logToSentry } from '@utils/sentryLogger'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 
@@ -26,11 +28,14 @@ export default function Settings() {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { isRefreshingSettingsData, setIsRefreshingSettingsData } = useAppContext()
+  const { trackScreenView, trackEvent, trackDownload } = useMatomo()
 
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const [fishLastUpdate] = useMMKVString('fish-regulatory-areas-last-update', storage)
   const [envLastUpdate] = useMMKVString('env-regulatory-areas-last-update', storage)
+
+  const seaFronts = useMemo(() => parseSeaFronts(selectedSeaFronts), [selectedSeaFronts])
 
   // Each dataset syncs on its own schedule, so the honest "last updated" is the older one.
   const oldestLastUpdate = [fishLastUpdate, envLastUpdate]
@@ -48,6 +53,9 @@ export default function Settings() {
     setIsRefreshingSettingsData(true)
     refreshData().finally(() => {
       setIsRefreshingDataLocal(false)
+      trackDownload({
+        download: seaFronts.join(',')
+      })
     })
   }
 
@@ -55,9 +63,6 @@ export default function Settings() {
     if (isRefreshingSettingsData) {
       return
     }
-
-    const seaFronts = parseSeaFronts(selectedSeaFronts)
-
     setIsRefreshingSettingsData(true)
     try {
       await syncRegulatoryAreas(seaFronts, { forceRefresh: true })
@@ -69,6 +74,29 @@ export default function Settings() {
   const closeSettings = () => {
     router.back()
   }
+
+  const callMonitorEmail = useCallback(async () => {
+    const url = `mailto:${MONITOR_EMAIL}`
+    try {
+      await Linking.openURL(url)
+      trackEvent({
+        action: 'Mail au support',
+        category: 'Support',
+        name: 'Mail au support depuis la page paramètre'
+      })
+    } catch (error) {
+      logToSentry(`Failed to open URL: ${url}`, 'error', {
+        extra: {
+          error,
+          label: 'Settings Write Monitor Email'
+        }
+      })
+    }
+  }, [trackEvent])
+
+  useEffect(() => {
+    trackScreenView({ name: 'Page Paramètres' })
+  }, [trackScreenView])
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -136,11 +164,7 @@ export default function Settings() {
           </ThemedText>
           <ThemedText type="default">
             Vous pouvez également nous contacter à l’adresse suivante : {'\n'}
-            <ThemedText
-              style={globalStyle.textUnderline}
-              type="default"
-              onPress={() => Linking.openURL(`mailto:${MONITOR_EMAIL}`)}
-            >
+            <ThemedText style={globalStyle.textUnderline} type="default" onPress={callMonitorEmail}>
               {MONITOR_EMAIL}
             </ThemedText>
           </ThemedText>

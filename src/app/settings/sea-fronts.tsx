@@ -9,6 +9,7 @@ import { storage } from '@storage'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { Image } from 'expo-image'
 import { Fonts, Spacing } from '@constants/theme'
+import useMatomo from '@matomo/useMatomo'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useGlobalStyle } from '@globalStyle'
 import { useThemedStyles } from '@hooks/use-themed-styles'
@@ -20,6 +21,7 @@ export default function SeaFronts() {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const router = useRouter()
+  const { trackEvent } = useMatomo()
   const { isRefreshingSettingsData, setIsRefreshingSettingsData } = useAppContext()
 
   const [selectedSeaFronts, setSelectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
@@ -60,6 +62,12 @@ export default function SeaFronts() {
 
   const onCloseSeaFrontSelector = () => {
     triggerSyncIfNeeded()
+    trackEvent({
+      action: 'Mise à jour des façades',
+      category: 'Façades',
+      name: (selectedSeaFrontsArray ?? []).sort().join(', ')
+    })
+
     router.back()
   }
 

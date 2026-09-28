@@ -11,6 +11,7 @@ import { getRegulatoryAreasInBoundingBox } from '../useCases/getRegulatoryAreasI
 import { getRegulatoryAreaTilesUrlTemplate } from '../useCases/getRegulatoryAreaTilesUrlTemplate'
 import { logSentryError } from '@utils/sentryLogger'
 import isEqual from 'lodash/isEqual'
+import useMatomo from '@matomo/useMatomo'
 
 export type RegulatoryAreasLayerIds = {
   fillLayer: string
@@ -72,6 +73,11 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
   const { config, activeModal } = useAppContext()
 
   const hasActiveFilter = hasActiveRegulatoryAreaFilters(filters, config.mode)
+  const { trackSiteSearch } = useMatomo()
+  const trackSiteSearchRef = useRef(trackSiteSearch)
+  trackSiteSearchRef.current = trackSiteSearch
+
+  const lastTrackedQueryRef = useRef<string | undefined>(undefined)
 
   const requestIdRef = useRef(0)
   const idRequestIdRef = useRef(0)
@@ -121,6 +127,20 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
 
       if (requestIdRef.current === requestId) {
         setRegulatoryAreas(result)
+
+        const searchQuery = (config.mode === 'MONITORENV' ? filters.searchQueryEnv : filters.searchQueryFish)?.trim()
+
+        if (!searchQuery) {
+          // Recherche vidée : on pourra re-tracker la même requête plus tard
+          lastTrackedQueryRef.current = undefined
+        } else if (searchQuery !== lastTrackedQueryRef.current) {
+          lastTrackedQueryRef.current = searchQuery
+          trackSiteSearchRef.current({
+            category: `Recherche ${config.mode}`,
+            count: result.length,
+            keyword: searchQuery
+          })
+        }
       }
     } catch (error) {
       logSentryError(error, 'Failed to load regulatory areas')
