@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-native'
+import { BackHandler, Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
@@ -42,13 +42,14 @@ import {
   MIN_REGULATORY_TILE_ZOOM,
   REGULATORY_AREAS_TILE_LAYER
 } from '@constants/regulatoryAreaTiles'
-import { Link, useRouter } from 'expo-router'
+import { Link, useRouter, useCurrentRouteInfo } from 'expo-router'
 import { UserFeedback } from '@features/UserFeedback'
 import { getRegulatoryAreasByIds } from '@features/RegulatoryAreas/useCases/getRegulatoryAreasByIds'
 import { useLocationStatus } from '@hooks/useLocationStatus'
 import { useRegulatoryAreaByIdLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreaByIdLayer'
 import useMatomo from '@matomo/useMatomo'
 import { getAndroidId, getModel, getSystemName, getSystemVersion, getVersion } from 'react-native-device-info'
+import { useBackHandler } from '@hooks/useBackHandler'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -92,12 +93,13 @@ const LOCATION_FOCUS_ZOOM = 12
 function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
+  const currentRouteInfo = useCurrentRouteInfo()
   const { cameraRef, clickedCoordinate, setClickedCoordinate, zoomOnRegulatoryArea, currentZoom, setCurrentZoom } =
     useCameraContext()
   const globalStyle = useGlobalStyle()
   const { trackEvent } = useMatomo()
 
-  const { config, setActiveModal, isRefreshingSettingsData } = useAppContext()
+  const { config, activeModal, setActiveModal, isRefreshingSettingsData } = useAppContext()
   const { isLocationEnabled } = useLocationStatus()
   const {
     areRegulatoryAreasLayerVisible,
@@ -111,6 +113,8 @@ function App() {
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const regulatoryAreaByIdLayer = useRegulatoryAreaByIdLayer()
+
+  useBackHandler(() => BackHandler.exitApp(), currentRouteInfo?.pathname === '/' && !activeModal)
 
   const onRegionDidChange = async () => {
     const bounds = await mapRef.current?.getBounds()
