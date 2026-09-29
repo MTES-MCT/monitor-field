@@ -24,8 +24,8 @@ export function ThemesSelector({ onShowResults }: { onShowResults: () => void })
   const [themesBySubThemes, setThemesBySubThemes] = useState<Record<string, string[]>>({})
 
   const filtersCount = useMemo(
-    () => filters.themes.length + (filters.recentlyAddedOrModified ? 1 : 0),
-    [filters.themes.length, filters.recentlyAddedOrModified]
+    () => filters.themes.length + filters.themes.flatMap(theme => theme.subThemes).length,
+    [filters.themes]
   )
 
   useEffect(() => {
