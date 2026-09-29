@@ -35,7 +35,7 @@ export function SwitchContextButton({ onSwitch }: { onSwitch: () => void }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
   const { trackEvent } = useMatomo()
-  const [mode, setMode] = useMMKVString('mode', storage)
+  const [mode = 'MONITORENV', setMode] = useMMKVString('mode', storage)
 
   const switchContext = (nextMode: AppMode) => {
     if (nextMode === mode) {

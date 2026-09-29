@@ -4,23 +4,26 @@ import { ThemedText } from '@components/Elements/Text'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { Image } from 'expo-image'
 import { useMemo, useState } from 'react'
-import { Modal, Pressable, View } from 'react-native'
+import { Modal, Pressable, View, StyleSheet } from 'react-native'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext } from '@contexts/AppContext'
 import { ThemesSelector } from './ThemesSelector'
+import { useBackHandler } from '@hooks/useBackHandler'
 
 export function EnvFilters() {
   const globalStyle = useGlobalStyle()
   const theme = useTheme()
+  const styles = createStyles(theme)
   const { filters } = useRegulatoryAreasContext()
   const { activeModal } = useAppContext()
+
   // const [isOpen, setIsOpen] = useState(false)
   const [isThemesSelectorOpen, setIsThemesSelectorOpen] = useState(false)
   // const closeEnvFilters = () => setIsOpen(false)
   const closeThemesSelector = () => setIsThemesSelectorOpen(false)
 
-  const filtersCount = filters.themesAndSubThemes.length + (filters.recentlyAddedOrModified ? 1 : 0)
+  const filtersCount = filters.themes.length + (filters.recentlyAddedOrModified ? 1 : 0)
 
   /* const onSwitch = () => {
     setFilters(currentFilters => ({
@@ -33,13 +36,15 @@ export function EnvFilters() {
     setFilters({
       ...filters,
       recentlyAddedOrModified: false,
-      themesAndSubThemes: []
+      themes: []
     })
   } 
 
   const openThemesFilterSelector = () => setIsThemesSelectorOpen(true)
 
   const consultResults = () => setIsOpen(false)*/
+
+  useBackHandler(closeThemesSelector)
 
   const borderStyle = useMemo(() => {
     if (activeModal && activeModal === 'REGULATORY_AREAS_LIST_MODAL') {
@@ -64,13 +69,12 @@ export function EnvFilters() {
           globalStyle.squareButton,
           {
             backgroundColor: theme.white,
-            zIndex: -1,
             ...borderStyle
           }
         ]}
       >
         {filtersCount > 0 && (
-          <View style={globalStyle.dot}>
+          <View style={[globalStyle.dot, { zIndex: 10 }]}>
             <ThemedText type="small" themeColor="white">
               {filtersCount}
             </ThemedText>
@@ -134,14 +138,23 @@ export function EnvFilters() {
       </Modal> */}
 
       <Modal transparent visible={isThemesSelectorOpen} animationType="slide" onRequestClose={closeThemesSelector}>
-        <View style={globalStyle.modalContainer}>
+        <View style={styles.modalContainer}>
           <View style={globalStyle.pageHeader}>
-            <ThemedText type="large">Thématiques et sous them.</ThemedText>
+            <ThemedText type="large">Thématiques</ThemedText>
             <CloseButton onClose={closeThemesSelector} />
           </View>
-          <ThemesSelector />
+          <ThemesSelector onShowResults={closeThemesSelector} />
         </View>
       </Modal>
     </>
   )
 }
+
+const createStyles = theme =>
+  StyleSheet.create({
+    modalContainer: {
+      backgroundColor: theme.white,
+      flex: 1,
+      marginTop: 80
+    }
+  })

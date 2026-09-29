@@ -13,6 +13,7 @@ import type { EnvRegulatoryAreaSummaryRepository } from '@domain/repositories/En
 import type { FishRegulatoryAreaSummaryRepository } from '@domain/repositories/FishRegulatoryAreaSummaryRepository'
 import type { SyncStateRepository } from '@domain/repositories/SyncStateRepository'
 import type { BoundingBox } from '@/types/mapTypes'
+import type { EnvTheme } from '@domain/entities/regulatoryAreas/EnvTheme'
 
 type Identified = { id: number }
 
@@ -64,6 +65,30 @@ export function createInMemoryLocalFishRepository(seed: FishRegulatoryArea[] = [
 
 export function createInMemoryLocalEnvRepository(seed: EnvRegulatoryArea[] = []) {
   return createInMemoryStore<EnvRegulatoryArea>(area => area.facade, seed)
+}
+
+export function createInMemoryEnvThemesRepository(seed: EnvTheme[] = []) {
+  let stored: EnvTheme[] = [...seed]
+  let replaceAllCallCount = 0
+
+  const repository = {
+    findAll: async () => [...stored],
+
+    replaceAll: async (themes: EnvTheme[]) => {
+      replaceAllCallCount += 1
+      stored = [...themes]
+    }
+  }
+
+  return {
+    get replaceAllCallCount() {
+      return replaceAllCallCount
+    },
+    repository,
+    get storedNames() {
+      return stored.map(theme => theme.name)
+    }
+  }
 }
 
 export function createInMemorySyncStateRepository(seed: Partial<Record<RegulatoryAreaDataset, Date>> = {}) {

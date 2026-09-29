@@ -90,7 +90,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       }}
       style={{ paddingBottom: 100 }}
     >
-      <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.three }}>
+      <View style={styles.filtersWrapper}>
         <View style={globalStyle.searchBox}>
           <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
 
@@ -136,6 +136,11 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 const styles = StyleSheet.create({
   emptyState: {
     paddingHorizontal: Spacing.four
+  },
+  filtersWrapper: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.one
   },
   input: {
     color: '#2b3a4a',

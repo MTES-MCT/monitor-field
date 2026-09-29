@@ -19,7 +19,7 @@ export function useGlobalStyle() {
       borderRadius: 10,
       height: 20,
       justifyContent: 'center',
-      left: 33,
+      left: 30,
       position: 'absolute',
       top: -5,
       width: 20

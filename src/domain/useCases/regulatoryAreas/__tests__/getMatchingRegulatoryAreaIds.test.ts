@@ -11,7 +11,7 @@ const NO_FILTERS = {
   recentlyAddedOrModified: false,
   searchQueryEnv: undefined,
   searchQueryFish: undefined,
-  themesAndSubThemes: []
+  themes: []
 }
 
 describe('getMatchingRegulatoryAreaIds', () => {

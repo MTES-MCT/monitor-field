@@ -1,7 +1,12 @@
 import type { EnvRegulatoryArea } from '@domain/entities/regulatoryAreas/EnvRegulatoryArea'
 import type { EnvRegulatoryAreaRepository } from '@domain/repositories/EnvRegulatoryAreaRepository'
 import { syncEnvRegulatoryAreas } from '../syncEnvRegulatoryAreas'
-import { buildEnvArea, createInMemoryLocalEnvRepository, createInMemorySyncStateRepository } from './fakes'
+import {
+  buildEnvArea,
+  createInMemoryEnvThemesRepository,
+  createInMemoryLocalEnvRepository,
+  createInMemorySyncStateRepository
+} from './fakes'
 
 const NOW = new Date('2026-09-16T10:00:00Z')
 const SIX_DAYS_AGO = new Date('2026-09-10T10:00:00Z')
@@ -13,12 +18,14 @@ function createRemoteRepository(areas: EnvRegulatoryArea[]): EnvRegulatoryAreaRe
 function setup({
   local = createInMemoryLocalEnvRepository(),
   remote = createRemoteRepository([]),
-  syncState = createInMemorySyncStateRepository()
+  syncState = createInMemorySyncStateRepository(),
+  envThemes = createInMemoryEnvThemesRepository()
 } = {}) {
   return {
     dependencies: {
       envRegulatoryAreaRepository: remote,
       localEnvRegulatoryAreaRepository: local.repository,
+      localEnvThemesRepository: envThemes.repository,
       now: () => NOW,
       syncStateRepository: syncState.repository
     },

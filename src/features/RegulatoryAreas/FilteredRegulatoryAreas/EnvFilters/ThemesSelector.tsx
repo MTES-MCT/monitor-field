@@ -3,7 +3,7 @@ import { ThemedText } from '@components/Elements/Text'
 import { Checkbox } from '@components/Elements/Checkbox'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
@@ -11,37 +11,32 @@ import { normalizeText } from '@utils/normalizeText'
 import { SearchThemes } from './SearchThemes'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreasLayer'
+import { getEnvThemesAndSubThemes } from '@features/RegulatoryAreas/useCases/getEnvThemesAndSubThemes'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-// TODO: replace with real data fetched from getEnvThemesAndSubThemes
-const themes = [
-  {
-    'AMP sans réglementation particulière particulière': ['sous-theme 1', 'sous-theme 2'],
-    'Arrêté de protection': ['sous-theme 1', 'sous-theme 2'],
-    'Arrêté à visa environnemental': ['sous-theme 1', 'sous-theme 2'],
-    'Bien culturel maritime': ['sous-theme 1', 'sous-theme 2', 'sous-theme 3'],
-    'Culture marine': ['sous-theme 1', 'sous-theme 2'],
-    'Pêche à pied': ['sous-theme 1', 'sous-theme 2'],
-    'Réserve naturelle': ['sous-theme 1', 'sous-theme 2'],
-    'Site naturel protégé': ['sous-theme 1', 'sous-theme 2'],
-    'Zone de protection spéciale': ['sous-theme 1', 'sous-theme 2'],
-    'Zone humide': ['sous-theme 1', 'sous-theme 2'],
-    'Zone marine protégée': ['sous-theme 1', 'sous-theme 2']
-  }
-]
-
-const themesBySubThemes: Record<string, string[]> = themes[0] ?? {}
-
-function getSubThemeKey(theme: string, subTheme: string) {
-  return `${theme}::${subTheme}`
-}
-
-export function ThemesSelector() {
+export function ThemesSelector({ onShowResults }: { onShowResults: () => void }) {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { filters, setFilters, totalCount } = useRegulatoryAreasContext()
   const { isLoading } = useRegulatoryAreasLayer()
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedThemes, setExpandedThemes] = useState<Record<string, boolean>>({})
+  const [themesBySubThemes, setThemesBySubThemes] = useState<Record<string, string[]>>({})
+
+  const filtersCount = useMemo(
+    () => filters.themes.length + (filters.recentlyAddedOrModified ? 1 : 0),
+    [filters.themes.length, filters.recentlyAddedOrModified]
+  )
+
+  useEffect(() => {
+    async function fetchThemes() {
+      const themes = await getEnvThemesAndSubThemes()
+
+      setThemesBySubThemes(Object.fromEntries(themes.map(theme => [theme.name, theme.subThemes])))
+    }
+
+    fetchThemes()
+  }, [])
 
   const filteredThemeEntries = useMemo(() => {
     const normalizedQuery = normalizeText(searchQuery.trim())
@@ -55,66 +50,77 @@ export function ThemesSelector() {
         subThemes.some(subTheme => normalizeText(subTheme).includes(normalizedQuery))
       )
     })
-  }, [searchQuery])
+  }, [searchQuery, themesBySubThemes])
 
   const toggleExpandedTheme = (themeName: string) => {
     setExpandedThemes(current => ({ ...current, [themeName]: !current[themeName] }))
   }
 
-  const isThemeChecked = (themeName: string) => filters.themesAndSubThemes.includes(themeName)
+  const isThemeChecked = (themeName: string) => filters.themes.some(theme => theme.name === themeName)
 
-  const isSubThemeChecked = (themeName: string, subTheme: string) =>
-    filters.themesAndSubThemes.includes(getSubThemeKey(themeName, subTheme))
+  const toggleTheme = (themeName: string, subThemes: string[]) => {
+    const isSelected = isThemeChecked(themeName)
+    let themeFilterToUpdate = [...filters.themes]
 
-  const toggleTheme = (themeName: string) => {
-    const subThemes = themesBySubThemes[themeName] ?? []
-    const subThemeKeys = subThemes.map(subTheme => getSubThemeKey(themeName, subTheme))
-    const shouldSelect = !isThemeChecked(themeName)
+    if (isSelected) {
+      themeFilterToUpdate = themeFilterToUpdate.filter(theme => theme.name !== themeName)
+    } else {
+      themeFilterToUpdate.push({ name: themeName, subThemes })
+    }
 
     setFilters(currentFilters => {
-      const withoutTheme = currentFilters.themesAndSubThemes.filter(
-        value => value !== themeName && !subThemeKeys.includes(value)
-      )
-
       return {
         ...currentFilters,
-        themesAndSubThemes: shouldSelect ? [...withoutTheme, themeName, ...subThemeKeys] : withoutTheme
+        themes: themeFilterToUpdate
       }
     })
   }
 
-  const toggleSubTheme = (themeName: string, subTheme: string) => {
-    const subThemes = themesBySubThemes[themeName] ?? []
-    const subThemeKey = getSubThemeKey(themeName, subTheme)
+  const isSubThemeChecked = (themeName: string, subTheme: string) =>
+    filters.themes
+      .filter(theme => theme.name === themeName)
+      .some(filteredTheme => filteredTheme.subThemes.includes(subTheme))
 
+  const toggleSubTheme = (themeName: string, subTheme: string) => {
+    const isSelected = isSubThemeChecked(themeName, subTheme)
     setFilters(currentFilters => {
-      const isSelected = currentFilters.themesAndSubThemes.includes(subThemeKey)
-      const otherSubThemeKeys = currentFilters.themesAndSubThemes.filter(
-        value => value !== subThemeKey && value !== themeName && value.startsWith(`${themeName}::`)
-      )
-      const nextSubThemeKeys = isSelected ? otherSubThemeKeys : [...otherSubThemeKeys, subThemeKey]
-      const areAllSubThemesSelected = subThemes.every(currentSubTheme =>
-        nextSubThemeKeys.includes(getSubThemeKey(themeName, currentSubTheme))
-      )
-      const withoutThemeAndSubThemes = currentFilters.themesAndSubThemes.filter(
-        value => value !== themeName && !value.startsWith(`${themeName}::`)
-      )
+      const themeToUpdate = currentFilters.themes.find(theme => theme.name === themeName)
+
+      if (themeToUpdate) {
+        if (isSelected) {
+          themeToUpdate.subThemes = themeToUpdate.subThemes.filter(st => st !== subTheme)
+        } else {
+          themeToUpdate.subThemes.push(subTheme)
+        }
+      } else {
+        currentFilters.themes.push({ name: themeName, subThemes: [subTheme] })
+      }
+
+      if (themeToUpdate && themeToUpdate.subThemes.length === 0) {
+        currentFilters.themes = currentFilters.themes.filter(theme => theme.name !== themeName)
+      }
 
       return {
         ...currentFilters,
-        themesAndSubThemes: areAllSubThemesSelected
-          ? [...withoutThemeAndSubThemes, themeName, ...nextSubThemeKeys]
-          : [...withoutThemeAndSubThemes, ...nextSubThemeKeys]
+        themes: [...currentFilters.themes]
       }
     })
+  }
+
+  const cleanFilters = () => {
+    setFilters(currentFilters => ({
+      ...currentFilters,
+      themes: []
+    }))
   }
 
   return (
-    <>
+    <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.searchWrapper}>
         <SearchThemes value={searchQuery} onChangeText={setSearchQuery} />
       </View>
-      <ScrollView>
+
+      <ScrollView persistentScrollbar>
         {filteredThemeEntries.map(([themeName, subThemes]) => {
           const isExpanded = expandedThemes[themeName] ?? false
 
@@ -124,13 +130,13 @@ export function ThemesSelector() {
                 <Checkbox
                   label={themeName}
                   isChecked={isThemeChecked(themeName)}
-                  onToggle={() => toggleTheme(themeName)}
+                  onToggle={() => toggleTheme(themeName, subThemes)}
                   style={{
                     marginHorizontal: Spacing.four
                   }}
                   numberOfLines={1}
                 />
-                <Pressable onPress={() => toggleExpandedTheme(themeName)} hitSlop={18}>
+                <Pressable onPress={() => toggleExpandedTheme(themeName)} hitSlop={28}>
                   <Image
                     source={require('@assets/icons/chevron.svg')}
                     style={[styles.chevronIcon, isExpanded && styles.chevronIconExpanded]}
@@ -153,23 +159,48 @@ export function ThemesSelector() {
           )
         })}
       </ScrollView>
-      <View style={globalStyle.separator}></View>
-      <Pressable
-        onPress={() => {}}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: false }}
-        style={styles.showResultsButton}
-      >
-        <ThemedText type="default" themeColor="white">
-          Voir {totalCount ?? 0} résultat(s)
-        </ThemedText>
-        {isLoading && <LoaderIcon tintColor="white" size="SMALL" />}
-      </Pressable>
-    </>
+      <View>
+        <View style={globalStyle.separator}></View>
+        <View style={styles.buttonsWrapper}>
+          {filtersCount > 0 && (
+            <Pressable
+              onPress={cleanFilters}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: false }}
+              style={styles.button}
+            >
+              <ThemedText type="default">Effacer les filtres ({filtersCount})</ThemedText>
+            </Pressable>
+          )}
+          <Pressable
+            onPress={onShowResults}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: false }}
+            style={[styles.button, styles.showResultsButton]}
+          >
+            <ThemedText type="default" themeColor="white">
+              Voir {totalCount ?? 0} résultat(s)
+            </ThemedText>
+            {isLoading && <LoaderIcon tintColor="white" size="SMALL" />}
+          </Pressable>
+        </View>
+      </View>
+    </SafeAreaView>
   )
 }
 const createStyles = theme =>
   StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: Spacing.four,
+      paddingVertical: Spacing.three
+    },
+    buttonsWrapper: {
+      gap: Spacing.two,
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.three
+    },
     chevronIcon: {
       height: 20,
       marginHorizontal: Spacing.four,
@@ -185,17 +216,14 @@ const createStyles = theme =>
       paddingVertical: Spacing.three
     },
     showResultsButton: {
-      alignItems: 'center',
       backgroundColor: theme.charcoal,
       flexDirection: 'row',
       gap: Spacing.two,
-      justifyContent: 'center',
-      marginBottom: Spacing.four,
-      marginHorizontal: Spacing.four,
-      paddingVertical: Spacing.four
+      marginBottom: Spacing.four
     },
     subThemeRow: {
-      marginLeft: Spacing.six
+      paddingLeft: Spacing.six,
+      paddingRight: 60
     },
     themeRow: {
       alignItems: 'center',

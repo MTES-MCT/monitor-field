@@ -47,7 +47,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     recentlyAddedOrModified: false,
     searchQueryEnv: undefined,
     searchQueryFish: undefined,
-    themesAndSubThemes: []
+    themes: []
   })
 
   const [clickedFeaturesList, setClickedFeaturesList] = useState<RegulatoryAreaListItem[] | undefined>(undefined)

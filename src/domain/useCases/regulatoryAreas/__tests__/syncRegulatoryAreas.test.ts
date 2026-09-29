@@ -5,6 +5,7 @@ import { syncRegulatoryAreas } from '../syncRegulatoryAreas'
 import {
   buildEnvArea,
   buildFishArea,
+  createInMemoryEnvThemesRepository,
   createInMemoryLocalEnvRepository,
   createInMemoryLocalFishRepository,
   createInMemorySyncStateRepository
@@ -16,6 +17,7 @@ function buildDependencies(overrides: Partial<SyncRegulatoryAreasDependencies> =
   const localFish = createInMemoryLocalFishRepository()
   const localEnv = createInMemoryLocalEnvRepository()
   const syncState = createInMemorySyncStateRepository()
+  const envThemes = createInMemoryEnvThemesRepository()
 
   const fishRemote: FishRegulatoryAreaRepository = {
     findBySeaFronts: async () => [buildFishArea(1, 'NAMO')]
@@ -28,13 +30,14 @@ function buildDependencies(overrides: Partial<SyncRegulatoryAreasDependencies> =
     envRegulatoryAreaRepository: envRemote,
     fishRegulatoryAreaRepository: fishRemote,
     localEnvRegulatoryAreaRepository: localEnv.repository,
+    localEnvThemesRepository: envThemes.repository,
     localFishRegulatoryAreaRepository: localFish.repository,
     now: () => new Date('2026-09-17T08:00:00Z'),
     syncStateRepository: syncState.repository,
     ...overrides
   }
 
-  return { dependencies, localEnv, localFish, syncState }
+  return { dependencies, envThemes, localEnv, localFish, syncState }
 }
 
 describe('syncRegulatoryAreas', () => {
