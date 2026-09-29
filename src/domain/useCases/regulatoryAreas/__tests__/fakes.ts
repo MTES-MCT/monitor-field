@@ -138,7 +138,7 @@ export function buildEnvArea(id: number, facade = 'MEMN'): EnvRegulatoryArea {
     prohibitionPeriods: '',
     refReg: `Ref ${id}`,
     resume: '',
-    themes: 'Thème',
+    themes: '{"Thème": ["sous-thème1"]}',
     type: 'Type',
     url: `https://example.org/${id}`
   }
