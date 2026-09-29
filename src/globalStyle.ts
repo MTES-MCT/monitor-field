@@ -36,6 +36,21 @@ export function useGlobalStyle() {
       height: 20,
       width: 20
     },
+    input: {
+      color: '#2b3a4a',
+      flex: 1,
+      fontFamily: Fonts.sans,
+      fontSize: 17,
+      paddingVertical: 0
+    },
+    overlay: {
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0
+    },
     pageHeader: {
       alignItems: 'center',
       flexDirection: 'row',

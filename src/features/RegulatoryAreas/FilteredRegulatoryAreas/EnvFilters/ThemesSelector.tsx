@@ -14,7 +14,12 @@ import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/hooks/useRegu
 import { getEnvThemesAndSubThemes } from '@features/RegulatoryAreas/useCases/getEnvThemesAndSubThemes'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-export function ThemesSelector({ onShowResults }: { onShowResults: () => void }) {
+type ThemesSelectorProps = {
+  onShowResults: () => void
+  filtersCount: number
+}
+
+export function ThemesSelector({ onShowResults, filtersCount }: ThemesSelectorProps) {
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { filters, setFilters, totalCount } = useRegulatoryAreasContext()
@@ -22,11 +27,6 @@ export function ThemesSelector({ onShowResults }: { onShowResults: () => void })
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedThemes, setExpandedThemes] = useState<Record<string, boolean>>({})
   const [themesBySubThemes, setThemesBySubThemes] = useState<Record<string, string[]>>({})
-
-  const filtersCount = useMemo(
-    () => filters.themes.length + filters.themes.flatMap(theme => theme.subThemes).length,
-    [filters.themes]
-  )
 
   useEffect(() => {
     async function fetchThemes() {

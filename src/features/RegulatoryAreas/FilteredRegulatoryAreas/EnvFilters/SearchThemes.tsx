@@ -22,7 +22,7 @@ export function SearchThemes({ value, onChangeText }: SearchThemesProps) {
     <View style={[globalStyle.searchBox, styles.styledSearchBox]}>
       <TextInput
         ref={inputRef}
-        style={styles.input}
+        style={globalStyle.input}
         value={value}
         onChangeText={onChangeText}
         placeholder="Rechercher..."
@@ -40,12 +40,6 @@ export function SearchThemes({ value, onChangeText }: SearchThemesProps) {
 
 const createStyles = theme =>
   StyleSheet.create({
-    input: {
-      color: theme.charcoal,
-      flex: 1,
-      fontSize: 17,
-      paddingVertical: 0
-    },
     styledSearchBox: {
       backgroundColor: theme.gainsboro,
       flex: 0,

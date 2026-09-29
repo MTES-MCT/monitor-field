@@ -16,14 +16,20 @@ export function EnvFilters() {
   const theme = useTheme()
   const styles = createStyles(theme)
   const { filters } = useRegulatoryAreasContext()
-  const { activeModal } = useAppContext()
+  const { activeModal, setWithOverlay } = useAppContext()
 
   // const [isOpen, setIsOpen] = useState(false)
   const [isThemesSelectorOpen, setIsThemesSelectorOpen] = useState(false)
   // const closeEnvFilters = () => setIsOpen(false)
-  const closeThemesSelector = () => setIsThemesSelectorOpen(false)
+  const closeThemesSelector = () => {
+    setIsThemesSelectorOpen(false)
+    setWithOverlay(false)
+  }
 
-  const filtersCount = filters.themes.length + (filters.recentlyAddedOrModified ? 1 : 0)
+  const filtersCount = useMemo(
+    () => filters.themes.length + filters.themes.flatMap(theme => theme.subThemes).length,
+    [filters.themes]
+  )
 
   /* const onSwitch = () => {
     setFilters(currentFilters => ({
@@ -40,9 +46,14 @@ export function EnvFilters() {
     })
   } 
 
-  const openThemesFilterSelector = () => setIsThemesSelectorOpen(true)
+
 
   const consultResults = () => setIsOpen(false)*/
+
+  const openThemesFilterSelector = () => {
+    setIsThemesSelectorOpen(true)
+    setWithOverlay(true)
+  }
 
   useBackHandler(closeThemesSelector, isThemesSelectorOpen)
 
@@ -60,7 +71,7 @@ export function EnvFilters() {
   return (
     <>
       <Pressable
-        onPress={() => setIsThemesSelectorOpen(true)}
+        onPress={openThemesFilterSelector}
         accessibilityRole="button"
         accessibilityState={{
           disabled: false
@@ -74,7 +85,7 @@ export function EnvFilters() {
         ]}
       >
         {filtersCount > 0 && (
-          <View style={[globalStyle.dot, { zIndex: 10 }]}>
+          <View style={[globalStyle.dot]}>
             <ThemedText type="small" themeColor="white">
               {filtersCount}
             </ThemedText>
@@ -143,7 +154,7 @@ export function EnvFilters() {
             <ThemedText type="large">Thématiques</ThemedText>
             <CloseButton onClose={closeThemesSelector} />
           </View>
-          <ThemesSelector onShowResults={closeThemesSelector} />
+          <ThemesSelector onShowResults={closeThemesSelector} filtersCount={filtersCount} />
         </View>
       </Modal>
     </>

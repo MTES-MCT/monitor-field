@@ -1,8 +1,8 @@
 import type { EnvRegulatoryArea } from '@domain/entities/regulatoryAreas/EnvRegulatoryArea'
 import type { EnvTheme } from '@domain/entities/regulatoryAreas/EnvTheme'
 
-// Convertit le repr Python (quotes mixtes, simples ou doubles) en JSON valide,
-// puis parse. Gère les apostrophes échappées (\') et les valeurs entre guillemets doubles.
+// Converts Python strings (mixed, single, or double quotes) into valid JSON,
+// then parses them. Handles escaped apostrophes (\') and values enclosed in double quotes.
 function pythonDictToJson(raw: string): string {
   return raw.replace(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g, (_match, single, double) =>
     JSON.stringify(single !== undefined ? single.replace(/\\'/g, "'") : double)

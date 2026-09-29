@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { StyleSheet, TextInput, View } from 'react-native'
-import { Fonts, Spacing } from '@constants/theme'
+import { Spacing } from '@constants/theme'
 import { BackButton } from '@components/Buttons/BackButton'
 import { useRouter } from 'expo-router'
 import { EnvFilters } from './EnvFilters'
@@ -95,7 +95,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
           <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
-            style={styles.input}
+            style={globalStyle.input}
             value={searchQuery}
             onChangeText={() => {}}
             onFocus={onSearchFocus}
@@ -141,13 +141,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.one
-  },
-  input: {
-    color: '#2b3a4a',
-    flex: 1,
-    fontFamily: Fonts.sans,
-    fontSize: 17,
-    paddingVertical: 0
   },
   listContent: {
     paddingBottom: Spacing.four

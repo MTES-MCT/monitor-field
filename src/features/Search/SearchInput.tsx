@@ -1,6 +1,6 @@
 import { BackButton } from '@components/Buttons/BackButton'
 import { CloseButton } from '@components/Buttons/CloseButton'
-import { Fonts, Spacing } from '@constants/theme'
+import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { useAppContext } from '@contexts/AppContext'
 import { useGlobalStyle } from '@globalStyle'
@@ -63,7 +63,7 @@ export function SearchInput({ onClose, text, setText }: SearchInputProps) {
           <TextInput
             ref={inputRef}
             autoFocus
-            style={styles.input}
+            style={globalStyle.input}
             value={text}
             onChangeText={onChangeText}
             placeholder="Rechercher"
@@ -99,12 +99,5 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     marginHorizontal: Spacing.two,
     marginVertical: Spacing.two
-  },
-  input: {
-    color: '#2b3a4a',
-    flex: 1,
-    fontFamily: Fonts.sans,
-    fontSize: 17,
-    paddingVertical: 0
   }
 })
