@@ -11,7 +11,7 @@ import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegu
 
 import { ThemedText } from '@components/Elements/Text'
 import { Spacing } from '@constants/theme'
-import { Link, useRouter } from 'expo-router'
+import { Link, useCurrentRouteInfo, useRouter } from 'expo-router'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { useGlobalStyle } from '@globalStyle'
@@ -21,6 +21,7 @@ import { useAppContext } from '@contexts/AppContext'
 import useMatomo from '@matomo/useMatomo'
 import { logToSentry } from '@utils/sentryLogger'
 import { getModel, getSystemVersion, getVersion } from 'react-native-device-info'
+import { useBackHandler } from '@hooks/useBackHandler'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 const VERSION = getVersion()
@@ -29,6 +30,7 @@ const OS_VERSION = getSystemVersion()
 
 export default function Settings() {
   const router = useRouter()
+  const currentRouteInfo = useCurrentRouteInfo()
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { isRefreshingSettingsData, setIsRefreshingSettingsData } = useAppContext()
@@ -101,6 +103,8 @@ export default function Settings() {
   useEffect(() => {
     trackScreenView({ name: 'Page Paramètres' })
   }, [trackScreenView])
+
+  useBackHandler(closeSettings, currentRouteInfo?.pathname.includes('/settings'))
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

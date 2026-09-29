@@ -14,25 +14,31 @@ import { createSqliteRegulatoryAreaGeometryRepository } from '@infrastructure/da
 import { createWFSFishRegulatoryAreaRepository } from '@infrastructure/geoplatform/WFSFishRegulatoryAreaRepository'
 import { createMmkvSyncStateRepository } from '@infrastructure/storage/MmkvSyncStateRepository'
 import { createFileSystemRegulatoryAreaTileRepository } from '@infrastructure/tiles/FileSystemRegulatoryAreaTileRepository'
+import { createSqliteEnvThemesRepository } from '@infrastructure/database/repositories/SqliteEnvThemesRepository'
+import type { GetThemesDependencies } from '@domain/useCases/regulatoryAreas/getThemes'
 
 export type RegulatoryAreasDependencies = SyncRegulatoryAreasDependencies &
   RegenerateRegulatoryAreaTilesDependencies &
   GetRegulatoryAreasInBoundingBoxDependencies &
   GetMatchingRegulatoryAreaIdsDependencies &
-  GetRegulatoryAreasByIdsDependencies
+  GetRegulatoryAreasByIdsDependencies &
+  GetThemesDependencies
 
 let dependenciesPromise: Promise<RegulatoryAreasDependencies> | null = null
 let regulatoryAreaTileRepository: RegulatoryAreaTileRepository | null = null
 
 async function buildDependencies(): Promise<RegulatoryAreasDependencies> {
   const database = await getDatabase()
+  const envThemesRepository = createSqliteEnvThemesRepository(database)
 
   return {
     envRegulatoryAreaRepository: createDataGouvEnvRegulatoryAreaRepository(),
     envRegulatoryAreaSummaryRepository: createSqliteEnvRegulatoryAreaSummaryRepository(database),
+    envThemesRepository,
     fishRegulatoryAreaRepository: createWFSFishRegulatoryAreaRepository(),
     fishRegulatoryAreaSummaryRepository: createSqliteFishRegulatoryAreaSummaryRepository(database),
     localEnvRegulatoryAreaRepository: createSqliteEnvRegulatoryAreaRepository(database),
+    localEnvThemesRepository: envThemesRepository,
     localFishRegulatoryAreaRepository: createSqliteFishRegulatoryAreaRepository(database),
     now: () => new Date(),
     regulatoryAreaGeometryRepository: createSqliteRegulatoryAreaGeometryRepository(database),

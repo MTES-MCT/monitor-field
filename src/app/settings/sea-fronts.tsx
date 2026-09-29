@@ -8,7 +8,7 @@ import { useMemo, useRef, useState } from 'react'
 import { storage } from '@storage'
 import { parseSeaFronts } from '@utils/parseSeaFronts'
 import { Image } from 'expo-image'
-import { Fonts, Spacing } from '@constants/theme'
+import { Spacing } from '@constants/theme'
 import useMatomo from '@matomo/useMatomo'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useGlobalStyle } from '@globalStyle'
@@ -83,13 +83,17 @@ export default function SeaFronts() {
         <ThemedText type="default">Façades</ThemedText>
         <CloseButton onClose={onCloseSettings} />
       </View>
-      <View style={styles.searchBox}>
-        <TextInput style={styles.input} value={searchQuery} onChangeText={setSearchQuery} />
+      <View style={[globalStyle.searchBox, styles.styledSearchBox]}>
+        <TextInput style={globalStyle.input} value={searchQuery} onChangeText={setSearchQuery} />
 
-        <Image
-          source={require('@assets/icons/search.svg')}
-          style={[globalStyle.iconNormal, { paddingLeft: Spacing.two }]}
-        />
+        {searchQuery && searchQuery.length > 0 ? (
+          <CloseButton onClose={() => setSearchQuery('')} isSmall style={{ marginRight: Spacing.two }} />
+        ) : (
+          <Image
+            source={require('@assets/icons/search.svg')}
+            style={[globalStyle.iconNormal, { paddingLeft: Spacing.two }]}
+          />
+        )}
       </View>
       <View style={{ paddingBottom: 120, paddingHorizontal: Spacing.four }}>
         <SeaFrontsSelector
@@ -104,23 +108,11 @@ export default function SeaFronts() {
 
 const createStyles = theme =>
   StyleSheet.create({
-    input: {
-      color: '#2b3a4a',
-      flex: 1,
-      fontFamily: Fonts.sans,
-      fontSize: 17,
-      paddingVertical: 0
-    },
-    searchBox: {
-      alignItems: 'center',
+    styledSearchBox: {
       backgroundColor: theme.gainsboro,
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flexDirection: 'row',
-      height: 48,
+      flex: 0,
       marginBottom: Spacing.four,
-      marginHorizontal: Spacing.four,
-      paddingRight: Spacing.two
+      marginHorizontal: Spacing.four
     },
     wrapper: {
       backgroundColor: theme.white,

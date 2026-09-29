@@ -6,8 +6,10 @@ import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useFeedbackForm } from '@hooks/useFeedBackForm'
+import useMatomo from '@matomo/useMatomo'
 import { Image } from 'expo-image'
 import { useState, useEffect, useCallback } from 'react'
+import { useAppContext } from '@contexts/AppContext'
 import {
   Pressable,
   StyleSheet,
@@ -25,7 +27,11 @@ export function UserFeedback() {
   const theme = useTheme()
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
+  const { trackEvent } = useMatomo()
+  const { setWithOverlay } = useAppContext()
+
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
+
   const {
     title,
     setTitle,
@@ -44,7 +50,8 @@ export function UserFeedback() {
   const close = useCallback(() => {
     reset()
     setIsFeedbackModalOpen(false)
-  }, [reset])
+    setWithOverlay(false)
+  }, [reset, setWithOverlay])
 
   useEffect(() => {
     if (statut === 'success') {
@@ -57,10 +64,29 @@ export function UserFeedback() {
     }
   }, [statut, close])
 
+  const openForm = () => {
+    setIsFeedbackModalOpen(true)
+    setWithOverlay(true)
+    trackEvent({
+      action: 'Ouverture du formulaire',
+      category: 'Retours utilisateurs',
+      name: 'Ouverture du formulaire de retour utilisateur'
+    })
+  }
+
+  const onSubmit = () => {
+    submitFeedback()
+    trackEvent({
+      action: 'Envoi du formulaire',
+      category: 'Retours utilisateurs',
+      name: 'Envoi du formulaire de retour utilisateur'
+    })
+  }
+
   return (
     <>
       <Pressable
-        onPress={() => setIsFeedbackModalOpen(true)}
+        onPress={openForm}
         accessibilityRole="button"
         accessibilityState={{ disabled: isFeedbackModalOpen }}
         style={[globalStyle.squareButton, { backgroundColor: theme.white, marginTop: Spacing.two }]}
@@ -136,7 +162,7 @@ export function UserFeedback() {
                 </Pressable>
                 <Pressable
                   style={[globalStyle.buttonBase, { backgroundColor: theme.charcoal }]}
-                  onPress={submitFeedback}
+                  onPress={onSubmit}
                   disabled={!canSend || statut === 'sending'}
                 >
                   {statut === 'sending' ? (
@@ -177,10 +203,8 @@ const createStyles = theme =>
       paddingTop: Spacing.three
     },
     overlay: {
-      backgroundColor: 'rgba(0,0,0,0.5)',
       flex: 1,
-      justifyContent: 'flex-end',
-      paddingBottom: 0
+      justifyContent: 'flex-end'
     },
     radioButtonsWrapper: {
       flexDirection: 'row',

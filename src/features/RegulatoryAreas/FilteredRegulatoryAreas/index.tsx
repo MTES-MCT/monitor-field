@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { StyleSheet, TextInput, View } from 'react-native'
-import { Fonts, Spacing } from '@constants/theme'
+import { Spacing } from '@constants/theme'
 import { BackButton } from '@components/Buttons/BackButton'
 import { useRouter } from 'expo-router'
 import { EnvFilters } from './EnvFilters'
@@ -25,7 +25,6 @@ const ORIGIN = 'REGULATORY_AREAS_LIST_MODAL'
 
 export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: FilteredRegulatoryAreasProps) => {
   const theme = useTheme()
-  const styles = createStyles(theme)
   const globalStyle = useGlobalStyle()
   const router = useRouter()
   const { activeModal, config, setActiveModal } = useAppContext()
@@ -91,12 +90,12 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       }}
       style={{ paddingBottom: 100 }}
     >
-      <View style={{ flexDirection: 'row', paddingHorizontal: Spacing.four }}>
-        <View style={styles.searchBox}>
+      <View style={styles.filtersWrapper}>
+        <View style={globalStyle.searchBox}>
           <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
 
           <TextInput
-            style={styles.input}
+            style={globalStyle.input}
             value={searchQuery}
             onChangeText={() => {}}
             onFocus={onSearchFocus}
@@ -134,30 +133,16 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
   )
 }
 
-const createStyles = theme =>
-  StyleSheet.create({
-    emptyState: {
-      paddingHorizontal: Spacing.four,
-      textAlign: 'center'
-    },
-    input: {
-      color: '#2b3a4a',
-      flex: 1,
-      fontFamily: Fonts.sans,
-      fontSize: 17,
-      paddingVertical: 0
-    },
-    listContent: {
-      paddingBottom: Spacing.four
-    },
-    searchBox: {
-      alignItems: 'center',
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flex: 1,
-      flexDirection: 'row',
-      height: 48,
-      marginRight: Spacing.two,
-      paddingHorizontal: Spacing.one
-    }
-  })
+const styles = StyleSheet.create({
+  emptyState: {
+    paddingHorizontal: Spacing.four
+  },
+  filtersWrapper: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.one
+  },
+  listContent: {
+    paddingBottom: Spacing.four
+  }
+})

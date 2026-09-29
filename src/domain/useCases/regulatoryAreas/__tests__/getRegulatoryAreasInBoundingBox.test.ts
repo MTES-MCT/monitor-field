@@ -11,7 +11,7 @@ const NO_FILTERS = {
   recentlyAddedOrModified: false,
   searchQueryEnv: undefined,
   searchQueryFish: undefined,
-  themesAndSubThemes: []
+  themes: []
 }
 const VIEWPORT = { maxLat: 50, maxLon: 0, minLat: 47, minLon: -5 }
 

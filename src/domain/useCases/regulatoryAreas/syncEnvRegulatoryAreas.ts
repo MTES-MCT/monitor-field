@@ -1,11 +1,14 @@
 import type { EnvRegulatoryAreaRepository } from '@domain/repositories/EnvRegulatoryAreaRepository'
 import type { LocalEnvRegulatoryAreaRepository } from '@domain/repositories/LocalEnvRegulatoryAreaRepository'
+import type { LocalEnvThemesRepository } from '@domain/repositories/LocalEnvThemesRepository'
 import type { SyncStateRepository } from '@domain/repositories/SyncStateRepository'
+import { extractEnvThemesFromAreas } from './extractEnvThemesFromAreas'
 import { shouldSkipSync } from './shouldSkipSync'
 
 export type SyncEnvRegulatoryAreasDependencies = {
   envRegulatoryAreaRepository: EnvRegulatoryAreaRepository
   localEnvRegulatoryAreaRepository: LocalEnvRegulatoryAreaRepository
+  localEnvThemesRepository: LocalEnvThemesRepository
   now: () => Date
   syncStateRepository: SyncStateRepository
 }
@@ -18,6 +21,7 @@ export async function syncEnvRegulatoryAreas(
   {
     envRegulatoryAreaRepository,
     localEnvRegulatoryAreaRepository,
+    localEnvThemesRepository,
     now,
     syncStateRepository
   }: SyncEnvRegulatoryAreasDependencies,
@@ -28,6 +32,7 @@ export async function syncEnvRegulatoryAreas(
 
   if (selectedSeaFronts.length === 0) {
     await localEnvRegulatoryAreaRepository.deleteAll()
+    await localEnvThemesRepository.replaceAll([])
     syncStateRepository.markSyncedAt('env', now())
 
     return true
@@ -53,6 +58,7 @@ export async function syncEnvRegulatoryAreas(
   }
 
   await localEnvRegulatoryAreaRepository.replaceForSeaFronts(selectedSeaFronts, areas)
+  await localEnvThemesRepository.replaceAll(extractEnvThemesFromAreas(areas))
 
   syncStateRepository.markSyncedAt('env', now())
 

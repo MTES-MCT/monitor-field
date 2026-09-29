@@ -33,6 +33,9 @@ export function EnvRegulatoryAreaDetails({
   const globalStyle = useGlobalStyle()
 
   const goToLegicem = useOpenExternalLink(LEGICEM_TRACKING_EVENT, 'EnvRegulatoryAreaDetails')
+  const parsedThemes = regulatoryArea.themes ? Object.entries(JSON.parse(regulatoryArea.themes)) : []
+  const themes = parsedThemes?.map(([theme, _]) => theme).join(', ') ?? ''
+  const subThemes = parsedThemes?.map(([_, subTheme]) => subTheme).join(', ') ?? ''
 
   const groupTitle = useMemo(() => {
     if (!regulatoryArea || !regulatoryArea.layerName) {
@@ -74,24 +77,23 @@ export function EnvRegulatoryAreaDetails({
         <ThemedText type="default" style={styles.horizontalPadding}>
           {regulatoryArea.type}
         </ThemedText>
-        {regulatoryArea.themes && (
+        {themes && (
           <>
             <ThemedText type="small" style={styles.labelStyle}>
               Thématiques
             </ThemedText>
             <ThemedText type="default" style={styles.horizontalPadding}>
-              {regulatoryArea.themes}
+              {themes}
             </ThemedText>
           </>
         )}
-        {/* TODO Subthemes are sent in the same string as the themes. See how to resolve this issue. */}
-        {regulatoryArea.themes && (
+        {subThemes && (
           <>
             <ThemedText type="small" style={styles.labelStyle}>
               Sous-thématiques
             </ThemedText>
             <ThemedText type="default" style={styles.horizontalPadding}>
-              {regulatoryArea.themes}
+              {subThemes}
             </ThemedText>
           </>
         )}

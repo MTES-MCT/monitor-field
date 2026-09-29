@@ -30,6 +30,14 @@ function countByGroup(areas: EnvRegulatoryArea[]): Map<string, number> {
   return totals
 }
 
+function parsePythonDict(str: string): Record<string, unknown> {
+  return JSON.parse(
+    str.replace(/'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"/g, (_, single, double) =>
+      JSON.stringify(single !== undefined ? single.replace(/\\'/g, "'") : double)
+    )
+  )
+}
+
 export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulatoryAreaRepository {
   return {
     countAll: async () => {
@@ -66,6 +74,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
 
           for (const area of areas) {
             const fillColor = stringToArrayItem(buildFeatureColorKey(area), palette) ?? palette[0]
+            const formattedThemes = parsePythonDict(area.themes)
 
             await tx.execute(
               `
@@ -93,7 +102,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
                 area.authorizationPeriods,
                 area.prohibitionPeriods,
                 area.additionalRefReg,
-                area.themes,
+                JSON.stringify(formattedThemes),
                 area.location,
                 fillColor ?? null,
                 area.edition ?? null,

@@ -99,7 +99,7 @@ function App() {
   const globalStyle = useGlobalStyle()
   const { trackEvent } = useMatomo()
 
-  const { config, activeModal, setActiveModal, isRefreshingSettingsData } = useAppContext()
+  const { config, activeModal, setActiveModal, isRefreshingSettingsData, withOverlay } = useAppContext()
   const { isLocationEnabled } = useLocationStatus()
   const {
     areRegulatoryAreasLayerVisible,
@@ -272,7 +272,6 @@ function App() {
       touchRotate={false}
       onRegionDidChange={onRegionDidChange}
       onPress={onMapPress}
-      // onRegionDidChange={() => console.log('Map finished loading')}
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 
@@ -376,10 +375,11 @@ function App() {
                 <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
               </Pressable>
             </Link>
+
             <UserFeedback />
           </View>
         </View>
-
+        {withOverlay && <View style={[globalStyle.overlay]} />}
         <View style={styles.bottomWrapper}>
           <LocationButton onLocate={handleLocate} />
           <BottomBar searchByQuery={searchByQuery} />

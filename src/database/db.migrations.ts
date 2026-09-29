@@ -29,7 +29,7 @@ const migrations: Migration[] = [
             authorization_periods TEXT,
             prohibition_periods TEXT,
             additional_ref_reg TEXT,
-            themes TEXT,
+            themes TEXT CHECK (themes IS NULL OR json_valid(themes)),
             location TEXT,
             edition TEXT,
             bbox_min_lon REAL,
@@ -109,6 +109,22 @@ const migrations: Migration[] = [
           CREATE INDEX IF NOT EXISTS idx_fish_bbox_max_lat
           ON ${FISH_REGULATORY_AREAS_TABLE} (bbox_max_lat)
         `
+      )
+      await tx.execute(
+        `
+          CREATE TABLE themes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name text NOT NULL UNIQUE
+          )`
+      )
+      await tx.execute(
+        `
+          CREATE TABLE sub_themes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          theme_id int NOT NULL REFERENCES themes(id),
+          name text NOT NULL,
+          UNIQUE (theme_id, name)
+        )`
       )
     },
     version: 1

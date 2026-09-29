@@ -19,7 +19,7 @@ export function useGlobalStyle() {
       borderRadius: 10,
       height: 20,
       justifyContent: 'center',
-      left: 33,
+      left: 30,
       position: 'absolute',
       top: -5,
       width: 20
@@ -36,6 +36,21 @@ export function useGlobalStyle() {
       height: 20,
       width: 20
     },
+    input: {
+      color: '#2b3a4a',
+      flex: 1,
+      fontFamily: Fonts.sans,
+      fontSize: 17,
+      paddingVertical: 0
+    },
+    overlay: {
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: 0
+    },
     pageHeader: {
       alignItems: 'center',
       flexDirection: 'row',
@@ -44,6 +59,16 @@ export function useGlobalStyle() {
     },
     requiredField: {
       color: theme.maximumRed
+    },
+    searchBox: {
+      alignItems: 'center',
+      borderColor: theme.lightGray,
+      borderWidth: 1,
+      flex: 1,
+      flexDirection: 'row',
+      height: 48,
+      marginRight: Spacing.two,
+      paddingHorizontal: Spacing.one
     },
     separator: {
       backgroundColor: theme.lightGray,

@@ -24,12 +24,16 @@ const AppContext = createContext<
       isRefreshingSettingsData: boolean
       hasAutoLocatedRef: React.RefObject<boolean>
       setIsRefreshingSettingsData: (isRefreshing: boolean) => void
+      withOverlay: boolean
+      setWithOverlay: (withOverlay: boolean) => void
     }
   | undefined
 >(undefined)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const hasAutoLocatedRef = useRef(false)
+
+  const [withOverlay, setWithOverlay] = useState(false)
 
   const [activeModal, setActiveModal] = useState<ModalType>(undefined)
   const [isRefreshingSettingsData, setIsRefreshingSettingsData] = useState<boolean>(false)
@@ -48,9 +52,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       hasAutoLocatedRef,
       isRefreshingSettingsData,
       setActiveModal,
-      setIsRefreshingSettingsData
+      setIsRefreshingSettingsData,
+      setWithOverlay,
+      withOverlay
     }),
-    [activeModal, config, isRefreshingSettingsData]
+    [activeModal, config, isRefreshingSettingsData, withOverlay]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

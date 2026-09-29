@@ -5,11 +5,15 @@ import type { AppMode } from '@config/appModes'
 
 const RECENTLY_ADDED_OR_MODIFIED_IN_DAYS = 30
 
+type ThemesFilters = {
+  name: string
+  subThemes: string[]
+}
 export type RegulatoryAreaFilters = {
   searchQueryEnv: string | undefined
   searchQueryFish: string | undefined
   recentlyAddedOrModified: boolean
-  themesAndSubThemes: string[]
+  themes: ThemesFilters[]
 }
 
 export function hasActiveRegulatoryAreaFilters(filters: RegulatoryAreaFilters, mode: AppMode): boolean {
@@ -17,7 +21,7 @@ export function hasActiveRegulatoryAreaFilters(filters: RegulatoryAreaFilters, m
     return !!filters.searchQueryFish?.trim()
   }
 
-  return !!filters.searchQueryEnv?.trim() || filters.recentlyAddedOrModified || filters.themesAndSubThemes.length > 0
+  return !!filters.searchQueryEnv?.trim() || filters.recentlyAddedOrModified || filters.themes.length > 0
 }
 
 function matchesSearchQuery(searchableFields: (string | null | undefined)[], searchQuery: string | undefined): boolean {
@@ -28,6 +32,29 @@ function matchesSearchQuery(searchableFields: (string | null | undefined)[], sea
   }
 
   return searchableFields.some(field => !!field && normalizeText(field).includes(normalizedQuery))
+}
+
+function matchesThemesAndSubThemes(area: EnvRegulatoryAreaSummary, themesFilter: ThemesFilters[]): boolean {
+  if (themesFilter.length === 0) {
+    return true
+  }
+
+  if (!area.themes) {
+    return false
+  }
+
+  const parsedThemes = area.themes ? Object.entries(JSON.parse(area.themes)) : []
+  const subThemes = parsedThemes
+    ?.flatMap(([_, subTheme]) => subTheme)
+    .map(subTheme => normalizeText(subTheme as string))
+
+  const flattenSubThemesFilters = themesFilter.flatMap(theme => [
+    ...theme.subThemes.map(subTheme => normalizeText(subTheme))
+  ])
+
+  return flattenSubThemesFilters.some(themeOrSubTheme => {
+    return subThemes.includes(themeOrSubTheme)
+  })
 }
 
 export function matchesFishRegulatoryAreaFilters(
@@ -48,6 +75,9 @@ export function matchesEnvRegulatoryAreaFilters(
       filters.searchQueryEnv
     )
   ) {
+    return false
+  }
+  if (!matchesThemesAndSubThemes(area, filters.themes)) {
     return false
   }
 
