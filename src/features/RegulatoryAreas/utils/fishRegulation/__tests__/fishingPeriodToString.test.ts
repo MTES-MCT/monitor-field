@@ -1,14 +1,14 @@
 import type { FishingPeriod } from '@domain/entities/regulatoryAreas/FishRegulation'
-import { fishingPeriodToString, toArrayString } from '../fishingPeriodToString'
+import { fishingPeriodToString, joinAsFrenchList } from '../fishingPeriodToString'
 
 const EMPTY_PERIOD: FishingPeriod = { dateRanges: [], dates: [], timeIntervals: [], weekdays: [] }
 
-describe('toArrayString', () => {
+describe('joinAsFrenchList', () => {
   it('joins words as a French enumeration', () => {
-    expect(toArrayString([])).toBeUndefined()
-    expect(toArrayString(['a'])).toBe('a')
-    expect(toArrayString(['a', 'b'])).toBe('a et b')
-    expect(toArrayString(['a', 'b', 'c'])).toBe('a, b et c')
+    expect(joinAsFrenchList([])).toBeUndefined()
+    expect(joinAsFrenchList(['a'])).toBe('a')
+    expect(joinAsFrenchList(['a', 'b'])).toBe('a et b')
+    expect(joinAsFrenchList(['a', 'b', 'c'])).toBe('a, b et c')
   })
 })
 

@@ -1,28 +1,22 @@
-import { MarkdownText } from '@components/Elements/MarkdownText'
-import type { GearRegulation } from '@domain/entities/regulatoryAreas/FishRegulation'
-import { regulatedGearsIsNotEmpty } from '../../utils/fishRegulation/regulatoryContent'
-import { styles } from '../style'
+import {
+  type GearRegulation,
+  hasGearRegulation,
+  hasRegulatedGears
+} from '@domain/entities/regulatoryAreas/FishRegulation'
 import { RegulatedGears } from './RegulatedGears'
-import { Section } from './Section'
+import { RegulationSection } from './RegulationSection'
 
 export function GearRegulationSection({ gearRegulation }: { gearRegulation: GearRegulation | undefined }) {
-  if (!gearRegulation) {
+  if (!hasGearRegulation(gearRegulation)) {
     return null
   }
 
   const { authorized, otherInfo, unauthorized } = gearRegulation
-  const hasAuthorizedContent = regulatedGearsIsNotEmpty(authorized)
-  const hasUnauthorizedContent = regulatedGearsIsNotEmpty(unauthorized)
-
-  if (!hasAuthorizedContent && !hasUnauthorizedContent && !otherInfo) {
-    return null
-  }
 
   return (
-    <Section>
-      {hasAuthorizedContent && <RegulatedGears authorized regulatedGears={authorized} />}
-      {hasUnauthorizedContent && <RegulatedGears authorized={false} regulatedGears={unauthorized} />}
-      {!!otherInfo && <MarkdownText style={styles.horizontalPadding} value={otherInfo} />}
-    </Section>
+    <RegulationSection otherInfo={otherInfo}>
+      {hasRegulatedGears(authorized) && <RegulatedGears status="authorized" regulatedGears={authorized} />}
+      {hasRegulatedGears(unauthorized) && <RegulatedGears status="forbidden" regulatedGears={unauthorized} />}
+    </RegulationSection>
   )
 }

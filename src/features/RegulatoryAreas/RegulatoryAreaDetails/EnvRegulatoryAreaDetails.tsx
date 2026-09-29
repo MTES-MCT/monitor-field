@@ -6,15 +6,19 @@ import type { EnvRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/
 import { Spacing } from '@constants/theme'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import daysjs from 'dayjs'
-import { useCallback, useMemo } from 'react'
-import { CloseButton } from '@components/Buttons/CloseButton'
-import { Image } from 'expo-image'
-import { logToSentry } from '@utils/sentryLogger'
+import { useMemo } from 'react'
 import { useGlobalStyle } from '@globalStyle'
-import * as Linking from 'expo-linking'
-import useMatomo from '@matomo/useMatomo'
+import { useOpenExternalLink, type TrackingEvent } from '@hooks/useOpenExternalLink'
+import { ContactFooter } from './ContactFooter'
+import { DetailsHeader } from './DetailsHeader'
 
 const CACEM_TEL_NUMBER = process.env.EXPO_PUBLIC_CACEM_NUMBER
+
+const LEGICEM_TRACKING_EVENT: TrackingEvent = {
+  action: "Consultation d'un lien Légicem",
+  category: 'Consultation',
+  name: "Consultation d'un lien Légicemen depuis une zone réglementaire"
+}
 
 export function EnvRegulatoryAreaDetails({
   color,
@@ -27,47 +31,8 @@ export function EnvRegulatoryAreaDetails({
 }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
-  const { trackEvent } = useMatomo()
 
-  const goToLegicem = useCallback(
-    async (url: string) => {
-      const supported = await Linking.canOpenURL(url)
-
-      if (supported) {
-        await Linking.openURL(url)
-        trackEvent({
-          action: "Consultation d'un lien Légicem",
-          category: 'Consultation',
-          name: "Consultation d'un lien Légicemen depuis une zone réglementaire"
-        })
-      } else {
-        logToSentry(`Don't know how to open this URL: ${url}`, 'info', {
-          extra: { label: 'EnvRegulatoryAreaDetails' }
-        })
-      }
-    },
-    [trackEvent]
-  )
-
-  const callCacem = useCallback(async () => {
-    const url = `tel:${CACEM_TEL_NUMBER}`
-
-    try {
-      await Linking.openURL(url)
-      trackEvent({
-        action: 'Appel CACEM',
-        category: 'Support',
-        name: 'Appel CACEM depuis une zone réglementaire'
-      })
-    } catch (error) {
-      logToSentry(`Failed to open URL: ${url}`, 'error', {
-        extra: {
-          error,
-          label: 'EnvRegulatoryAreaDetails'
-        }
-      })
-    }
-  }, [])
+  const goToLegicem = useOpenExternalLink(LEGICEM_TRACKING_EVENT, 'EnvRegulatoryAreaDetails')
 
   const groupTitle = useMemo(() => {
     if (!regulatoryArea || !regulatoryArea.layerName) {
@@ -83,24 +48,13 @@ export function EnvRegulatoryAreaDetails({
 
   return (
     <>
-      <View style={styles.titleWrapper}>
-        <View style={{ flex: 1 }}>
-          <ThemedText type="small" style={styles.titleText}>
-            {groupTitle}
-          </ThemedText>
-          <View style={styles.title}>
-            <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
-            <ThemedText
-              type="default"
-              style={styles.titleText}
-              numberOfLines={!regulatoryArea.polyName ? 1 : undefined}
-            >
-              {getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
-            </ThemedText>
-          </View>
-        </View>
-        <CloseButton onClose={onDismiss} />
-      </View>
+      <DetailsHeader
+        color={color}
+        numberOfLines={!regulatoryArea.polyName ? 1 : undefined}
+        onDismiss={onDismiss}
+        subtitle={groupTitle}
+        title={getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
+      />
       <View style={styles.content}>
         {regulatoryArea.edition && (
           <ThemedText type="small" style={[styles.labelStyle, { fontStyle: 'italic' }]}>
@@ -182,16 +136,7 @@ export function EnvRegulatoryAreaDetails({
             {regulatoryArea.url}
           </ThemedText>
         </View>
-        <View style={globalStyle.separator} />
-        <View style={[styles.horizontalPadding, { alignItems: 'center', flexDirection: 'row', gap: Spacing.two }]}>
-          <Image source={require('@assets/icons/info.svg')} tintColor={theme.slateGray} style={globalStyle.iconSmall} />
-          <ThemedText type="small">
-            Pour plus d’informations, {' \n'}appeler le CACEM au{' '}
-            <ThemedText type="link" onPress={callCacem} style={globalStyle.textUnderline}>
-              {CACEM_TEL_NUMBER}
-            </ThemedText>
-          </ThemedText>
-        </View>
+        <ContactFooter phoneNumber={CACEM_TEL_NUMBER} serviceName="CACEM" />
       </View>
     </>
   )

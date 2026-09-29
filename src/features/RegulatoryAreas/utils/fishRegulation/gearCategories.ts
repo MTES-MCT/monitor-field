@@ -45,40 +45,45 @@ export const TOWED_GEARS_INFO = 'Chaluts, sennes traînantes, dragues et gangui'
 export const PASSIVE_GEARS_INFO =
   'Filets maillants et emmêlants, filets soulevés, lignes et hameçons, pièges et casiers, palangres'
 
+export const UNCATEGORIZED = ''
+
 export type GearCategoryRow = {
   name: string
   category: GearCategory | undefined
   gears: Gear[]
 }
 
-export function getGearCategoryRows({
-  allPassiveGears,
-  allTowedGears,
-  regulatedGearCategories,
-  regulatedGears
-}: RegulatedGears): GearCategoryRow[] {
-  const coveredCategories = new Set([
-    ...(allTowedGears ? TOWED_GEAR_CATEGORIES : []),
-    ...(allPassiveGears ? PASSIVE_GEAR_CATEGORIES : [])
-  ])
-  const gears = Object.values(regulatedGears)
+export function getGearCategoryRows(regulatedGears: RegulatedGears): GearCategoryRow[] {
+  const coveredCategories = getCoveredCategories(regulatedGears)
+  const regulatedCategories = Object.keys(regulatedGears.regulatedGearCategories).filter(
+    name => !coveredCategories.has(name)
+  )
+  const gears = Object.values(regulatedGears.regulatedGears)
 
-  const names = new Set([
-    ...Object.keys(regulatedGearCategories).filter(name => !coveredCategories.has(name)),
-    ...gears.map(gear => gear.category ?? '')
-  ])
-  const sortedNames = [
-    ...SORTED_CATEGORY_LIST.filter(name => names.has(name)),
-    ...[...names].filter(name => !SORTED_CATEGORY_LIST.includes(name))
-  ]
-
-  return sortedNames.map(name => {
-    const category = coveredCategories.has(name) ? undefined : regulatedGearCategories[name]
+  return sortCategories([...regulatedCategories, ...gears.map(categoryOf)]).map(name => {
+    const category = coveredCategories.has(name) ? undefined : regulatedGears.regulatedGearCategories[name]
 
     return {
       category,
-      gears: category ? [] : gears.filter(gear => (gear.category ?? '') === name),
+      gears: category ? [] : gears.filter(gear => categoryOf(gear) === name),
       name
     }
   })
+}
+
+function getCoveredCategories({ allPassiveGears, allTowedGears }: RegulatedGears): Set<string> {
+  return new Set([...(allTowedGears ? TOWED_GEAR_CATEGORIES : []), ...(allPassiveGears ? PASSIVE_GEAR_CATEGORIES : [])])
+}
+
+function sortCategories(names: string[]): string[] {
+  const uniqueNames = new Set(names)
+
+  return [
+    ...SORTED_CATEGORY_LIST.filter(name => uniqueNames.has(name)),
+    ...[...uniqueNames].filter(name => !SORTED_CATEGORY_LIST.includes(name))
+  ]
+}
+
+function categoryOf(gear: Gear): string {
+  return gear.category ?? UNCATEGORIZED
 }

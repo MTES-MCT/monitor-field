@@ -9,73 +9,78 @@ import { useTheme } from '@hooks/use-theme'
 import { View } from 'react-native'
 import {
   CATEGORY_LABEL,
+  type GearCategoryRow,
   getGearCategoryRows,
   PASSIVE_GEARS_INFO,
-  TOWED_GEARS_INFO
+  TOWED_GEARS_INFO,
+  UNCATEGORIZED
 } from '../../utils/fishRegulation/gearCategories'
-import { getMeshLabel } from '../../utils/fishRegulation/regulatoryContent'
+import { formatCodeAndName, getMeshLabel } from '../../utils/fishRegulation/regulationLabels'
 import { styles } from '../style'
-import { SectionTitle } from './SectionTitle'
+import { type RegulationStatus, SectionTitle } from './SectionTitle'
 
 export function RegulatedGears({
-  authorized,
-  regulatedGears
+  regulatedGears,
+  status
 }: {
-  authorized: boolean
   regulatedGears: RegulatedGearsType
+  status: RegulationStatus
 }) {
   const theme = useTheme()
   const { allGears, allPassiveGears, allTowedGears, derogation } = regulatedGears
 
   return (
     <View style={styles.regulationBlock}>
-      <SectionTitle authorized={authorized}>{`Engins ${authorized ? 'réglementés' : 'interdits'}`}</SectionTitle>
+      <SectionTitle status={status}>{`Engins ${status === 'authorized' ? 'réglementés' : 'interdits'}`}</SectionTitle>
       {allGears ? (
         <ThemedText type="default" style={styles.horizontalPadding}>
           Tous les engins
         </ThemedText>
       ) : (
         <View style={styles.regulationList}>
-          {!!allTowedGears && (
-            <View style={styles.horizontalPadding}>
-              <ThemedText type="default">Tous les engins traînants</ThemedText>
-              <ThemedText type="small" themeColor="slateGray">
-                {TOWED_GEARS_INFO}
-              </ThemedText>
-            </View>
-          )}
-          {!!allPassiveGears && (
-            <View style={styles.horizontalPadding}>
-              <ThemedText type="default">Tous les engins dormants</ThemedText>
-              <ThemedText type="small" themeColor="slateGray">
-                {PASSIVE_GEARS_INFO}
-              </ThemedText>
-            </View>
-          )}
+          {!!allTowedGears && <GearGroupRow label="Tous les engins traînants" info={TOWED_GEARS_INFO} />}
+          {!!allPassiveGears && <GearGroupRow label="Tous les engins dormants" info={PASSIVE_GEARS_INFO} />}
           {getGearCategoryRows(regulatedGears).map(row => (
-            <View key={row.name} style={styles.horizontalPadding}>
-              {!!row.name && <ThemedText type="defaultBold">{row.name}</ThemedText>}
-              {row.category ? (
-                <GearFields label={CATEGORY_LABEL[row.name]} gearOrCategory={row.category} />
-              ) : (
-                row.gears.map(gear => (
-                  <GearFields
-                    key={gear.code}
-                    label={gear.name ? `${gear.code} (${gear.name})` : gear.code}
-                    gearOrCategory={gear}
-                  />
-                ))
-              )}
-            </View>
+            <GearCategoryBlock key={row.name} row={row} />
           ))}
         </View>
       )}
-      {!authorized && !!derogation && (
+      {status === 'forbidden' && !!derogation && (
         <View style={[styles.derogation, { borderColor: theme.goldenPoppy }]}>
           <ThemedText type="small" themeColor="slateGray">
             Mesures dérogatoires : consulter les références réglementaires
           </ThemedText>
         </View>
+      )}
+    </View>
+  )
+}
+
+function GearGroupRow({ info, label }: { info: string; label: string }) {
+  return (
+    <View style={styles.horizontalPadding}>
+      <ThemedText type="default">{label}</ThemedText>
+      <ThemedText type="small" themeColor="slateGray">
+        {info}
+      </ThemedText>
+    </View>
+  )
+}
+
+function GearCategoryBlock({ row: { category, gears, name } }: { row: GearCategoryRow }) {
+  return (
+    <View style={styles.horizontalPadding}>
+      {name !== UNCATEGORIZED && <ThemedText type="defaultBold">{name}</ThemedText>}
+      {category ? (
+        <GearFields label={CATEGORY_LABEL[name]} gearOrCategory={category} />
+      ) : (
+        gears.map((gear, index) => (
+          <GearFields
+            key={`${index}-${gear.code}`}
+            label={formatCodeAndName(gear.code, gear.name)}
+            gearOrCategory={gear}
+          />
+        ))
       )}
     </View>
   )

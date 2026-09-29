@@ -15,7 +15,7 @@ export function FishingPeriodSection({ fishingPeriod }: { fishingPeriod: Fishing
 
   return (
     <Section>
-      <SectionTitle authorized={!!fishingPeriod.authorized}>
+      <SectionTitle status={fishingPeriod.authorized ? 'authorized' : 'forbidden'}>
         {`Période de pêche ${fishingPeriod.authorized ? 'autorisée' : 'interdite'}`}
       </SectionTitle>
       {!!text && (

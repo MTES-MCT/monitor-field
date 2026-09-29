@@ -22,6 +22,11 @@ export const styles = StyleSheet.create({
     height: 10,
     width: 10
   },
+  contact: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two
+  },
   content: {
     paddingBottom: 80,
     paddingTop: Spacing.two

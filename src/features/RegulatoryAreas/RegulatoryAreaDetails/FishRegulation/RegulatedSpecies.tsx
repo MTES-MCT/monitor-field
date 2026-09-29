@@ -2,21 +2,24 @@ import { MarkdownText } from '@components/Elements/MarkdownText'
 import { ThemedText } from '@components/Elements/Text'
 import type { RegulatedSpecies as RegulatedSpeciesType } from '@domain/entities/regulatoryAreas/FishRegulation'
 import { View } from 'react-native'
+import { formatCodeAndName } from '../../utils/fishRegulation/regulationLabels'
 import { styles } from '../style'
-import { SectionTitle } from './SectionTitle'
+import { type RegulationStatus, SectionTitle } from './SectionTitle'
 
 export function RegulatedSpecies({
-  authorized,
-  regulatedSpecies
+  regulatedSpecies,
+  status
 }: {
-  authorized: boolean
   regulatedSpecies: RegulatedSpeciesType
+  status: RegulationStatus
 }) {
   const { allSpecies, species, speciesGroups } = regulatedSpecies
 
   return (
     <View style={styles.regulationBlock}>
-      <SectionTitle authorized={authorized}>{`Espèces ${authorized ? 'réglementées' : 'interdites'}`}</SectionTitle>
+      <SectionTitle status={status}>
+        {`Espèces ${status === 'authorized' ? 'réglementées' : 'interdites'}`}
+      </SectionTitle>
       {allSpecies ? (
         <ThemedText type="default" style={styles.horizontalPadding}>
           Toutes les espèces
@@ -25,7 +28,7 @@ export function RegulatedSpecies({
         <View style={styles.regulationList}>
           {species.map(({ code, name, remarks }, index) => (
             <View key={`${index}-${code}`} style={styles.horizontalPadding}>
-              <ThemedText type="default">{name ? `${code} (${name})` : code}</ThemedText>
+              <ThemedText type="default">{formatCodeAndName(code, name)}</ThemedText>
               {!!remarks && <MarkdownText style={styles.indented} value={remarks} />}
             </View>
           ))}

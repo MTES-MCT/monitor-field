@@ -53,6 +53,10 @@ function toArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value.filter(item => item !== null && item !== undefined) as T[]) : []
 }
 
+function toOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined
+}
+
 function toRecord<T>(value: unknown): Record<string, T> {
   return isObject(value) ? (value as Record<string, T>) : {}
 }
@@ -90,7 +94,7 @@ function toGearRegulation(value: unknown): GearRegulation | undefined {
 
   return {
     authorized: toRegulatedGears(value.authorized),
-    otherInfo: typeof value.otherInfo === 'string' ? value.otherInfo : undefined,
+    otherInfo: toOptionalString(value.otherInfo),
     unauthorized: toRegulatedGears(value.unauthorized)
   }
 }
@@ -114,7 +118,7 @@ function toSpeciesRegulation(value: unknown): SpeciesRegulation | undefined {
 
   return {
     authorized: toRegulatedSpecies(value.authorized),
-    otherInfo: typeof value.otherInfo === 'string' ? value.otherInfo : undefined,
+    otherInfo: toOptionalString(value.otherInfo),
     unauthorized: toRegulatedSpecies(value.unauthorized)
   }
 }
@@ -127,6 +131,6 @@ function toRegulatoryReferences(value: unknown): RegulatoryReference[] {
       ...(reference as Partial<RegulatoryReference>),
       reference: reference.reference as string,
       textType: toArray(reference.textType),
-      url: typeof reference.url === 'string' ? reference.url : ''
+      url: toOptionalString(reference.url) ?? ''
     }))
 }

@@ -99,3 +99,58 @@ export type FishRegulation = {
   regulatoryReferences: RegulatoryReference[]
   speciesRegulation: SpeciesRegulation | undefined
 }
+
+export function hasRegulatedGears(regulatedGears: RegulatedGears | undefined): regulatedGears is RegulatedGears {
+  return (
+    !!regulatedGears &&
+    (!!regulatedGears.allGears ||
+      !!regulatedGears.allTowedGears ||
+      !!regulatedGears.allPassiveGears ||
+      Object.keys(regulatedGears.regulatedGears).length > 0 ||
+      Object.keys(regulatedGears.regulatedGearCategories).length > 0 ||
+      !!regulatedGears.derogation)
+  )
+}
+
+export function hasRegulatedSpecies(
+  regulatedSpecies: RegulatedSpecies | undefined
+): regulatedSpecies is RegulatedSpecies {
+  return (
+    !!regulatedSpecies &&
+    (!!regulatedSpecies.allSpecies || regulatedSpecies.species.length > 0 || regulatedSpecies.speciesGroups.length > 0)
+  )
+}
+
+export function hasGearRegulation(gearRegulation: GearRegulation | undefined): gearRegulation is GearRegulation {
+  return (
+    !!gearRegulation &&
+    (hasRegulatedGears(gearRegulation.authorized) ||
+      hasRegulatedGears(gearRegulation.unauthorized) ||
+      !!gearRegulation.otherInfo)
+  )
+}
+
+export function hasSpeciesRegulation(
+  speciesRegulation: SpeciesRegulation | undefined
+): speciesRegulation is SpeciesRegulation {
+  return (
+    !!speciesRegulation &&
+    (hasRegulatedSpecies(speciesRegulation.authorized) ||
+      hasRegulatedSpecies(speciesRegulation.unauthorized) ||
+      !!speciesRegulation.otherInfo)
+  )
+}
+
+export function isOutdated({ endDate }: RegulatoryReference, today: Date): boolean {
+  if (!endDate || endDate === 'infinite') {
+    return false
+  }
+
+  const end = new Date(endDate)
+
+  return !Number.isNaN(end.getTime()) && end < today
+}
+
+export function hasOutdatedReference(references: RegulatoryReference[], today: Date): boolean {
+  return references.some(reference => isOutdated(reference, today))
+}

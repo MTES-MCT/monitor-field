@@ -4,6 +4,8 @@ import { useMemo } from 'react'
 import { type StyleProp, View, type ViewStyle } from 'react-native'
 import { type MarkedStyles, useMarkdown } from 'react-native-marked'
 
+const LINK_COLOR = '#295EDB'
+
 // `<Markdown>` renders a FlatList, which cannot be nested in a ScrollView.
 export function MarkdownText({ style, value }: { style?: StyleProp<ViewStyle>; value: string }) {
   const theme = useTheme()
@@ -13,7 +15,7 @@ export function MarkdownText({ style, value }: { style?: StyleProp<ViewStyle>; v
     const styles: MarkedStyles = {
       em: { ...text, fontFamily: Fonts.sansItalic, fontStyle: 'normal' },
       li: text,
-      link: { ...text, color: '#295EDB', fontStyle: 'normal', textDecorationLine: 'underline' },
+      link: { ...text, color: LINK_COLOR, fontStyle: 'normal', textDecorationLine: 'underline' },
       paragraph: { paddingVertical: 0 },
       strong: { ...text, fontFamily: Fonts.sansBold, fontWeight: 'normal' },
       text
@@ -21,7 +23,7 @@ export function MarkdownText({ style, value }: { style?: StyleProp<ViewStyle>; v
 
     return {
       styles,
-      theme: { colors: { border: theme.lightGray, code: theme.cultured, link: '#295EDB', text: theme.text } }
+      theme: { colors: { border: theme.lightGray, code: theme.cultured, link: LINK_COLOR, text: theme.text } }
     }
   }, [theme])
 

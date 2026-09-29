@@ -1,28 +1,22 @@
-import { MarkdownText } from '@components/Elements/MarkdownText'
-import type { SpeciesRegulation } from '@domain/entities/regulatoryAreas/FishRegulation'
-import { regulatedSpeciesIsNotEmpty } from '../../utils/fishRegulation/regulatoryContent'
-import { styles } from '../style'
+import {
+  hasRegulatedSpecies,
+  hasSpeciesRegulation,
+  type SpeciesRegulation
+} from '@domain/entities/regulatoryAreas/FishRegulation'
 import { RegulatedSpecies } from './RegulatedSpecies'
-import { Section } from './Section'
+import { RegulationSection } from './RegulationSection'
 
 export function SpeciesRegulationSection({ speciesRegulation }: { speciesRegulation: SpeciesRegulation | undefined }) {
-  if (!speciesRegulation) {
+  if (!hasSpeciesRegulation(speciesRegulation)) {
     return null
   }
 
   const { authorized, otherInfo, unauthorized } = speciesRegulation
-  const hasAuthorizedContent = regulatedSpeciesIsNotEmpty(authorized)
-  const hasUnauthorizedContent = regulatedSpeciesIsNotEmpty(unauthorized)
-
-  if (!hasAuthorizedContent && !hasUnauthorizedContent && !otherInfo) {
-    return null
-  }
 
   return (
-    <Section>
-      {hasAuthorizedContent && <RegulatedSpecies authorized regulatedSpecies={authorized} />}
-      {hasUnauthorizedContent && <RegulatedSpecies authorized={false} regulatedSpecies={unauthorized} />}
-      {!!otherInfo && <MarkdownText style={styles.horizontalPadding} value={otherInfo} />}
-    </Section>
+    <RegulationSection otherInfo={otherInfo}>
+      {hasRegulatedSpecies(authorized) && <RegulatedSpecies status="authorized" regulatedSpecies={authorized} />}
+      {hasRegulatedSpecies(unauthorized) && <RegulatedSpecies status="forbidden" regulatedSpecies={unauthorized} />}
+    </RegulationSection>
   )
 }
