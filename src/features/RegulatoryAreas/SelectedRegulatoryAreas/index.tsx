@@ -10,6 +10,7 @@ import { ThemedText } from '@components/Elements/Text'
 import { StyleSheet } from 'react-native'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 import { animationConfigs } from '../RegulatoryAreaDetails'
+import { useBackHandler } from '@hooks/useBackHandler'
 
 const ORIGIN = 'CLICKED_FEATURES_LIST_MODAL'
 
@@ -34,9 +35,9 @@ export const SelectedRegulatoryAreas = ({
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
   const onClose = useCallback(() => {
-    setActiveModal(undefined)
     setClickedFeaturesList(undefined)
     setClickedCoordinate(undefined)
+    setActiveModal(undefined)
     setIsolatedRegulatoryAreaId(undefined)
   }, [setActiveModal, setClickedFeaturesList, setClickedCoordinate, setIsolatedRegulatoryAreaId])
 
@@ -47,6 +48,7 @@ export const SelectedRegulatoryAreas = ({
     skip: activeModal !== ORIGIN
   })
 
+  useBackHandler(onClose, activeModal === ORIGIN)
   useEffect(() => {
     if (activeModal === ORIGIN) {
       modalRef.current?.snapToIndex(1)

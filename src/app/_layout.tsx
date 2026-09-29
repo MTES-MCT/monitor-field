@@ -61,7 +61,7 @@ export default function TabLayout() {
             <CameraProvider>
               <BottomSheetModalProvider>
                 <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                  <StatusBar barStyle="light-content" />
+                  <StatusBar barStyle="dark-content" />
                   {!!isOnBoardingFinished ? (
                     <Stack
                       screenOptions={{

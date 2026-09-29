@@ -9,6 +9,7 @@ import { Image } from 'expo-image'
 import { useCallback, useRef } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
+import { ThemedText } from '@components/Elements/Text'
 
 type SearchInputProps = {
   onClose: () => void
@@ -82,6 +83,12 @@ export function SearchInput({ onClose, text, setText }: SearchInputProps) {
           )}
         </View>
       </View>
+      <View style={styles.informationMessage}>
+        <Image source={require('@assets/icons/attention-filled.svg')} style={globalStyle.iconSmall} />
+        <ThemedText type="small" themeColor="slateGray">
+          La recherche se fait dans la zone à l’écran
+        </ThemedText>
+      </View>
       <View style={globalStyle.separator} />
     </>
   )
@@ -94,7 +101,7 @@ const createStyles = theme =>
       flexDirection: 'row',
       gap: Spacing.two,
       marginHorizontal: Spacing.three,
-      marginVertical: Spacing.two
+      marginTop: Spacing.three
     },
     input: {
       color: '#2b3a4a',

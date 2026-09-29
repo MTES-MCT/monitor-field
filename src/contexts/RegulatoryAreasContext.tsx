@@ -4,6 +4,7 @@ import type { RegulatoryAreaFilters } from '@domain/entities/regulatoryAreas/Reg
 import type { RegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import type { ModalType } from './AppContext'
+import { useDelayedLoading } from '@hooks/useDelayedLoading'
 
 export type RegulatoryAreaListItem = RegulatoryAreaSummary
 
@@ -41,7 +42,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
   const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
-
+  const showLoader = useDelayedLoading(isLoading, 10)
   const [filters, setFilters] = useState<Filters>({
     recentlyAddedOrModified: false,
     searchQueryEnv: undefined,
@@ -59,14 +60,13 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
     setTotalCount(areas.length)
   }, [])
 
-  // Memoised: without it every state change here re-renders the map screen, which rebuilds
   // the whole map style.
   const value = useMemo(
     () => ({
       areRegulatoryAreasLayerVisible,
       clickedFeaturesList,
       filters,
-      isLoading,
+      isLoading: showLoader,
       isolatedRegulatoryAreaId,
       regulatoryAreaDetailsOrigin,
       regulatoryAreas,
@@ -93,11 +93,10 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
       selectedRegulatoryArea,
       setRegulatoryAreas,
       setSearchBbox,
-      isLoading,
-      setIsLoading,
       totalCount,
       regulatoryAreaDetailsOrigin,
-      setRegulatoryAreaDetailsOrigin
+      setRegulatoryAreaDetailsOrigin,
+      showLoader
     ]
   )
 

@@ -115,14 +115,13 @@ export function useRegulatoryAreasLayer(): RegulatoryAreasLayerProps {
       mode: config.mode
     }
 
-    setIsLoading(true)
-
     const requestId = ++requestIdRef.current
 
     try {
       if (requestIdRef.current !== requestId) {
         return
       }
+      setIsLoading(true)
       const result = await getRegulatoryAreasInBoundingBox(config.mode, bbox, filters)
 
       if (requestIdRef.current === requestId) {

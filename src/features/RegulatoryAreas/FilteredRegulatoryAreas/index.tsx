@@ -15,6 +15,7 @@ import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
 import { CloseButton } from '@components/Buttons/CloseButton'
 import { animationConfigs } from '../RegulatoryAreaDetails'
+import { useBackHandler } from '@hooks/useBackHandler'
 
 type FilteredRegulatoryAreasProps = {
   setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
@@ -40,9 +41,11 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       : (filters.searchQueryFish?.trim() ?? undefined)
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     setActiveModal(undefined)
-  }
+  }, [setActiveModal])
+
+  useBackHandler(onClose, activeModal === ORIGIN)
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
@@ -56,6 +59,11 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       ...(config.mode === 'MONITORENV' ? { searchQueryEnv: undefined } : { searchQueryFish: undefined })
     }))
   }, [config.mode, setFilters])
+
+  const onSearchFocus = useCallback(() => {
+    onClose()
+    router.push(`/search?origin=${ORIGIN}`)
+  }, [onClose, router])
 
   useEffect(() => {
     if (activeModal === ORIGIN) {
@@ -91,10 +99,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
             style={styles.input}
             value={searchQuery}
             onChangeText={() => {}}
-            onFocus={() => {
-              onClose()
-              router.push('/search')
-            }}
+            onFocus={onSearchFocus}
             placeholder="Rechercher"
           />
           {searchQuery && searchQuery.length > 0 ? (
@@ -119,8 +124,8 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
           searchQuery?.trim() ? (
-            <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
-              Aucune zone réglementaire ne correspond à cette recherche.
+            <ThemedText type="defaultItalic" themeColor="textSecondary" style={styles.emptyState}>
+              Aucune réglementation ne correspond à cette recherche dans la zone affichée à l’écran.
             </ThemedText>
           ) : null
         }
@@ -132,7 +137,8 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 const createStyles = theme =>
   StyleSheet.create({
     emptyState: {
-      paddingHorizontal: Spacing.four
+      paddingHorizontal: Spacing.four,
+      textAlign: 'center'
     },
     input: {
       color: '#2b3a4a',

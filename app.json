@@ -60,6 +60,14 @@
         }
       ],
       [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": true,
+          "hidden": false,
+          "style": "dark"
+        }
+      ],
+      [
         "@maplibre/maplibre-react-native"
       ],
       [
@@ -81,6 +89,9 @@
         "projectId": "30661d74-0725-4cc0-a925-ce9a6a42b88d"
       }
     },
-    "owner": "monitorfield"
+    "owner": "monitorfield",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.monitorfield"
+    }
   }
 }

@@ -10,6 +10,7 @@ import type {
 } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { useAppContext } from '@contexts/AppContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
+import { useBackHandler } from '@hooks/useBackHandler'
 
 export const animationConfigs = {
   damping: 150,
@@ -18,7 +19,7 @@ export const animationConfigs = {
   restSpeedThreshold: 0.1,
   stiffness: 500
 }
-
+const ORIGIN = 'REGULATORY_AREA_DETAILS_MODAL'
 export const RegulatoryAreaDetails = () => {
   const { activeModal, config, setActiveModal } = useAppContext()
   const { selectedRegulatoryArea, setSelectedRegulatoryArea, regulatoryAreaDetailsOrigin } = useRegulatoryAreasContext()
@@ -34,9 +35,10 @@ export const RegulatoryAreaDetails = () => {
     setActiveModal(regulatoryAreaDetailsOrigin)
     setSelectedRegulatoryArea(undefined)
   }
+  useBackHandler(onClose, activeModal === ORIGIN)
 
   useEffect(() => {
-    if (activeModal === 'REGULATORY_AREA_DETAILS_MODAL') {
+    if (activeModal === ORIGIN) {
       modalRef.current?.snapToIndex(1)
     } else {
       modalRef.current?.close()
