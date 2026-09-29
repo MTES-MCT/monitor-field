@@ -12,6 +12,13 @@ import useMatomo from '@matomo/useMatomo'
 import { logToSentry } from '@utils/sentryLogger'
 import { useGlobalStyle } from '@globalStyle'
 import * as Linking from 'expo-linking'
+import { FishingPeriodSection } from './FishRegulation/FishingPeriodSection'
+import { GearRegulationSection } from './FishRegulation/GearRegulationSection'
+import { GeneralRemarksSection } from './FishRegulation/GeneralRemarksSection'
+import { OutdatedReferencesWarning } from './FishRegulation/OutdatedReferencesWarning'
+import { RegulatoryReferences } from './FishRegulation/RegulatoryReferences'
+import { Section } from './FishRegulation/Section'
+import { SpeciesRegulationSection } from './FishRegulation/SpeciesRegulationSection'
 
 const CNSP_TEL_NUMBER = process.env.EXPO_PUBLIC_CNSP_NUMBER
 
@@ -52,6 +59,8 @@ export function FishRegulatoryAreaDetails({
     return null
   }
 
+  const { regulation } = regulatoryArea
+
   return (
     <>
       <View style={styles.titleWrapper}>
@@ -68,13 +77,22 @@ export function FishRegulatoryAreaDetails({
         </View>
         <CloseButton onClose={onDismiss} />
       </View>
+      <OutdatedReferencesWarning regulatoryReferences={regulation.regulatoryReferences} />
       <View style={styles.content}>
-        <ThemedText type="small" style={styles.labelStyle}>
-          Ensemble reg.
-        </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
-          {regulatoryArea.type}
-        </ThemedText>
+        <FishingPeriodSection fishingPeriod={regulation.fishingPeriod} />
+        <GearRegulationSection gearRegulation={regulation.gearRegulation} />
+        <SpeciesRegulationSection speciesRegulation={regulation.speciesRegulation} />
+        <GeneralRemarksSection generalRemarks={regulation.generalRemarks} />
+
+        <Section>
+          <ThemedText type="small" themeColor="slateGray" style={styles.horizontalPadding}>
+            Ensemble reg.
+          </ThemedText>
+          <ThemedText type="default" style={styles.horizontalPadding}>
+            {regulatoryArea.type}
+          </ThemedText>
+          <RegulatoryReferences regulatoryReferences={regulation.regulatoryReferences} />
+        </Section>
 
         <View style={globalStyle.separator} />
 

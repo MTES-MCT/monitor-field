@@ -26,6 +26,13 @@ export const styles = StyleSheet.create({
     paddingBottom: 80,
     paddingTop: Spacing.two
   },
+  derogation: {
+    borderWidth: 1,
+    marginHorizontal: Spacing.four,
+    marginTop: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.one
+  },
   emptyState: {
     paddingHorizontal: Spacing.four
   },
@@ -44,6 +51,9 @@ export const styles = StyleSheet.create({
   horizontalPadding: {
     paddingHorizontal: Spacing.four
   },
+  indented: {
+    paddingLeft: Spacing.five
+  },
   labelStyle: {
     color: 'slategray',
     marginTop: Spacing.three,
@@ -57,6 +67,20 @@ export const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: Spacing.four
+  },
+  referenceRow: {
+    flexDirection: 'row',
+    gap: Spacing.two
+  },
+  references: {
+    marginTop: Spacing.three
+  },
+  regulationBlock: {
+    gap: Spacing.two,
+    marginBottom: Spacing.three
+  },
+  regulationList: {
+    gap: Spacing.three
   },
   square: {
     borderWidth: 1,
@@ -78,5 +102,13 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.four
+  },
+  warning: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.two
   }
 })

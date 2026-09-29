@@ -174,12 +174,14 @@ export function buildFishAreaSummary(
   return {
     bbox: DEFAULT_STORED_BBOX,
     colorKey: 'yaleBlue',
-    fishingPeriods: null,
-    gears: null,
-    generalRemarks: null,
     id,
-    regulatoryReferences: null,
-    species: null,
+    regulation: {
+      fishingPeriod: undefined,
+      gearRegulation: undefined,
+      generalRemarks: undefined,
+      regulatoryReferences: [],
+      speciesRegulation: undefined
+    },
     theme: 'Thématique',
     totalByGroup: 1,
     type: toRegulationType('NAMO'),
