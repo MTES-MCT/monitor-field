@@ -44,7 +44,7 @@ export function EnvFilters() {
 
   const consultResults = () => setIsOpen(false)*/
 
-  useBackHandler(closeThemesSelector)
+  useBackHandler(closeThemesSelector, isThemesSelectorOpen)
 
   const borderStyle = useMemo(() => {
     if (activeModal && activeModal === 'REGULATORY_AREAS_LIST_MODAL') {

@@ -32,11 +32,13 @@ export default function SearchPage() {
     router.back()
     if (currentRouteInfo?.params?.origin === 'REGULATORY_AREAS_LIST_MODAL') {
       setActiveModal('REGULATORY_AREAS_LIST_MODAL')
+
       return
     }
     setActiveModal(undefined)
   }
-  useBackHandler(onDismiss, currentRouteInfo?.pathname === '/search')
+
+  useBackHandler(onDismiss, currentRouteInfo?.pathname.includes('/search'))
 
   useEffect(() => {
     trackScreenView({ name: 'Page Recherche' })
