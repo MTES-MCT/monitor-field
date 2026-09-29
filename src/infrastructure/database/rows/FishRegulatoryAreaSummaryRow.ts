@@ -1,3 +1,4 @@
+import { parseFishRegulation } from './parseFishRegulation'
 import type { FishRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 
 export const FISH_REGULATORY_AREA_SUMMARY_COLUMNS = `
@@ -34,12 +35,8 @@ export function toFishRegulatoryAreaSummary(row: FishRegulatoryAreaSummaryRow): 
       minLon: row.bbox_min_lon
     },
     colorKey: row.colorKey,
-    fishingPeriods: row.fishingPeriods,
-    gears: row.gears,
-    generalRemarks: row.generalRemarks,
     id: row.id,
-    regulatoryReferences: row.regulatoryReferences,
-    species: row.species,
+    regulation: parseFishRegulation(row),
     theme: row.theme,
     totalByGroup: row.totalByGroup,
     type: row.type,

@@ -1,4 +1,5 @@
 import type { BoundingBox } from '@/types/mapTypes'
+import type { FishRegulation } from './FishRegulation'
 
 // What the list and details show: no geometry (the map draws it from vector tiles), plus what is
 // computed when storing the area.
@@ -7,12 +8,7 @@ export type FishRegulatoryAreaSummary = {
   type: string
   theme: string
   zone: string
-  /** The raw `regulatory_references` JSON array, kept as delivered. */
-  regulatoryReferences: string | null
-  fishingPeriods: string | null
-  gears: string | null
-  species: string | null
-  generalRemarks: string | null
+  regulation: FishRegulation
   bbox: BoundingBox
   /** A key of the app mode palette. */
   colorKey: string

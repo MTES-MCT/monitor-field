@@ -53,6 +53,27 @@ describe('SqliteFishRegulatoryAreaSummaryRepository', () => {
     expect(area).not.toHaveProperty('bbox_min_lon')
   })
 
+  it('parses the regulation columns', async () => {
+    const { db } = createRecordingDb([
+      {
+        ...ROW,
+        fishingPeriods: '{"always": true, "authorized": false}',
+        generalRemarks: 'Autorisation requise',
+        regulatoryReferences: '[{"reference": "Arrêté 20/2018", "textType": ["creation"], "url": "https://legipeche"}]'
+      }
+    ])
+
+    const [area] = await createSqliteFishRegulatoryAreaSummaryRepository(db).findAll()
+
+    expect(area?.regulation).toEqual({
+      fishingPeriod: { always: true, authorized: false, dateRanges: [], dates: [], timeIntervals: [], weekdays: [] },
+      gearRegulation: undefined,
+      generalRemarks: 'Autorisation requise',
+      regulatoryReferences: [{ reference: 'Arrêté 20/2018', textType: ['creation'], url: 'https://legipeche' }],
+      speciesRegulation: undefined
+    })
+  })
+
   it('binds the bounding box overlap bounds in query order', async () => {
     const { db, statements } = createRecordingDb()
 
