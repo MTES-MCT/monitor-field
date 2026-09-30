@@ -42,7 +42,7 @@ export function RegulatoryAreasProvider({ children }: { children: React.ReactNod
   const [selectedRegulatoryArea, setSelectedRegulatoryArea] = useState<RegulatoryAreaListItem | undefined>(undefined)
   const [areRegulatoryAreasLayerVisible, setAreRegulatoryAreasLayerVisible] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
-  const showLoader = useDelayedLoading(isLoading, 10)
+  const showLoader = useDelayedLoading(isLoading, 1500)
   const [filters, setFilters] = useState<Filters>({
     recentlyAddedOrModified: false,
     searchQueryEnv: undefined,

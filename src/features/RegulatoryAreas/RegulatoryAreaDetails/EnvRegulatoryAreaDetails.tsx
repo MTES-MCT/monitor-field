@@ -6,7 +6,7 @@ import type { EnvRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/
 import { Spacing } from '@constants/theme'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import daysjs from 'dayjs'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useGlobalStyle } from '@globalStyle'
 import { useOpenExternalLink, type TrackingEvent } from '@hooks/useOpenExternalLink'
 import { ContactFooter } from './ContactFooter'
@@ -20,7 +20,7 @@ const LEGICEM_TRACKING_EVENT: TrackingEvent = {
   name: "Consultation d'un lien Légicemen depuis une zone réglementaire"
 }
 
-export function EnvRegulatoryAreaDetails({
+function EnvRegulatoryAreaDetailsComponent({
   color,
   regulatoryArea,
   onDismiss
@@ -143,3 +143,5 @@ export function EnvRegulatoryAreaDetails({
     </>
   )
 }
+
+export const EnvRegulatoryAreaDetails = memo(EnvRegulatoryAreaDetailsComponent)

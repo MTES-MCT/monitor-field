@@ -48,6 +48,21 @@ export const SelectedRegulatoryAreas = ({
     skip: activeModal !== ORIGIN
   })
 
+  const modalStyle = useMemo(
+    () => ({
+      backgroundColor: theme.white,
+      borderRadius: 0
+    }),
+    [theme.white]
+  )
+
+  const indicatorStyle = useMemo(
+    () => ({
+      backgroundColor: theme.lightGray
+    }),
+    [theme.lightGray]
+  )
+
   useBackHandler(onClose, activeModal === ORIGIN)
   useEffect(() => {
     if (activeModal === ORIGIN) {
@@ -66,13 +81,8 @@ export const SelectedRegulatoryAreas = ({
       enableDynamicSizing={false}
       enablePanDownToClose={false}
       topInset={insets.top}
-      handleStyle={{
-        backgroundColor: theme.gainsboro,
-        borderRadius: 0
-      }}
-      handleIndicatorStyle={{
-        backgroundColor: theme.lightGray
-      }}
+      handleStyle={modalStyle}
+      handleIndicatorStyle={indicatorStyle}
     >
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}

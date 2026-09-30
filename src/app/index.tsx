@@ -55,17 +55,15 @@ const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
 const MAPBOX_KEY = process.env.EXPO_PUBLIC_MAPBOX_KEY
 
-if (ENV !== 'dev' && SENTRY_DSN) {
-  Sentry.init({
-    attachStacktrace: false,
-    dsn: SENTRY_DSN,
-    enableAutoSessionTracking: false,
-    enableLogs: true,
-    environment: ENV,
-    integrations: [Sentry.mobileReplayIntegration()],
-    sendDefaultPii: false
-  })
-}
+Sentry.init({
+  attachStacktrace: false,
+  dsn: SENTRY_DSN,
+  enableAutoSessionTracking: false,
+  enableLogs: true,
+  environment: ENV,
+  integrations: [Sentry.mobileReplayIntegration()],
+  sendDefaultPii: false
+})
 
 export const CENTERED_ON_FRANCE: LngLat = [2.99049, 46.82801]
 
@@ -88,7 +86,7 @@ const baseMapStyle: StyleSpecification = {
   version: 8
 }
 
-const LOCATION_FOCUS_ZOOM = 12
+const LOCATION_FOCUS_ZOOM = 9
 
 function App() {
   const mapRef = useRef<MapRef>(null)
@@ -393,7 +391,7 @@ function App() {
   )
 }
 
-export default ENV === 'dev' ? App : Sentry.wrap(App)
+export default ENV === 'development' ? App : Sentry.wrap(App)
 
 const styles = StyleSheet.create({
   bottomWrapper: {

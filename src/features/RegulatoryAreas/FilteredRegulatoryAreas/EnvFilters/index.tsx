@@ -85,7 +85,7 @@ export function EnvFilters() {
         ]}
       >
         {filtersCount > 0 && (
-          <View style={[globalStyle.dot]}>
+          <View style={globalStyle.dot}>
             <ThemedText type="small" themeColor="white">
               {filtersCount}
             </ThemedText>

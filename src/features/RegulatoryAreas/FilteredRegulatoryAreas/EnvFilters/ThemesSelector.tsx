@@ -1,18 +1,18 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native'
 import { ThemedText } from '@components/Elements/Text'
 import { Checkbox } from '@components/Elements/Checkbox'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
 import { normalizeText } from '@utils/normalizeText'
-import { SearchThemes } from './SearchThemes'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreasLayer'
 import { getEnvThemesAndSubThemes } from '@features/RegulatoryAreas/useCases/getEnvThemesAndSubThemes'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SearchInput } from '@components/SearchInput'
 
 type ThemesSelectorProps = {
   onShowResults: () => void
@@ -20,6 +20,7 @@ type ThemesSelectorProps = {
 }
 
 export function ThemesSelector({ onShowResults, filtersCount }: ThemesSelectorProps) {
+  const inputRef = useRef<TextInput | null>(null)
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
   const { filters, setFilters, totalCount } = useRegulatoryAreasContext()
@@ -116,11 +117,17 @@ export function ThemesSelector({ onShowResults, filtersCount }: ThemesSelectorPr
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.searchWrapper}>
-        <SearchThemes value={searchQuery} onChangeText={setSearchQuery} />
-      </View>
+      <SearchInput
+        ref={inputRef}
+        isLight={false}
+        withBackButton={false}
+        searchText={searchQuery}
+        onChangeText={setSearchQuery}
+        onClearText={() => setSearchQuery('')}
+        style={{ flex: 0, marginHorizontal: Spacing.four }}
+      />
 
-      <ScrollView persistentScrollbar>
+      <ScrollView persistentScrollbar style={{ paddingHorizontal: Spacing.four }}>
         {filteredThemeEntries.map(([themeName, subThemes]) => {
           const isExpanded = expandedThemes[themeName] ?? false
 
@@ -203,7 +210,7 @@ const createStyles = theme =>
     },
     chevronIcon: {
       height: 20,
-      marginHorizontal: Spacing.four,
+      marginLeft: Spacing.four,
       tintColor: theme.slateGray,
       transform: [{ rotate: '180deg' }],
       width: 20
@@ -212,7 +219,6 @@ const createStyles = theme =>
       transform: [{ rotate: '270deg' }]
     },
     searchWrapper: {
-      paddingHorizontal: Spacing.four,
       paddingVertical: Spacing.three
     },
     showResultsButton: {

@@ -17,7 +17,10 @@ import { parseSeaFronts } from '@utils/parseSeaFronts'
 import MatomoProvider from '@matomo/MatomoProvider'
 import MatomoTracker from '@matomo'
 
+const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
+
 const tracker = new MatomoTracker({
+  disabled: ENV === 'development',
   siteId: 283,
   urlBase: 'https://stats.beta.gouv.fr/'
 })
@@ -54,7 +57,7 @@ export default function TabLayout() {
   }
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <MatomoProvider instance={tracker}>
         <AppProvider>
           <RegulatoryAreasProvider>
