@@ -1,4 +1,5 @@
 import type { FishRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
+import { memo } from 'react'
 import { View } from 'react-native'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { ContactFooter } from './ContactFooter'
@@ -13,7 +14,7 @@ import { styles } from './style'
 
 const CNSP_TEL_NUMBER = process.env.EXPO_PUBLIC_CNSP_NUMBER
 
-export function FishRegulatoryAreaDetails({
+function FishRegulatoryAreaDetailsComponent({
   color,
   regulatoryArea,
   onDismiss
@@ -44,3 +45,5 @@ export function FishRegulatoryAreaDetails({
     </>
   )
 }
+
+export const FishRegulatoryAreaDetails = memo(FishRegulatoryAreaDetailsComponent)

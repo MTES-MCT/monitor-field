@@ -6,16 +6,14 @@ import { useTheme } from '@hooks/use-theme'
 import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { StyleSheet, TextInput, View } from 'react-native'
 import { Spacing } from '@constants/theme'
-import { BackButton } from '@components/Buttons/BackButton'
 import { useRouter } from 'expo-router'
 import { EnvFilters } from './EnvFilters'
 import { ThemedText } from '@components/Elements/Text'
 import { useRegulatoryAreasList } from '../hooks/useRegulatoryAreasList'
 import { useGlobalStyle } from '@globalStyle'
-import { Image } from 'expo-image'
-import { CloseButton } from '@components/Buttons/CloseButton'
 import { animationConfigs } from '../RegulatoryAreaDetails'
 import { useBackHandler } from '@hooks/useBackHandler'
+import { SearchInput } from '@components/SearchInput'
 
 type FilteredRegulatoryAreasProps = {
   setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
@@ -24,6 +22,7 @@ type FilteredRegulatoryAreasProps = {
 const ORIGIN = 'REGULATORY_AREAS_LIST_MODAL'
 
 export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: FilteredRegulatoryAreasProps) => {
+  const inputRef = useRef<TextInput | null>(null)
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
   const router = useRouter()
@@ -40,11 +39,11 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       : (filters.searchQueryFish?.trim() ?? undefined)
   }, [config.mode, filters.searchQueryEnv, filters.searchQueryFish])
 
-  const onClose = useCallback(() => {
+  const closeModal = useCallback(() => {
     setActiveModal(undefined)
   }, [setActiveModal])
 
-  useBackHandler(onClose, activeModal === ORIGIN)
+  useBackHandler(closeModal, activeModal === ORIGIN)
 
   const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
@@ -59,10 +58,27 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
     }))
   }, [config.mode, setFilters])
 
-  const onSearchFocus = useCallback(() => {
-    onClose()
-    router.push(`/search?origin=${ORIGIN}`)
-  }, [onClose, router])
+  const focusSearchInput = useCallback(() => {
+    if (activeModal === ORIGIN) {
+      router.push(`/search?origin=${ORIGIN}`)
+      setActiveModal(undefined)
+    }
+  }, [setActiveModal, router, activeModal])
+
+  const modalStyle = useMemo(
+    () => ({
+      backgroundColor: theme.white,
+      borderRadius: 0
+    }),
+    [theme.white]
+  )
+
+  const indicatorStyle = useMemo(
+    () => ({
+      backgroundColor: theme.lightGray
+    }),
+    [theme.lightGray]
+  )
 
   useEffect(() => {
     if (activeModal === ORIGIN) {
@@ -81,35 +97,17 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       enableDynamicSizing={false}
       enablePanDownToClose={false}
       topInset={insets.top}
-      handleStyle={{
-        backgroundColor: theme.white,
-        borderRadius: 0
-      }}
-      handleIndicatorStyle={{
-        backgroundColor: theme.lightGray
-      }}
-      style={{ paddingBottom: 100 }}
+      handleStyle={modalStyle}
+      handleIndicatorStyle={indicatorStyle}
     >
       <View style={styles.filtersWrapper}>
-        <View style={globalStyle.searchBox}>
-          <BackButton onBack={onClose} style={{ marginLeft: Spacing.two }} />
-
-          <TextInput
-            style={globalStyle.input}
-            value={searchQuery}
-            onChangeText={() => {}}
-            onFocus={onSearchFocus}
-            placeholder="Rechercher"
-          />
-          {searchQuery && searchQuery.length > 0 ? (
-            <CloseButton onClose={clearText} isSmall style={{ marginRight: Spacing.two }} />
-          ) : (
-            <Image
-              source={require('@assets/icons/search.svg')}
-              style={[globalStyle.iconSmall, { marginRight: Spacing.two }]}
-            />
-          )}
-        </View>
+        <SearchInput
+          ref={inputRef}
+          searchText={searchQuery ?? ''}
+          onClearText={clearText}
+          onFocus={focusSearchInput}
+          onClose={closeModal}
+        />
         {config?.features?.hasRegulatoryAreasFilters && <EnvFilters />}
       </View>
       <View style={globalStyle.separator} />
@@ -138,9 +136,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four
   },
   filtersWrapper: {
+    alignItems: 'center',
     flexDirection: 'row',
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.one
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.one // Added top padding for the filters dot
   },
   listContent: {
     paddingBottom: Spacing.four

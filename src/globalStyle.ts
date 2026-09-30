@@ -18,7 +18,6 @@ export function useGlobalStyle() {
       backgroundColor: theme.blueGray,
       borderRadius: 10,
       height: 20,
-      justifyContent: 'center',
       left: 30,
       position: 'absolute',
       top: -5,
@@ -67,7 +66,14 @@ export function useGlobalStyle() {
       flex: 1,
       flexDirection: 'row',
       height: 48,
-      marginRight: Spacing.two,
+      paddingHorizontal: Spacing.one
+    },
+    searchBoxGray: {
+      alignItems: 'center',
+      backgroundColor: theme.gainsboro,
+      flex: 1,
+      flexDirection: 'row',
+      height: 48,
       paddingHorizontal: Spacing.one
     },
     separator: {
@@ -81,14 +87,6 @@ export function useGlobalStyle() {
       height: 48,
       justifyContent: 'center',
       width: 48
-    },
-    textInput: {
-      alignItems: 'center',
-      borderColor: theme.lightGray,
-      borderWidth: 1,
-      flexDirection: 'row',
-      fontFamily: Fonts.sans,
-      height: 48
     },
     textInputGray: {
       alignItems: 'center',

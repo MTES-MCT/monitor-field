@@ -1,7 +1,7 @@
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet'
 import { useTheme } from '@hooks/use-theme'
-import { useMemo, useRef, useEffect } from 'react'
+import { useMemo, useRef, useEffect, useCallback } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FishRegulatoryAreaDetails } from './FishRegulatoryAreaDetails'
 import type {
@@ -13,13 +13,13 @@ import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 import { useBackHandler } from '@hooks/useBackHandler'
 
 export const animationConfigs = {
-  damping: 150,
   overshootClamping: true,
-  restDisplacementThreshold: 0.1,
-  restSpeedThreshold: 0.1,
-  stiffness: 500
+  restDisplacementThreshold: 0.5,
+  restSpeedThreshold: 0.5
 }
+
 const ORIGIN = 'REGULATORY_AREA_DETAILS_MODAL'
+
 export const RegulatoryAreaDetails = () => {
   const { activeModal, config, setActiveModal } = useAppContext()
   const { selectedRegulatoryArea, setSelectedRegulatoryArea, regulatoryAreaDetailsOrigin } = useRegulatoryAreasContext()
@@ -31,11 +31,27 @@ export const RegulatoryAreaDetails = () => {
   const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     setActiveModal(regulatoryAreaDetailsOrigin)
     setSelectedRegulatoryArea(undefined)
-  }
+  }, [setActiveModal, setSelectedRegulatoryArea, regulatoryAreaDetailsOrigin])
+
   useBackHandler(onClose, activeModal === ORIGIN)
+
+  const modalStyle = useMemo(
+    () => ({
+      backgroundColor: theme.white,
+      borderRadius: 0
+    }),
+    [theme.white]
+  )
+
+  const indicatorStyle = useMemo(
+    () => ({
+      backgroundColor: theme.lightGray
+    }),
+    [theme.lightGray]
+  )
 
   useEffect(() => {
     if (activeModal === ORIGIN) {
@@ -54,13 +70,8 @@ export const RegulatoryAreaDetails = () => {
       enablePanDownToClose={false}
       topInset={insets?.top}
       animationConfigs={animationConfigs}
-      handleStyle={{
-        backgroundColor: theme.white,
-        borderRadius: 0
-      }}
-      handleIndicatorStyle={{
-        backgroundColor: theme.lightGray
-      }}
+      handleStyle={modalStyle}
+      handleIndicatorStyle={indicatorStyle}
     >
       <BottomSheetScrollView>
         {selectedRegulatoryArea && config.mode === 'MONITORFISH' && (

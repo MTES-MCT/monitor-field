@@ -96,11 +96,7 @@ export function UserFeedback() {
       <Modal visible={isFeedbackModalOpen} animationType="slide" transparent onRequestClose={close}>
         <SafeAreaView style={styles.overlay}>
           <KeyboardAvoidingView behavior="padding">
-            <ScrollView
-              style={styles.modalScroll}
-              contentContainerStyle={styles.modalWrapper}
-              keyboardShouldPersistTaps="handled"
-            >
+            <ScrollView style={styles.modalScroll} contentContainerStyle={styles.modalWrapper}>
               <View style={styles.titleWrapper}>
                 <View style={{ flex: 1 }}>
                   <ThemedText type="large">Retours utilisateurs</ThemedText>
@@ -117,7 +113,7 @@ export function UserFeedback() {
                 />
               </View>
               <View style={styles.inputWrapper}>
-                <ThemedText type="label">Email</ThemedText>
+                <ThemedText type="label">Unité / Email</ThemedText>
                 <TextInput
                   style={globalStyle.textInputGray}
                   value={email}
