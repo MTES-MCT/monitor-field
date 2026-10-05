@@ -157,6 +157,17 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const openRegulatoryAreaDetails = useCallback(
+    async (origin: ModalType) => {
+      const currentBbox = await mapRef.current?.getBounds()
+      const currentZoom = await mapRef.current?.getZoom()
+      setPreviousZoomAndBbox({ bbox: currentBbox, zoom: currentZoom })
+
+      setRegulatoryAreaDetailsOrigin(origin)
+    },
+    [mapRef, setPreviousZoomAndBbox, setRegulatoryAreaDetailsOrigin]
+  )
+
   const resolveClickedAreas = useCallback(
     async (point: PixelPoint) => {
       const features = await mapRef.current?.queryRenderedFeatures(point, {
@@ -187,6 +198,7 @@ function App() {
         // the details modal doesn't reopen a previous list/search sheet.
         setRegulatoryAreaDetailsOrigin(undefined)
         setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
+        openRegulatoryAreaDetails(undefined)
 
         setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
         setClickedCoordinate(undefined)
@@ -213,7 +225,8 @@ function App() {
       setClickedCoordinate,
       zoomOnRegulatoryArea,
       setClickedFeaturesList,
-      trackEvent
+      trackEvent,
+      openRegulatoryAreaDetails
     ]
   )
 
@@ -242,18 +255,11 @@ function App() {
     setRegulatoryAreaDetailsOrigin(undefined)
   }
 
-  const openRegulatoryAreaDetails = async (origin: ModalType) => {
-    const currentBbox = await mapRef.current?.getBounds()
-    const currentZoom = await mapRef.current?.getZoom()
-    setPreviousZoomAndBbox({ bbox: currentBbox, zoom: currentZoom })
-
-    setRegulatoryAreaDetailsOrigin(origin)
-  }
-
   const closeRegulatoryAreaDetails = (origin: ModalType) => {
     if (!previousZoomAndBbox?.bbox) {
       return
     }
+
     const [lonA, latA, lonB, latB] = previousZoomAndBbox?.bbox
     cameraRef.current?.fitBounds([lonA, latA, lonB, latB], {
       duration: 200,
@@ -396,7 +402,7 @@ function App() {
                 style={StyleSheet.flatten([globalStyle.squareButton, { backgroundColor: 'white' }])}
               >
                 {isRefreshingSettingsData && (
-                  <View style={globalStyle.dot}>
+                  <View style={[globalStyle.dot, { justifyContent: 'center' }]}>
                     <LoaderIcon tintColor="white" size="SMALL" />
                   </View>
                 )}

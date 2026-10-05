@@ -139,6 +139,7 @@ export function useRegulatoryAreasList({
   )
 
   const closeModal = useCallback(() => {
+    setExpandedGroup(undefined)
     onClose?.()
   }, [onClose])
 
