@@ -2,7 +2,7 @@ import { BackHandler, Pressable, StyleSheet, View, type NativeSyntheticEvent } f
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
-import { useAppContext } from '@contexts/AppContext'
+import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { useCameraContext } from '@contexts/CameraContext'
 
 import { BottomBar } from '@components/BottomBar'
@@ -92,10 +92,18 @@ function App() {
   const mapRef = useRef<MapRef>(null)
   const router = useRouter()
   const currentRouteInfo = useCurrentRouteInfo()
-  const { cameraRef, clickedCoordinate, setClickedCoordinate, zoomOnRegulatoryArea, currentZoom, setCurrentZoom } =
-    useCameraContext()
+  const {
+    cameraRef,
+    clickedCoordinate,
+    setClickedCoordinate,
+    zoomOnRegulatoryArea,
+    currentZoom,
+    setCurrentZoom,
+    setPreviousZoomAndBbox,
+    previousZoomAndBbox
+  } = useCameraContext()
   const globalStyle = useGlobalStyle()
-  const { trackEvent } = useMatomo()
+  const { trackEvent, trackAppStart } = useMatomo()
 
   const { config, activeModal, setActiveModal, isRefreshingSettingsData, withOverlay } = useAppContext()
   const { isLocationEnabled } = useLocationStatus()
@@ -234,7 +242,29 @@ function App() {
     setRegulatoryAreaDetailsOrigin(undefined)
   }
 
-  const { trackAppStart } = useMatomo()
+  const openRegulatoryAreaDetails = async (origin: ModalType) => {
+    const currentBbox = await mapRef.current?.getBounds()
+    const currentZoom = await mapRef.current?.getZoom()
+    setPreviousZoomAndBbox({ bbox: currentBbox, zoom: currentZoom })
+
+    setRegulatoryAreaDetailsOrigin(origin)
+  }
+
+  const closeRegulatoryAreaDetails = (origin: ModalType) => {
+    if (!previousZoomAndBbox?.bbox) {
+      return
+    }
+    const [lonA, latA, lonB, latB] = previousZoomAndBbox?.bbox
+    cameraRef.current?.fitBounds([lonA, latA, lonB, latB], {
+      duration: 200,
+      easing: 'ease',
+      zoom: previousZoomAndBbox?.zoom
+    })
+
+    setActiveModal(origin)
+    setSelectedRegulatoryArea(undefined)
+    setPreviousZoomAndBbox(undefined)
+  }
 
   useEffect(() => {
     async function initMatomo() {
@@ -383,9 +413,9 @@ function App() {
           <BottomBar searchByQuery={searchByQuery} />
         </View>
 
-        <SelectedRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
-        <FilteredRegulatoryAreas setRegulatoryAreaDetailsOrigin={setRegulatoryAreaDetailsOrigin} />
-        <RegulatoryAreaDetails />
+        <SelectedRegulatoryAreas openRegulatoryAreaDetails={openRegulatoryAreaDetails} />
+        <FilteredRegulatoryAreas openRegulatoryAreaDetails={openRegulatoryAreaDetails} />
+        <RegulatoryAreaDetails onClose={closeRegulatoryAreaDetails} />
       </SafeAreaView>
     </MapLibreMap>
   )

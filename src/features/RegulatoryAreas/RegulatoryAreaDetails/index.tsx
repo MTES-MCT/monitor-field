@@ -8,7 +8,7 @@ import type {
   FishRegulatoryAreaSummary,
   EnvRegulatoryAreaSummary
 } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
-import { useAppContext } from '@contexts/AppContext'
+import { useAppContext, type ModalType } from '@contexts/AppContext'
 import { EnvRegulatoryAreaDetails } from './EnvRegulatoryAreaDetails'
 import { useBackHandler } from '@hooks/useBackHandler'
 
@@ -20,9 +20,9 @@ export const animationConfigs = {
 
 const ORIGIN = 'REGULATORY_AREA_DETAILS_MODAL'
 
-export const RegulatoryAreaDetails = () => {
-  const { activeModal, config, setActiveModal } = useAppContext()
-  const { selectedRegulatoryArea, setSelectedRegulatoryArea, regulatoryAreaDetailsOrigin } = useRegulatoryAreasContext()
+export const RegulatoryAreaDetails = ({ onClose }: { onClose: (origin: ModalType) => void }) => {
+  const { activeModal, config } = useAppContext()
+  const { selectedRegulatoryArea, regulatoryAreaDetailsOrigin } = useRegulatoryAreasContext()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const snapPoints = useMemo(() => ['25%', '66%', '99%'], [])
@@ -31,12 +31,11 @@ export const RegulatoryAreaDetails = () => {
   const colorKey = selectedRegulatoryArea?.colorKey as keyof typeof theme
   const color = theme[colorKey] ?? theme.white
 
-  const onClose = useCallback(() => {
-    setActiveModal(regulatoryAreaDetailsOrigin)
-    setSelectedRegulatoryArea(undefined)
-  }, [setActiveModal, setSelectedRegulatoryArea, regulatoryAreaDetailsOrigin])
+  const close = useCallback(() => {
+    onClose(regulatoryAreaDetailsOrigin)
+  }, [regulatoryAreaDetailsOrigin, onClose])
 
-  useBackHandler(onClose, activeModal === ORIGIN)
+  useBackHandler(close, activeModal === ORIGIN)
 
   const modalStyle = useMemo(
     () => ({
@@ -78,14 +77,14 @@ export const RegulatoryAreaDetails = () => {
           <FishRegulatoryAreaDetails
             color={color}
             regulatoryArea={selectedRegulatoryArea as FishRegulatoryAreaSummary}
-            onDismiss={onClose}
+            onDismiss={close}
           />
         )}
         {selectedRegulatoryArea && config.mode === 'MONITORENV' && (
           <EnvRegulatoryAreaDetails
             color={color}
             regulatoryArea={selectedRegulatoryArea as EnvRegulatoryAreaSummary}
-            onDismiss={onClose}
+            onDismiss={close}
           />
         )}
       </BottomSheetScrollView>
