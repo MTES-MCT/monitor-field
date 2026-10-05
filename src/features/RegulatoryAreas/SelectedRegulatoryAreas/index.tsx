@@ -15,9 +15,9 @@ import { useBackHandler } from '@hooks/useBackHandler'
 const ORIGIN = 'CLICKED_FEATURES_LIST_MODAL'
 
 export const SelectedRegulatoryAreas = ({
-  setRegulatoryAreaDetailsOrigin
+  openRegulatoryAreaDetails
 }: {
-  setRegulatoryAreaDetailsOrigin: (origin: ModalType) => void
+  openRegulatoryAreaDetails: (origin: ModalType) => void
 }) => {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
@@ -41,9 +41,9 @@ export const SelectedRegulatoryAreas = ({
     setIsolatedRegulatoryAreaId(undefined)
   }, [setActiveModal, setClickedFeaturesList, setClickedCoordinate, setIsolatedRegulatoryAreaId])
 
-  const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
+  const { flattenedRows, expandedGroup, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
     onClose,
-    onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
+    onSelectRegulatoryArea: () => openRegulatoryAreaDetails(ORIGIN),
     origin: ORIGIN,
     skip: activeModal !== ORIGIN
   })
@@ -87,15 +87,15 @@ export const SelectedRegulatoryAreas = ({
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}
         data={areResultsVisible ? flattenedRows : []}
-        extraData={expandedGroups}
+        extraData={expandedGroup}
         keyExtractor={item => (item.type === 'group' ? `group-${item.group}` : `area-${item.group}-${item.area.id}`)}
         renderItem={renderRow}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
           searchQuery?.trim() ? (
-            <ThemedText type="small" themeColor="textSecondary" style={styles.emptyState}>
-              Aucune zone réglementaire ne correspond à cette recherche.
+            <ThemedText type="defaultItalic" themeColor="textSecondary" style={styles.emptyState}>
+              Aucune réglementation ne correspond à cette recherche dans la zone affichée à l’écran.
             </ThemedText>
           ) : null
         }
@@ -106,7 +106,9 @@ export const SelectedRegulatoryAreas = ({
 
 const styles = StyleSheet.create({
   emptyState: {
-    paddingHorizontal: Spacing.four
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.four,
+    textAlign: 'center'
   },
   listContent: {
     paddingBottom: Spacing.four

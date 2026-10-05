@@ -94,7 +94,7 @@ export default function SearchPage() {
       <View style={globalStyle.separator} />
       <View style={styles.searchListWrapper}>
         {text.length > 0 && (
-          <Pressable onPress={submitResearch} style={styles.searchItem}>
+          <Pressable onPress={submitResearch} style={styles.searchItem} hitSlop={18}>
             <Image source={require('@assets/icons/search.svg')} style={globalStyle.iconSmall} />
             <ThemedText type="default">{text}</ThemedText>
           </Pressable>

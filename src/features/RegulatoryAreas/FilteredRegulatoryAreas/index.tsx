@@ -16,12 +16,12 @@ import { useBackHandler } from '@hooks/useBackHandler'
 import { SearchInput } from '@components/SearchInput'
 
 type FilteredRegulatoryAreasProps = {
-  setRegulatoryAreaDetailsOrigin: (origin: ModalType | undefined) => void
+  openRegulatoryAreaDetails: (origin: ModalType | undefined) => void
 }
 
 const ORIGIN = 'REGULATORY_AREAS_LIST_MODAL'
 
-export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: FilteredRegulatoryAreasProps) => {
+export const FilteredRegulatoryAreas = ({ openRegulatoryAreaDetails }: FilteredRegulatoryAreasProps) => {
   const inputRef = useRef<TextInput | null>(null)
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
@@ -45,8 +45,8 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 
   useBackHandler(closeModal, activeModal === ORIGIN)
 
-  const { flattenedRows, expandedGroups, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
-    onSelectRegulatoryArea: () => setRegulatoryAreaDetailsOrigin(ORIGIN),
+  const { flattenedRows, expandedGroup, renderRow, renderHeader, areResultsVisible } = useRegulatoryAreasList({
+    onSelectRegulatoryArea: () => openRegulatoryAreaDetails(ORIGIN),
     origin: ORIGIN,
     shouldShowResults: true
   })
@@ -114,7 +114,7 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
       <BottomSheetFlatList
         style={{ marginBottom: Spacing.six }}
         data={areResultsVisible ? flattenedRows : []}
-        extraData={expandedGroups}
+        extraData={expandedGroup}
         keyExtractor={item => (item.type === 'group' ? `group-${item.group}` : `area-${item.group}-${item.area.id}`)}
         renderItem={renderRow}
         contentContainerStyle={styles.listContent}
@@ -133,7 +133,9 @@ export const FilteredRegulatoryAreas = ({ setRegulatoryAreaDetailsOrigin }: Filt
 
 const styles = StyleSheet.create({
   emptyState: {
-    paddingHorizontal: Spacing.four
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.four,
+    textAlign: 'center'
   },
   filtersWrapper: {
     alignItems: 'center',

@@ -82,7 +82,7 @@ export function useRegulatoryAreasList({
       ),
     [sourceRegulatoryAreas, config.mode]
   )
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [expandedGroup, setExpandedGroup] = useState<string | undefined>(undefined)
 
   const selectRegulatoryArea = useCallback(
     (area: RegulatoryAreaListItem) => {
@@ -103,7 +103,6 @@ export function useRegulatoryAreasList({
       setSelectedRegulatoryArea(area)
       setIsolatedRegulatoryAreaId(undefined)
       setActiveModal('REGULATORY_AREA_DETAILS_MODAL')
-      setExpandedGroups({})
       onSelectRegulatoryArea?.()
 
       if (pathname === '/search') {
@@ -133,18 +132,15 @@ export function useRegulatoryAreasList({
 
   const clickOnGroup = useCallback(
     (group: string) => {
-      const nextIsExpanded = !expandedGroups[group]
-      setExpandedGroups(currentGroups => ({
-        ...currentGroups,
-        [group]: nextIsExpanded
-      }))
+      const nextIsExpanded = expandedGroup === group ? undefined : group
+      setExpandedGroup(nextIsExpanded)
     },
-    [expandedGroups]
+    [expandedGroup]
   )
 
   const closeModal = useCallback(() => {
+    setExpandedGroup(undefined)
     onClose?.()
-    setExpandedGroups({})
   }, [onClose])
 
   const isolateRegulatoryArea = useCallback(
@@ -165,7 +161,7 @@ export function useRegulatoryAreasList({
     return groupedRegulatoryAreas.flatMap(([group, areas]) => {
       const rows: RegulatoryRow[] = [{ areas, group, type: 'group' }]
 
-      if (expandedGroups[group]) {
+      if (expandedGroup === group) {
         rows.push(
           ...areas.map((area, index) => ({
             area,
@@ -178,12 +174,12 @@ export function useRegulatoryAreasList({
 
       return rows
     })
-  }, [expandedGroups, groupedRegulatoryAreas])
+  }, [expandedGroup, groupedRegulatoryAreas])
 
   const renderRow = useCallback(
     ({ item }: { item: RegulatoryRow }) => {
       if (item.type === 'group') {
-        const isGroupExpanded = expandedGroups[item.group]
+        const isGroupExpanded = expandedGroup === item.group
         return (
           <Pressable
             style={[styles.groupButton, !isGroupExpanded && styles.border]}
@@ -245,7 +241,7 @@ export function useRegulatoryAreasList({
       isolatedRegulatoryAreaId,
       theme,
       config.mode,
-      expandedGroups,
+      expandedGroup,
       styles
     ]
   )
@@ -284,7 +280,7 @@ export function useRegulatoryAreasList({
   if (skip) {
     return {
       areResultsVisible: false,
-      expandedGroups: {},
+      expandedGroup: undefined,
       flattenedRows: [],
       renderHeader: () => null,
       renderRow: () => null
@@ -295,7 +291,7 @@ export function useRegulatoryAreasList({
     areResultsVisible,
     clickOnGroup,
     closeModal,
-    expandedGroups,
+    expandedGroup,
     flattenedRows,
     isolateRegulatoryArea,
     renderHeader,
