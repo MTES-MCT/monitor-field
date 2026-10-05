@@ -1,99 +1,109 @@
 import { ThemedText } from '@components/Elements/Text'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, TextInput, ToastAndroid, View } from 'react-native'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { useGlobalStyle } from '@globalStyle'
+import { useState, useRef } from 'react'
+import { useTheme } from '@hooks/use-theme'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
+const MONITOR_PASSWORD = process.env.EXPO_PUBLIC_PASSWORD
+const ICON_SIZE = 80
 
 export function Step1({ setCurrentStep }: { setCurrentStep: () => void }) {
+  const inputRef = useRef<TextInput>(null)
+  const theme = useTheme()
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
 
-  return (
-    <View style={styles.wrapper}>
-      <ThemedText themeColor="white" type="title" style={styles.title}>
-        Bienvenue dans MonitorField !
-      </ThemedText>
-      <ThemedText themeColor="white" type="default" style={styles.text}>
-        Merci pour votre participation {'\n'} aux tests de cette application.
-      </ThemedText>
-      <ThemedText themeColor="white" type="default" style={styles.text}>
-        Une{' '}
-        <ThemedText themeColor="white" type="defaultBold">
-          question
-        </ThemedText>
-        , un{' '}
-        <ThemedText themeColor="white" type="defaultBold">
-          problème
-        </ThemedText>{' '}
-        {'\n'} ou des{' '}
-        <ThemedText themeColor="white" type="defaultBold">
-          suggestions
-        </ThemedText>{' '}
-        ?
-      </ThemedText>
-      <ThemedText themeColor="white" type="default" style={styles.text}>
-        ...dites-le nous à cette adresse : {'\n'}{' '}
-        <ThemedText themeColor="white" style={globalStyle.textUnderline} type="default">
-          {MONITOR_EMAIL}
-        </ThemedText>
-      </ThemedText>
-      <ThemedText themeColor="white" type="default" style={styles.text}>
-        ...ou à tout moment dans l’application {'\n'} à l’aide du bouton suivant :
-      </ThemedText>
-      <View style={styles.messageWrapper}>
-        <Image source={require('@assets/icons/message.svg')} style={globalStyle.iconNormal} />
-      </View>
-      <ThemedText themeColor="white" type="defaultItalic" style={[styles.text, styles.verticalMargin]}>
-        (Retrouvez l’adresse de contact {'\n'} dans le menu paramètres)
-      </ThemedText>
+  const [password, setPassword] = useState('')
 
-      <Pressable onPress={setCurrentStep} style={styles.button}>
-        <ThemedText type="default" themeColor="white">
-          Suivant
+  const validatePassword = () => {
+    inputRef.current?.blur()
+
+    // setTimeout to show the toast message after keyboard dismissal
+    setTimeout(() => {
+      if (password === MONITOR_PASSWORD) {
+        setCurrentStep()
+
+        return
+      }
+      ToastAndroid.show('Le mot de passe est incorrect', ToastAndroid.SHORT)
+    }, 800)
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Image source={require('@assets/images/splash-icon.png')} style={styles.algaeIcon} />
+
+      <View style={styles.buttonsWrapper}>
+        <View style={[globalStyle.searchBoxGray, { backgroundColor: theme.gainsboro, flex: 0 }]}>
+          <TextInput
+            ref={inputRef}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Mot de passe"
+            secureTextEntry
+            style={[globalStyle.input]}
+            onSubmitEditing={validatePassword}
+          />
+        </View>
+        <Pressable
+          disabled={!password}
+          onPress={validatePassword}
+          accessibilityRole="button"
+          accessibilityState={{
+            disabled: !password
+          }}
+          style={styles.validateButton}
+        >
+          <ThemedText type="default" themeColor="white" style={{ flex: 1, textAlign: 'center' }}>
+            Valider
+          </ThemedText>
+        </Pressable>
+      </View>
+
+      <View style={styles.textContainer}>
+        <ThemedText type="subtitle" themeColor="white">
+          Monitorfield
         </ThemedText>
-        <Image source={require('@assets/icons/arrow-right.svg')} style={globalStyle.iconNormal} />
-      </Pressable>
-    </View>
+        <ThemedText type="default" themeColor="white">
+          version de test
+        </ThemedText>
+      </View>
+    </SafeAreaView>
   )
 }
 
 const createStyles = theme =>
   StyleSheet.create({
-    button: {
+    algaeIcon: {
+      height: ICON_SIZE,
+      marginTop: 50,
+      width: ICON_SIZE
+    },
+    buttonsWrapper: {
+      alignItems: 'center',
+      flexDirection: 'column',
+      gap: Spacing.five,
+      marginHorizontal: 55
+    },
+    container: {
+      alignItems: 'center',
+      backgroundColor: theme.gunMetal,
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-between'
+    },
+    textContainer: {
+      alignItems: 'center',
+      flexDirection: 'column'
+    },
+    validateButton: {
       alignItems: 'center',
       backgroundColor: theme.blueGray,
       flexDirection: 'row',
-      gap: Spacing.two,
-      height: 48,
-      justifyContent: 'center',
-      paddingHorizontal: Spacing.six
-    },
-    messageWrapper: {
-      alignItems: 'center',
-      backgroundColor: theme.white,
-      height: 48,
-      justifyContent: 'center',
-      width: 48
-    },
-    text: {
-      textAlign: 'center'
-    },
-    title: {
-      marginBottom: Spacing.four,
-      textAlign: 'center'
-    },
-    verticalMargin: {
-      marginVertical: Spacing.six
-    },
-    wrapper: {
-      alignItems: 'center',
-      flex: 1,
-      gap: Spacing.four,
-      justifyContent: 'center',
-      padding: Spacing.six,
-      textAlign: 'center'
+      height: 48
     }
   })
