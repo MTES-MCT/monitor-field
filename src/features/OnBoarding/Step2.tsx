@@ -1,57 +1,56 @@
 import { ThemedText } from '@components/Elements/Text'
 import { Pressable, StyleSheet, View } from 'react-native'
-import { useState } from 'react'
-import { useTheme } from '@hooks/use-theme'
-import { useGlobalStyle } from '@globalStyle'
+import { useThemedStyles } from '@hooks/use-themed-styles'
 import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
-import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
-import useMatomo from '@matomo/useMatomo'
+import { useGlobalStyle } from '@globalStyle'
 
-export function Step2({ onNext }: { onNext: (seaFronts: string[]) => void }) {
-  const theme = useTheme()
+const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
+
+export function Step2({ setCurrentStep }: { setCurrentStep: () => void }) {
+  const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
-  const [selectedSeaFronts, setSelectedSeaFronts] = useState<string[]>([])
-  const { trackEvent } = useMatomo()
-
-  const isButtonDisabled = selectedSeaFronts.length === 0
-
-  const handleNextStep = () => {
-    if (isButtonDisabled) {
-      return
-    }
-    trackEvent({ action: 'Ajout de façades', category: 'Façades', name: selectedSeaFronts.sort().join(', ') })
-
-    onNext(selectedSeaFronts)
-  }
-
-  const toggleSeaFront = (seaFront: string) => {
-    setSelectedSeaFronts(prev => (prev.includes(seaFront) ? prev.filter(v => v !== seaFront) : [...prev, seaFront]))
-  }
 
   return (
     <View style={styles.wrapper}>
       <ThemedText themeColor="white" type="title" style={styles.title}>
-        Choix du secteur
+        Bienvenue dans MonitorField !
       </ThemedText>
-      <ThemedText themeColor="white" type="default">
-        Veuillez sélectionner votre façade habituelle de mission. Vous pouvez en sélectionner plusieurs si vous
-        intervenez sur plusieurs façades.
+      <ThemedText themeColor="white" type="default" style={styles.text}>
+        Merci pour votre participation {'\n'} aux tests de cette application.
       </ThemedText>
-      <ThemedText themeColor="white" type="defaultItalic">
-        Vous pourrez changer ces informations plus tard dans les paramètres de l’application.
+      <ThemedText themeColor="white" type="default" style={styles.text}>
+        Une{' '}
+        <ThemedText themeColor="white" type="defaultBold">
+          question
+        </ThemedText>
+        , un{' '}
+        <ThemedText themeColor="white" type="defaultBold">
+          problème
+        </ThemedText>{' '}
+        {'\n'} ou des{' '}
+        <ThemedText themeColor="white" type="defaultBold">
+          suggestions
+        </ThemedText>{' '}
+        ?
       </ThemedText>
-      <SeaFrontsSelector accent="SECONDARY" selectedSeaFronts={selectedSeaFronts} onToggle={toggleSeaFront} />
+      <ThemedText themeColor="white" type="default" style={styles.text}>
+        ...dites-le nous à cette adresse : {'\n'}{' '}
+        <ThemedText themeColor="white" style={globalStyle.textUnderline} type="default">
+          {MONITOR_EMAIL}
+        </ThemedText>
+      </ThemedText>
+      <ThemedText themeColor="white" type="default" style={styles.text}>
+        ...ou à tout moment dans l’application {'\n'} à l’aide du bouton suivant :
+      </ThemedText>
+      <View style={styles.messageWrapper}>
+        <Image source={require('@assets/icons/message.svg')} style={globalStyle.iconNormal} />
+      </View>
+      <ThemedText themeColor="white" type="defaultItalic" style={[styles.text, styles.verticalMargin]}>
+        (Retrouvez l’adresse de contact {'\n'} dans le menu paramètres)
+      </ThemedText>
 
-      <Pressable
-        disabled={isButtonDisabled}
-        onPress={handleNextStep}
-        accessibilityRole="button"
-        accessibilityState={{
-          disabled: isButtonDisabled
-        }}
-        style={[styles.button, { backgroundColor: isButtonDisabled ? theme.lightGray : theme.blueGray }]}
-      >
+      <Pressable onPress={setCurrentStep} style={styles.button}>
         <ThemedText type="default" themeColor="white">
           Suivant
         </ThemedText>
@@ -61,27 +60,40 @@ export function Step2({ onNext }: { onNext: (seaFronts: string[]) => void }) {
   )
 }
 
-const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-    height: 48,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.six
-  },
-  checkboxWrapper: {
-    flex: 1
-  },
-  title: {
-    marginBottom: Spacing.four,
-    textAlign: 'center'
-  },
-  wrapper: {
-    flex: 1,
-    gap: Spacing.four,
-    justifyContent: 'center',
-    padding: 55,
-    textAlign: 'center'
-  }
-})
+const createStyles = theme =>
+  StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.blueGray,
+      flexDirection: 'row',
+      gap: Spacing.two,
+      height: 48,
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.six
+    },
+    messageWrapper: {
+      alignItems: 'center',
+      backgroundColor: theme.white,
+      height: 48,
+      justifyContent: 'center',
+      width: 48
+    },
+    text: {
+      textAlign: 'center'
+    },
+    title: {
+      marginBottom: Spacing.four,
+      textAlign: 'center'
+    },
+    verticalMargin: {
+      marginVertical: Spacing.six
+    },
+    wrapper: {
+      alignItems: 'center',
+      flex: 1,
+      gap: Spacing.four,
+      justifyContent: 'center',
+      padding: Spacing.six,
+      textAlign: 'center'
+    }
+  })

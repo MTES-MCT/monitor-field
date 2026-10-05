@@ -1,48 +1,87 @@
-import { storage } from '@storage'
 import { ThemedText } from '@components/Elements/Text'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { useState } from 'react'
+import { useTheme } from '@hooks/use-theme'
+import { useGlobalStyle } from '@globalStyle'
+import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
-import { useEffect } from 'react'
-import { View, StyleSheet } from 'react-native'
-import { LoaderIcon } from '@components/LoaderIcon'
+import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
+import useMatomo from '@matomo/useMatomo'
 
-export function Step3({ syncPromise }: { syncPromise: Promise<unknown> }) {
-  useEffect(() => {
-    syncPromise.then(() => {
-      storage.set('isOnBoardingFinished', true)
-    })
-  }, [syncPromise])
+export function Step3({ onNext }: { onNext: (seaFronts: string[]) => void }) {
+  const theme = useTheme()
+  const globalStyle = useGlobalStyle()
+  const [selectedSeaFronts, setSelectedSeaFronts] = useState<string[]>([])
+  const { trackEvent } = useMatomo()
+
+  const isButtonDisabled = selectedSeaFronts.length === 0
+
+  const handleNextStep = () => {
+    if (isButtonDisabled) {
+      return
+    }
+    trackEvent({ action: 'Ajout de façades', category: 'Façades', name: selectedSeaFronts.sort().join(', ') })
+
+    onNext(selectedSeaFronts)
+  }
+
+  const toggleSeaFront = (seaFront: string) => {
+    setSelectedSeaFronts(prev => (prev.includes(seaFront) ? prev.filter(v => v !== seaFront) : [...prev, seaFront]))
+  }
 
   return (
     <View style={styles.wrapper}>
-      <LoaderIcon size="LARGE" tintColor="white" />
+      <ThemedText themeColor="white" type="title" style={styles.title}>
+        Choix du secteur
+      </ThemedText>
+      <ThemedText themeColor="white" type="default">
+        Veuillez sélectionner votre façade habituelle de mission. Vous pouvez en sélectionner plusieurs si vous
+        intervenez sur plusieurs façades.
+      </ThemedText>
+      <ThemedText themeColor="white" type="defaultItalic">
+        Vous pourrez changer ces informations plus tard dans les paramètres de l’application.
+      </ThemedText>
+      <SeaFrontsSelector accent="SECONDARY" selectedSeaFronts={selectedSeaFronts} onToggle={toggleSeaFront} />
 
-      <ThemedText themeColor="white" type="subtitle" style={styles.title}>
-        Données en cours de téléchargement
-      </ThemedText>
-      <ThemedText themeColor="white" type="default" style={styles.text}>
-        Le premier téléchargement peut prendre de quelques secondes
-        {'\n'}à plusieurs minutes, {'\n'}en fonction de votre connexion.
-      </ThemedText>
-      <ThemedText themeColor="white" type="default" style={styles.text}>
-        Veuillez rester sur cet écran pour que le téléchargement fonctionne correctement.
-      </ThemedText>
+      <Pressable
+        disabled={isButtonDisabled}
+        onPress={handleNextStep}
+        accessibilityRole="button"
+        accessibilityState={{
+          disabled: isButtonDisabled
+        }}
+        style={[styles.button, { backgroundColor: isButtonDisabled ? theme.lightGray : theme.blueGray }]}
+      >
+        <ThemedText type="default" themeColor="white">
+          Suivant
+        </ThemedText>
+        <Image source={require('@assets/icons/arrow-right.svg')} style={globalStyle.iconNormal} />
+      </Pressable>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  text: {
-    textAlign: 'center'
+  button: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    height: 48,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.six
+  },
+  checkboxWrapper: {
+    flex: 1
   },
   title: {
-    paddingBottom: Spacing.six,
+    marginBottom: Spacing.four,
     textAlign: 'center'
   },
   wrapper: {
-    alignItems: 'center',
     flex: 1,
     gap: Spacing.four,
     justifyContent: 'center',
-    padding: 55
+    padding: 55,
+    textAlign: 'center'
   }
 })
