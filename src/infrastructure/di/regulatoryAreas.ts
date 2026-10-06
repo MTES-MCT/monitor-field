@@ -5,13 +5,13 @@ import type { GetRegulatoryAreasByIdsDependencies } from '@domain/useCases/regul
 import type { GetRegulatoryAreasInBoundingBoxDependencies } from '@domain/useCases/regulatoryAreas/getRegulatoryAreasInBoundingBox'
 import type { RegenerateRegulatoryAreaTilesDependencies } from '@domain/useCases/regulatoryAreas/regenerateRegulatoryAreaTiles'
 import type { SyncRegulatoryAreasDependencies } from '@domain/useCases/regulatoryAreas/syncRegulatoryAreas'
-import { createDataGouvEnvRegulatoryAreaRepository } from '@infrastructure/dataGouv/DataGouvEnvRegulatoryAreaRepository'
 import { createSqliteEnvRegulatoryAreaRepository } from '@infrastructure/database/repositories/SqliteEnvRegulatoryAreaRepository'
 import { createSqliteFishRegulatoryAreaRepository } from '@infrastructure/database/repositories/SqliteFishRegulatoryAreaRepository'
 import { createSqliteEnvRegulatoryAreaSummaryRepository } from '@infrastructure/database/repositories/SqliteEnvRegulatoryAreaSummaryRepository'
 import { createSqliteFishRegulatoryAreaSummaryRepository } from '@infrastructure/database/repositories/SqliteFishRegulatoryAreaSummaryRepository'
 import { createSqliteRegulatoryAreaGeometryRepository } from '@infrastructure/database/repositories/SqliteRegulatoryAreaGeometryRepository'
 import { createWFSFishRegulatoryAreaRepository } from '@infrastructure/geoplatform/WFSFishRegulatoryAreaRepository'
+import { createWFSEnvRegulatoryAreaRepository } from '@infrastructure/geoplatform/WFSEnvRegulatoryAreaRepository'
 import { createMmkvSyncStateRepository } from '@infrastructure/storage/MmkvSyncStateRepository'
 import { createFileSystemRegulatoryAreaTileRepository } from '@infrastructure/tiles/FileSystemRegulatoryAreaTileRepository'
 import { createSqliteEnvThemesRepository } from '@infrastructure/database/repositories/SqliteEnvThemesRepository'
@@ -32,7 +32,7 @@ async function buildDependencies(): Promise<RegulatoryAreasDependencies> {
   const envThemesRepository = createSqliteEnvThemesRepository(database)
 
   return {
-    envRegulatoryAreaRepository: createDataGouvEnvRegulatoryAreaRepository(),
+    envRegulatoryAreaRepository: createWFSEnvRegulatoryAreaRepository(),
     envRegulatoryAreaSummaryRepository: createSqliteEnvRegulatoryAreaSummaryRepository(database),
     envThemesRepository,
     fishRegulatoryAreaRepository: createWFSFishRegulatoryAreaRepository(),

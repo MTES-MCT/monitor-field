@@ -50,7 +50,7 @@ export async function syncEnvRegulatoryAreas(
   }
 
   const areas = await envRegulatoryAreaRepository.findBySeaFronts(selectedSeaFronts)
-
+  //console.log('Fetched areas for selected sea fronts:', selectedSeaFronts, areas.length)
   // Treated as "nothing published yet", not "everything was withdrawn": stale zones on a
   // field device beat a blank map.
   if (areas.length === 0) {
