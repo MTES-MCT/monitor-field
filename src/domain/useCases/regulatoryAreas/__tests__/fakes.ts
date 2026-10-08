@@ -32,12 +32,12 @@ function createInMemoryStore<T extends Identified>(seaFrontOf: (area: T) => stri
       stored.clear()
     },
 
-    replaceForSeaFronts: async (seaFronts: string[], areas: T[]) => {
+    replaceForSeaFronts: async (areas: T[]) => {
       replaceCallCount += 1
       const keptIds = new Set(areas.map(area => area.id))
 
       for (const [id, area] of stored) {
-        if (!seaFronts.includes(seaFrontOf(area)) || !keptIds.has(id)) {
+        if (!areas.some(a => seaFrontOf(a) === seaFrontOf(area)) || !keptIds.has(id)) {
           stored.delete(id)
         }
       }

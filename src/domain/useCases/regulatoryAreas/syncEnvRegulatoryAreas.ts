@@ -57,7 +57,7 @@ export async function syncEnvRegulatoryAreas(
     return false
   }
 
-  await localEnvRegulatoryAreaRepository.replaceForSeaFronts(selectedSeaFronts, areas)
+  await localEnvRegulatoryAreaRepository.replaceForSeaFronts(areas)
   await localEnvThemesRepository.replaceAll(extractEnvThemesFromAreas(areas))
 
   syncStateRepository.markSyncedAt('env', now())

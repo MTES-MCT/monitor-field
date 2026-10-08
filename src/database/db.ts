@@ -10,6 +10,7 @@ async function createDatabase() {
 
   await db.execute('PRAGMA journal_mode = WAL')
   await db.execute('PRAGMA foreign_keys = ON')
+  await db.execute('PRAGMA synchronous = NORMAL')
   await migrateDatabase(db)
 
   return db
