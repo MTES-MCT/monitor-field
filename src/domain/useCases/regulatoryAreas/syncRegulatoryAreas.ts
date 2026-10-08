@@ -33,8 +33,11 @@ export async function syncRegulatoryAreas(
 ): Promise<SyncRegulatoryAreasResult> {
   const forceRefresh = options?.forceRefresh === true
 
-  const [fish, env] = await Promise.allSettled([
-    options?.syncFish === false ? null : syncFishRegulatoryAreas(dependencies, seaFronts, forceRefresh),
+  const [fish] = await Promise.allSettled([
+    options?.syncFish === false ? null : syncFishRegulatoryAreas(dependencies, seaFronts, forceRefresh)
+  ])
+
+  const [env] = await Promise.allSettled([
     options?.syncEnv === false ? null : syncEnvRegulatoryAreas(dependencies, seaFronts, forceRefresh)
   ])
 

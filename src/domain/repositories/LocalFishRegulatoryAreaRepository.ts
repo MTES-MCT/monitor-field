@@ -3,6 +3,5 @@ import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRe
 export type LocalFishRegulatoryAreaRepository = {
   countAll: () => Promise<number>
   deleteAll: () => Promise<void>
-  /** Makes the stored areas for `seaFronts` exactly `areas`, deleting everything else. */
-  replaceForSeaFronts: (seaFronts: string[], areas: FishRegulatoryArea[]) => Promise<void>
+  replaceForSeaFronts: (areas: FishRegulatoryArea[]) => Promise<void>
 }

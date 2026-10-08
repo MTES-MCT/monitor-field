@@ -1,7 +1,6 @@
-import type { DB, Scalar, SQLBatchTuple } from '@op-engineering/op-sqlite'
+import type { DB, Scalar } from '@op-engineering/op-sqlite'
 import { monitorFishConfig } from '@config/appModes/monitorfish.config'
 import { FISH_REGULATORY_AREAS_TABLE } from '@database/db.schema'
-import { toRegulationType } from '@domain/entities/regulatoryAreas/FishRegulatoryArea'
 import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRegulatoryArea'
 import type { LocalFishRegulatoryAreaRepository } from '@domain/repositories/LocalFishRegulatoryAreaRepository'
 import { normalizeFeatureProperty, stringToArrayItem } from '@utils/layersStyle'
@@ -48,12 +47,8 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
       await db.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}`)
     },
 
-    replaceForSeaFronts: async (seaFronts: string[], areas: FishRegulatoryArea[]) => {
+    replaceForSeaFronts: async (areas: FishRegulatoryArea[]) => {
       const palette = monitorFishConfig?.colors
-      // Rows store the prefixed type, so comparing against a bare sea front matches nothing.
-      const regulationTypes = seaFronts.map(toRegulationType)
-      const placeholders = regulationTypes.map(() => '?').join(',')
-
       const totalsByGroup = countByGroup(areas)
 
       const rows: Scalar[][] = areas.map(area => {
@@ -79,17 +74,16 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
         ]
       })
 
-      const commands: SQLBatchTuple[] = [
-        [`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE} WHERE type NOT IN (${placeholders})`, regulationTypes],
-        [`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE} WHERE type IN (${placeholders})`, regulationTypes]
-      ]
-
-      if (rows.length > 0) {
-        commands.push([INSERT_AREA, rows])
-      }
-
       try {
-        await db.executeBatch(commands)
+        await db.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}`)
+
+        for (const row of rows) {
+          try {
+            await db.execute(INSERT_AREA, row)
+          } catch (error) {
+            logSentryError(error, `Transaction failed during fish sync with row: ${JSON.stringify(row)}`)
+          }
+        }
       } catch (error) {
         logSentryError(error, 'Transaction failed during fish sync')
         throw error

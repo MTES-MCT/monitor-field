@@ -50,14 +50,14 @@ export async function syncEnvRegulatoryAreas(
   }
 
   const areas = await envRegulatoryAreaRepository.findBySeaFronts(selectedSeaFronts)
-
+  //console.log('Fetched areas for selected sea fronts:', selectedSeaFronts, areas.length)
   // Treated as "nothing published yet", not "everything was withdrawn": stale zones on a
   // field device beat a blank map.
   if (areas.length === 0) {
     return false
   }
 
-  await localEnvRegulatoryAreaRepository.replaceForSeaFronts(selectedSeaFronts, areas)
+  await localEnvRegulatoryAreaRepository.replaceForSeaFronts(areas)
   await localEnvThemesRepository.replaceAll(extractEnvThemesFromAreas(areas))
 
   syncStateRepository.markSyncedAt('env', now())
