@@ -49,7 +49,6 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
 
     replaceForSeaFronts: async (areas: FishRegulatoryArea[]) => {
       const palette = monitorFishConfig?.colors
-
       const totalsByGroup = countByGroup(areas)
 
       const rows: Scalar[][] = areas.map(area => {

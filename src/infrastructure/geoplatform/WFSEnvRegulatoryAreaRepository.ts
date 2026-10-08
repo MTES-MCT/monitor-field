@@ -34,9 +34,7 @@ export function createWFSEnvRegulatoryAreaRepository(fetchFn: typeof fetch = fet
           startIndex
         })
 
-        // console.log('Fetching environmental regulatory areas with URL:', url)
         const response = await fetchFn(url)
-        // console.log('Response status:', response)
         if (!response.ok) {
           throw new Error(`Unable to load environmental regulatory areas: ${response.status}`)
         }

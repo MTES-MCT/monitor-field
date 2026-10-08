@@ -48,6 +48,14 @@ function parsePythonDict(str: string): Record<string, unknown> {
   )
 }
 
+// comment for test build on android 11
+/* const COORDINATE_DECIMALS = 8
+const EXCESS_DECIMALS_REGEX = new RegExp(`(-?\\d+\\.\\d{${COORDINATE_DECIMALS}})\\d+`, 'g')
+
+function roundGeometryPrecision(geometry: string): string {
+  return geometry.replace(EXCESS_DECIMALS_REGEX, '$1')
+} */
+
 export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulatoryAreaRepository {
   return {
     countAll: async () => {
@@ -62,7 +70,6 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
 
     replaceForSeaFronts: async (areas: EnvRegulatoryArea[]) => {
       const palette = monitorEnvConfig?.colors
-
       const totalsByGroup = countByGroup(areas)
 
       const rows: Scalar[][] = areas.map(area => {
@@ -77,7 +84,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
           area.date,
           area.dateFin,
           area.type,
-          area.geometry ?? null,
+          area.geometry ?? null, // ? roundGeometryPrecision(area.geometry) : null,
           area.resume,
           area.plan,
           area.polyName,

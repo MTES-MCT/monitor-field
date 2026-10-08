@@ -54,7 +54,7 @@ export function toEnvRegulatoryArea(feature: EnvRegulatoryAreaFeature): EnvRegul
           type: 'Feature'
         })
       : undefined,
-    id: properties.id ?? undefined,
+    id,
     layerName: properties.layer_name ?? undefined,
     location: properties.location ?? undefined,
     plan: properties.plan ?? undefined,
