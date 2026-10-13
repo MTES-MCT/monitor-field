@@ -3,6 +3,7 @@ import type { SyncEnvRegulatoryAreasDependencies } from './syncEnvRegulatoryArea
 import { syncEnvRegulatoryAreas } from './syncEnvRegulatoryAreas'
 import type { SyncFishRegulatoryAreasDependencies } from './syncFishRegulatoryAreas'
 import { syncFishRegulatoryAreas } from './syncFishRegulatoryAreas'
+import { ToastAndroid } from 'react-native'
 
 export type SyncRegulatoryAreasDependencies = SyncEnvRegulatoryAreasDependencies & SyncFishRegulatoryAreasDependencies
 
@@ -46,12 +47,14 @@ export async function syncRegulatoryAreas(
 
   if (fish.status === 'rejected') {
     failures.push({ dataset: 'fish', error: fish.reason })
+    ToastAndroid.show('La synchronisation des zones réglementaires pour la pêche a échoué', ToastAndroid.SHORT)
   } else if (fish.value === true) {
     changedDatasets.push('fish')
   }
 
   if (env.status === 'rejected') {
     failures.push({ dataset: 'env', error: env.reason })
+    ToastAndroid.show('La synchronisation des zones réglementaires environnementales a échoué', ToastAndroid.SHORT)
   } else if (env.value === true) {
     changedDatasets.push('env')
   }
