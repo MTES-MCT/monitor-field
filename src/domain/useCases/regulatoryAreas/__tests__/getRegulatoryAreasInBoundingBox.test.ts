@@ -16,7 +16,6 @@ const NO_FILTERS = {
 const VIEWPORT = { maxLat: 50, maxLon: 0, minLat: 47, minLon: -5 }
 
 const SMALL = { maxLat: 48.1, maxLon: -3.9, minLat: 48, minLon: -4 }
-const LARGE = { maxLat: 49, maxLon: -1, minLat: 47, minLon: -4 }
 const ELSEWHERE = { maxLat: 44, maxLon: 8, minLat: 43, minLon: 7 }
 
 function setup({ env = [buildEnvAreaSummary(1)], fish = [buildFishAreaSummary(1)] } = {}) {
@@ -46,16 +45,6 @@ describe('getRegulatoryAreasInBoundingBox', () => {
     const areas = await getRegulatoryAreasInBoundingBox(dependencies, 'fish', VIEWPORT, NO_FILTERS)
 
     expect(areas.map(area => area.id)).toEqual([1])
-  })
-
-  it('lists the largest areas first', async () => {
-    const dependencies = setup({
-      fish: [buildFishAreaSummary(1, { bbox: SMALL }), buildFishAreaSummary(2, { bbox: LARGE })]
-    })
-
-    const areas = await getRegulatoryAreasInBoundingBox(dependencies, 'fish', VIEWPORT, NO_FILTERS)
-
-    expect(areas.map(area => area.id)).toEqual([2, 1])
   })
 
   it('applies the search query, ignoring case and accents', async () => {

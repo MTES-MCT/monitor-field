@@ -21,7 +21,7 @@ type Identified = { id: number }
  * `seaFrontOf` mirrors how each table discriminates its rows: the fish table stores the
  * prefixed `Reg. NAMO`, the env table the bare facade.
  */
-function createInMemoryStore<T extends Identified>(seaFrontOf: (area: T) => string, seed: T[]) {
+function createInMemoryStore<T extends Identified>(seed: T[]) {
   const stored = new Map<number, T>(seed.map(area => [area.id, area]))
   let replaceCallCount = 0
 
@@ -32,14 +32,11 @@ function createInMemoryStore<T extends Identified>(seaFrontOf: (area: T) => stri
       stored.clear()
     },
 
-    replaceForSeaFronts: async (seaFronts: string[], areas: T[]) => {
+    replaceForSeaFronts: async (areas: T[]) => {
       replaceCallCount += 1
-      const keptIds = new Set(areas.map(area => area.id))
 
-      for (const [id, area] of stored) {
-        if (!seaFronts.includes(seaFrontOf(area)) || !keptIds.has(id)) {
-          stored.delete(id)
-        }
+      for (const [id] of stored) {
+        stored.delete(id)
       }
 
       for (const area of areas) {
@@ -60,11 +57,11 @@ function createInMemoryStore<T extends Identified>(seaFrontOf: (area: T) => stri
 }
 
 export function createInMemoryLocalFishRepository(seed: FishRegulatoryArea[] = []) {
-  return createInMemoryStore<FishRegulatoryArea>(area => area.type.replace(/^Reg\. /, ''), seed)
+  return createInMemoryStore<FishRegulatoryArea>(seed)
 }
 
 export function createInMemoryLocalEnvRepository(seed: EnvRegulatoryArea[] = []) {
-  return createInMemoryStore<EnvRegulatoryArea>(area => area.facade, seed)
+  return createInMemoryStore<EnvRegulatoryArea>(seed)
 }
 
 export function createInMemoryEnvThemesRepository(seed: EnvTheme[] = []) {

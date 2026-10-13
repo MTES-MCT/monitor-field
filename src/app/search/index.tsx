@@ -31,6 +31,9 @@ export default function SearchPage() {
   const [text, setText] = useState(searchQuery ?? '')
 
   const closePage = () => {
+    if (text.trim().length === 0) {
+      clearText()
+    }
     inputRef.current?.blur()
     router.back()
     if (currentRouteInfo?.params?.origin === 'REGULATORY_AREAS_LIST_MODAL') {
