@@ -108,7 +108,11 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
           await tx.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
 
           for (const row of rows) {
-            await tx.execute(INSERT_AREA, row)
+            try {
+              await tx.execute(INSERT_AREA, row)
+            } catch (error) {
+              logSentryError(error, 'Failed to insert row during env sync with row with id: ' + row[0])
+            }
           }
         })
       } catch (error) {
