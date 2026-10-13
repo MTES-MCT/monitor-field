@@ -60,7 +60,7 @@ export function createSqliteEnvRegulatoryAreaRepository(db: DB): LocalEnvRegulat
       await db.execute(`DELETE FROM ${ENV_REGULATORY_AREAS_TABLE}`)
     },
 
-    replaceForSeaFronts: async (areas: EnvRegulatoryArea[]) => {
+    replaceAll: async (areas: EnvRegulatoryArea[]) => {
       const palette = monitorEnvConfig?.colors
 
       const totalsByGroup = countByGroup(areas)

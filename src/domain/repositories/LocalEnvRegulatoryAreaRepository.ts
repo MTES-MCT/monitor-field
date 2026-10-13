@@ -3,5 +3,5 @@ import type { EnvRegulatoryArea } from '@domain/entities/regulatoryAreas/EnvRegu
 export type LocalEnvRegulatoryAreaRepository = {
   countAll: () => Promise<number>
   deleteAll: () => Promise<void>
-  replaceForSeaFronts: (areas: EnvRegulatoryArea[]) => Promise<void>
+  replaceAll: (areas: EnvRegulatoryArea[]) => Promise<void>
 }

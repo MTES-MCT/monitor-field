@@ -32,7 +32,7 @@ function createInMemoryStore<T extends Identified>(seed: T[]) {
       stored.clear()
     },
 
-    replaceForSeaFronts: async (areas: T[]) => {
+    replaceAll: async (areas: T[]) => {
       replaceCallCount += 1
 
       for (const [id] of stored) {

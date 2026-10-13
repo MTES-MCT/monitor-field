@@ -47,7 +47,7 @@ export function createSqliteFishRegulatoryAreaRepository(db: DB): LocalFishRegul
       await db.execute(`DELETE FROM ${FISH_REGULATORY_AREAS_TABLE}`)
     },
 
-    replaceForSeaFronts: async (areas: FishRegulatoryArea[]) => {
+    replaceAll: async (areas: FishRegulatoryArea[]) => {
       const palette = monitorFishConfig?.colors
 
       const totalsByGroup = countByGroup(areas)
