@@ -3,6 +3,8 @@ import { MatomoContext } from './MatomoProvider'
 import { useAppContext } from '@contexts/AppContext'
 
 const MODE_DIMENSION = 'Mode'
+const ENVIRONMENT_DIMENSION = 'Environment'
+const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 
 const useMatomo = () => {
   const context = useContext(MatomoContext)
@@ -12,7 +14,7 @@ const useMatomo = () => {
   const withMode = useCallback(
     (params?: { userInfo?: Record<string, string | number | undefined> }) => ({
       ...params,
-      userInfo: { ...params?.userInfo, [MODE_DIMENSION]: config.mode }
+      userInfo: { ...params?.userInfo, [MODE_DIMENSION]: config.mode, [ENVIRONMENT_DIMENSION]: ENV }
     }),
     [config.mode]
   )
