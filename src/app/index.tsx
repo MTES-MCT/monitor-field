@@ -54,6 +54,8 @@ import { useBackHandler } from '@hooks/useBackHandler'
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
 const MAPBOX_KEY = process.env.EXPO_PUBLIC_MAPBOX_KEY
+const BASE_LAYER_ID = 'cartoLight'
+const SORT_KEY: ['*', number, ['get', string]] = ['*', -1, ['get', 'area']]
 
 Sentry.init({
   attachStacktrace: false,
@@ -114,7 +116,8 @@ function App() {
     setSelectedRegulatoryArea,
     setClickedFeaturesList,
     setRegulatoryAreaDetailsOrigin,
-    setSearchBbox
+    setSearchBbox,
+    setIsolatedRegulatoryAreaId
   } = useRegulatoryAreasContext()
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
@@ -196,7 +199,6 @@ function App() {
       if (clickedRegulatoryAreas.length === 1) {
         // Tapping the map directly has no list to return to: clear any stale origin so closing
         // the details modal doesn't reopen a previous list/search sheet.
-        setRegulatoryAreaDetailsOrigin(undefined)
         setSelectedRegulatoryArea(clickedRegulatoryAreas[0])
         openRegulatoryAreaDetails(undefined)
 
@@ -211,7 +213,8 @@ function App() {
 
         return
       }
-
+      setSelectedRegulatoryArea(undefined)
+      setIsolatedRegulatoryAreaId(undefined)
       setClickedFeaturesList(clickedRegulatoryAreas)
       setActiveModal('CLICKED_FEATURES_LIST_MODAL')
     },
@@ -219,14 +222,14 @@ function App() {
       config,
       mapRef,
       regulatoryAreaLayer.ids,
-      setRegulatoryAreaDetailsOrigin,
       setSelectedRegulatoryArea,
       setActiveModal,
       setClickedCoordinate,
       zoomOnRegulatoryArea,
       setClickedFeaturesList,
       trackEvent,
-      openRegulatoryAreaDetails
+      openRegulatoryAreaDetails,
+      setIsolatedRegulatoryAreaId
     ]
   )
 
@@ -298,90 +301,85 @@ function App() {
     <MapLibreMap
       ref={mapRef}
       mapStyle={baseMapStyle}
-      touchZoom
-      doubleTapZoom
-      doubleTapHoldZoom
-      dragPan
-      touchPitch
       touchRotate={false}
       onRegionDidChange={onRegionDidChange}
       onPress={onMapPress}
     >
       <Images images={{ cursorIcon: require('@assets/images/cursor.png') }} />
 
-      {(!!selectedRegulatoryArea || isolatedRegulatoryAreaId) && (
-        <VectorSource
-          key={regulatoryAreaByIdLayer.ids.source}
-          id={regulatoryAreaByIdLayer.ids.source}
-          tiles={[regulatoryAreaByIdLayer.tilesUrlTemplate]}
-          minzoom={MIN_REGULATORY_TILE_ZOOM}
-          maxzoom={MAX_REGULATORY_TILE_ZOOM}
-        >
-          <Layer
-            type="fill"
-            id={regulatoryAreaByIdLayer.ids.fillLayer}
-            source-layer={REGULATORY_AREAS_TILE_LAYER}
-            filter={regulatoryAreaByIdLayer.filter}
-            paint={{
-              'fill-color': fillColorExpression,
-              'fill-opacity': 0.3
-            }}
-          />
-          <Layer
-            type="line"
-            id={regulatoryAreaByIdLayer.ids.outlineLayer}
-            source-layer={REGULATORY_AREAS_TILE_LAYER}
-            filter={regulatoryAreaByIdLayer.filter}
-            paint={{
-              'line-color': OUTLINE_COLOR,
-              'line-width': 3
-            }}
-          />
-        </VectorSource>
-      )}
-
-      {areRegulatoryAreasLayerVisible && (
-        <VectorSource
-          key={regulatoryAreaLayer.ids.source}
-          id={regulatoryAreaLayer.ids.source}
-          tiles={[regulatoryAreaLayer.tilesUrlTemplate]}
-          minzoom={MIN_REGULATORY_TILE_ZOOM}
-          maxzoom={MAX_REGULATORY_TILE_ZOOM}
-        >
-          <Layer
-            type="fill"
-            id={regulatoryAreaLayer.ids.fillLayer}
-            source-layer={REGULATORY_AREAS_TILE_LAYER}
-            filter={regulatoryAreaLayer.filter}
-            paint={{
-              'fill-color': fillColorExpression,
-              'fill-opacity': !!selectedRegulatoryArea || isolatedRegulatoryAreaId ? 0 : 0.3
-            }}
-          />
-          <Layer
-            type="line"
-            id={regulatoryAreaLayer.ids.outlineLayer}
-            source-layer={REGULATORY_AREAS_TILE_LAYER}
-            filter={regulatoryAreaLayer.filter}
-            paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
-          />
-        </VectorSource>
-      )}
-      {clickedCoordinate && (
-        // Keyed on the regulatory source: remounted after it, so drawn above its fills.
-        <LayerAnnotation
-          key={`clickedPoint-${regulatoryAreaLayer.ids.source}-${areRegulatoryAreasLayerVisible}`}
-          id="clickedPoint"
-          lngLat={clickedCoordinate}
-        >
-          <Layer
-            id="clickedPointLayer"
-            type="symbol"
-            layout={{ 'icon-allow-overlap': true, 'icon-image': 'cursorIcon', 'icon-size': 0.5 }}
-          />
-        </LayerAnnotation>
-      )}
-
+      <LayerAnnotation id="clickedPoint" lngLat={clickedCoordinate ?? [0, 0]}>
+        <Layer
+          id="clickedPointLayer"
+          type="symbol"
+          layout={{
+            'icon-allow-overlap': true,
+            'icon-image': 'cursorIcon',
+            'icon-size': 0.5,
+            visibility: clickedCoordinate ? 'visible' : 'none'
+          }}
+        />
+      </LayerAnnotation>
+      <VectorSource
+        key={regulatoryAreaByIdLayer.ids.source}
+        id={regulatoryAreaByIdLayer.ids.source}
+        tiles={[regulatoryAreaByIdLayer.tilesUrlTemplate]}
+        minzoom={MIN_REGULATORY_TILE_ZOOM}
+        maxzoom={MAX_REGULATORY_TILE_ZOOM}
+      >
+        <Layer
+          type="line"
+          afterId={regulatoryAreaByIdLayer.ids.fillLayer}
+          layout={{ visibility: !!selectedRegulatoryArea || isolatedRegulatoryAreaId ? 'visible' : 'none' }}
+          id={regulatoryAreaByIdLayer.ids.outlineLayer}
+          source-layer={REGULATORY_AREAS_TILE_LAYER}
+          filter={regulatoryAreaByIdLayer.filter}
+          paint={{
+            'line-color': OUTLINE_COLOR,
+            'line-width': 3
+          }}
+        />
+        <Layer
+          type="fill"
+          afterId={BASE_LAYER_ID}
+          layout={{ visibility: !!selectedRegulatoryArea || isolatedRegulatoryAreaId ? 'visible' : 'none' }}
+          id={regulatoryAreaByIdLayer.ids.fillLayer}
+          source-layer={REGULATORY_AREAS_TILE_LAYER}
+          filter={regulatoryAreaByIdLayer.filter}
+          paint={{
+            'fill-color': fillColorExpression,
+            'fill-opacity': 0.3
+          }}
+        />
+      </VectorSource>
+      <VectorSource
+        key={regulatoryAreaLayer.ids.source}
+        id={regulatoryAreaLayer.ids.source}
+        tiles={[regulatoryAreaLayer.tilesUrlTemplate]}
+        minzoom={MIN_REGULATORY_TILE_ZOOM}
+        maxzoom={MAX_REGULATORY_TILE_ZOOM}
+      >
+        <Layer
+          type="line"
+          afterId={regulatoryAreaLayer.ids.fillLayer}
+          id={regulatoryAreaLayer.ids.outlineLayer}
+          layout={{ 'line-sort-key': SORT_KEY, visibility: areRegulatoryAreasLayerVisible ? 'visible' : 'none' }}
+          source-layer={REGULATORY_AREAS_TILE_LAYER}
+          filter={regulatoryAreaLayer.filter}
+          paint={{ 'line-color': OUTLINE_COLOR, 'line-width': 1 }}
+        />
+        <Layer
+          type="fill"
+          afterId={BASE_LAYER_ID}
+          id={regulatoryAreaLayer.ids.fillLayer}
+          layout={{ 'fill-sort-key': SORT_KEY, visibility: areRegulatoryAreasLayerVisible ? 'visible' : 'none' }}
+          source-layer={REGULATORY_AREAS_TILE_LAYER}
+          filter={regulatoryAreaLayer.filter}
+          paint={{
+            'fill-color': fillColorExpression,
+            'fill-opacity': !!selectedRegulatoryArea || isolatedRegulatoryAreaId ? 0 : 0.3
+          }}
+        />
+      </VectorSource>
       {isLocationEnabled && <UserLocation accuracy />}
       <Camera
         ref={cameraRef}

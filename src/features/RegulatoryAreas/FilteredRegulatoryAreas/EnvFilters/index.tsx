@@ -3,13 +3,14 @@ import { ThemedText } from '@components/Elements/Text'
 // import { Switch } from '@components/Elements/Switch'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 import { Image } from 'expo-image'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Modal, Pressable, View, StyleSheet } from 'react-native'
 import { useGlobalStyle } from '@globalStyle'
 import { useTheme } from '@hooks/use-theme'
 import { useAppContext } from '@contexts/AppContext'
 import { ThemesSelector } from './ThemesSelector'
 import { useBackHandler } from '@hooks/useBackHandler'
+import { getEnvThemesAndSubThemes } from '@features/RegulatoryAreas/useCases/getEnvThemesAndSubThemes'
 
 export function EnvFilters() {
   const globalStyle = useGlobalStyle()
@@ -20,16 +21,37 @@ export function EnvFilters() {
 
   // const [isOpen, setIsOpen] = useState(false)
   const [isThemesSelectorOpen, setIsThemesSelectorOpen] = useState(false)
-  // const closeEnvFilters = () => setIsOpen(false)
+  const [themesBySubThemes, setThemesBySubThemes] = useState<Record<string, string[]>>({})
+
   const closeThemesSelector = () => {
     setIsThemesSelectorOpen(false)
     setWithOverlay(false)
   }
 
   const filtersCount = useMemo(
-    () => filters.themes.length + filters.themes.flatMap(theme => theme.subThemes).length,
-    [filters.themes]
+    () =>
+      filters.themes.reduce((count, selectedTheme) => {
+        const allSubThemes = themesBySubThemes[selectedTheme.name]
+        const selectedSubThemes = selectedTheme.subThemes
+
+        if (allSubThemes && allSubThemes.every(subTheme => selectedSubThemes.includes(subTheme))) {
+          return count + 1
+        }
+
+        return count + selectedSubThemes.length
+      }, 0),
+    [filters.themes, themesBySubThemes]
   )
+
+  useEffect(() => {
+    async function fetchThemes() {
+      const themes = await getEnvThemesAndSubThemes()
+
+      setThemesBySubThemes(Object.fromEntries(themes.map(theme => [theme.name, theme.subThemes])))
+    }
+
+    fetchThemes()
+  }, [])
 
   /* const onSwitch = () => {
     setFilters(currentFilters => ({
@@ -154,7 +176,11 @@ export function EnvFilters() {
             <ThemedText type="large">Thématiques</ThemedText>
             <CloseButton onClose={closeThemesSelector} />
           </View>
-          <ThemesSelector onShowResults={closeThemesSelector} filtersCount={filtersCount} />
+          <ThemesSelector
+            onShowResults={closeThemesSelector}
+            filtersCount={filtersCount}
+            themesBySubThemes={themesBySubThemes}
+          />
         </View>
       </Modal>
     </>

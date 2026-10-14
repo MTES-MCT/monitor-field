@@ -21,6 +21,8 @@ import {
   getRegulatoryTilesDirectory,
   writeVectorTile
 } from './vectorTileStore'
+import { computeBoundingBoxSurface } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
+import turfBbox from '@turf/bbox'
 
 const PROGRESS_INTERVAL = 500
 
@@ -69,7 +71,15 @@ function toFeatureCollection(geometries: RegulatoryAreaGeometry[]): GeoJSONColle
     const feature = parseGeoJSONFeature(geometry)
 
     if (feature) {
-      features.push({ ...feature, properties: { colorKey, id } } as GeoJSONFeature)
+      const [minLon, minLat, maxLon, maxLat] = turfBbox(feature.geometry)
+      features.push({
+        ...feature,
+        properties: {
+          area: computeBoundingBoxSurface({ maxLat, maxLon, minLat, minLon }),
+          colorKey,
+          id
+        }
+      } as GeoJSONFeature)
     }
   }
 

@@ -4,10 +4,7 @@ import {
   matchesFishRegulatoryAreaFilters,
   type RegulatoryAreaFilters
 } from '@domain/entities/regulatoryAreas/RegulatoryAreaFilters'
-import {
-  computeBoundingBoxSurface,
-  type RegulatoryAreaSummary
-} from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
+import { type RegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import type { EnvRegulatoryAreaSummaryRepository } from '@domain/repositories/EnvRegulatoryAreaSummaryRepository'
 import type { FishRegulatoryAreaSummaryRepository } from '@domain/repositories/FishRegulatoryAreaSummaryRepository'
 import type { BoundingBox } from '@/types/mapTypes'
@@ -46,7 +43,5 @@ export async function getRegulatoryAreasInBoundingBox(
   boundingBox: BoundingBox,
   filters: RegulatoryAreaFilters
 ): Promise<RegulatoryAreaSummary[]> {
-  const areas = await findMatchingAreas(dependencies, dataset, boundingBox, filters)
-
-  return areas.sort((a, b) => computeBoundingBoxSurface(b.bbox) - computeBoundingBoxSurface(a.bbox))
+  return await findMatchingAreas(dependencies, dataset, boundingBox, filters)
 }

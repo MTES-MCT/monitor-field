@@ -52,7 +52,7 @@ export async function syncFishRegulatoryAreas(
     return false
   }
 
-  await localFishRegulatoryAreaRepository.replaceForSeaFronts(selectedSeaFronts, areas)
+  await localFishRegulatoryAreaRepository.replaceAll(areas)
 
   syncStateRepository.markSyncedAt('fish', now())
 

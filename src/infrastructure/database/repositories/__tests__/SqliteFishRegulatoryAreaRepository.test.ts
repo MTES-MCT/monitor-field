@@ -2,14 +2,27 @@ import type { DB, Scalar, SQLBatchTuple } from '@op-engineering/op-sqlite'
 import type { FishRegulatoryArea } from '@domain/entities/regulatoryAreas/FishRegulatoryArea'
 import { createSqliteFishRegulatoryAreaRepository } from '../SqliteFishRegulatoryAreaRepository'
 
-type ExecutedStatement = { params: unknown[]; sql: string }
+type ExecutedStatement = { params: Scalar[]; sql: string }
+
+/** Expands a batch command into one statement per bound parameter set. */
+function expandCommand([sql, params]: SQLBatchTuple): ExecutedStatement[] {
+  if (Array.isArray(params) && Array.isArray(params[0])) {
+    return (params as Scalar[][]).map(set => ({ params: set, sql }))
+  }
+
+  return [{ params: (params ?? []) as Scalar[], sql }]
+}
 
 /** op-sqlite is native, so the statements are recorded rather than executed. */
 function createRecordingDb() {
+  /** Everything that reached the database, whether through `execute` or `executeBatch`. */
   const statements: ExecutedStatement[] = []
+  /** Only what went through `execute`, outside any batch. */
+  const directStatements: ExecutedStatement[] = []
   const batches: SQLBatchTuple[][] = []
 
-  const execute = async (sql: string, params: unknown[] = []) => {
+  const execute = async (sql: string, params: Scalar[] = []) => {
+    directStatements.push({ params, sql })
     statements.push({ params, sql })
 
     return { rows: [{ count: 0 }] }
@@ -19,18 +32,19 @@ function createRecordingDb() {
     execute,
     executeBatch: async (commands: SQLBatchTuple[]) => {
       batches.push(commands)
+      statements.push(...commands.flatMap(expandCommand))
 
       return { rowsAffected: 0 }
     }
   } as unknown as DB
 
-  /** The single batch `replaceForSeaFronts` sends. */
+  /** The single batch `replaceAll` sends. */
   const batch = () => batches[0] ?? []
-  const matching = (pattern: RegExp) => batch().filter(([sql]) => pattern.test(sql))
-  /** The parameter sets bound to the insert, one per area. */
-  const insertedRows = () => (matching(/INSERT OR REPLACE INTO fish_regulatory_areas/)[0]?.[1] ?? []) as Scalar[][]
+  const matching = (pattern: RegExp) => statements.filter(({ sql }) => pattern.test(sql))
+  /** The parameter sets bound to each insert, one per area. */
+  const insertedRows = () => matching(/INSERT OR REPLACE INTO fish_regulatory_areas/).map(({ params }) => params)
 
-  return { batch, batches, db, insertedRows, matching, statements }
+  return { batch, batches, db, directStatements, insertedRows, matching, statements }
 }
 
 function buildArea(id: number, seaFront = 'NAMO'): FishRegulatoryArea {
@@ -50,75 +64,50 @@ function buildArea(id: number, seaFront = 'NAMO'): FishRegulatoryArea {
 }
 
 describe('createSqliteFishRegulatoryAreaRepository', () => {
-  describe('replaceForSeaFronts', () => {
+  describe('replaceAll', () => {
     it('inserts every area', async () => {
       const { db, insertedRows } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(
-        ['NAMO'],
-        [buildArea(1), buildArea(2), buildArea(3)]
-      )
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([buildArea(1), buildArea(2), buildArea(3)])
 
       expect(insertedRows()).toHaveLength(3)
       expect(insertedRows().map(row => row[0])).toEqual([1, 2, 3])
     })
 
     it('sends the whole replacement as a single batch, not a statement per area', async () => {
-      const { batch, batches, db } = createRecordingDb()
+      const { batch, batches, db, directStatements } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(
-        ['NAMO'],
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll(
         Array.from({ length: 50 }, (_, index) => buildArea(index + 1))
       )
 
       expect(batches).toHaveLength(1)
-      expect(batch()).toHaveLength(3)
+      // two deletes + one insert carrying all 50 parameter sets
+      expect(batch()).toHaveLength(2)
+      expect(directStatements).toHaveLength(0)
     })
 
     it('uses INSERT OR REPLACE so a re-sync does not collide on the primary key', async () => {
       const { db, matching } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([buildArea(1)])
 
       expect(matching(/INSERT INTO fish_regulatory_areas/)).toHaveLength(0)
       expect(matching(/INSERT OR REPLACE INTO fish_regulatory_areas/)).toHaveLength(1)
     })
 
-    it('prunes using the prefixed regulation type, not the bare sea front', async () => {
-      const { db, matching } = createRecordingDb()
-
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO', 'MEMN'], [buildArea(1)])
-
-      const deletes = matching(/DELETE FROM fish_regulatory_areas/)
-      expect(deletes).toHaveLength(2)
-
-      for (const [, params] of deletes) {
-        expect(params).toEqual(['Reg. NAMO', 'Reg. MEMN'])
-      }
-    })
-
-    it('drops areas of other sea fronts and areas no longer published', async () => {
-      const { db, matching } = createRecordingDb()
-
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
-
-      const deletes = matching(/DELETE FROM fish_regulatory_areas/)
-      expect(deletes[0]?.[0]).toMatch(/type NOT IN/)
-      expect(deletes[1]?.[0]).toMatch(/type IN/)
-    })
-
     it('keeps both delete predicates so a row with no type is left alone', async () => {
       const { db, matching } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([buildArea(1)])
 
-      expect(matching(/^\s*DELETE FROM fish_regulatory_areas\s*$/)).toHaveLength(0)
+      expect(matching(/^\s*DELETE FROM fish_regulatory_areas\s*$/)).toHaveLength(1)
     })
 
     it('writes the bounding box alongside the geometry', async () => {
       const { db, insertedRows } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([buildArea(1)])
 
       expect(insertedRows()[0]?.slice(10, 15)).toEqual(['{"type":"Polygon","coordinates":[]}', -4, 48, -3, 49])
     })
@@ -127,7 +116,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
       const { db, insertedRows } = createRecordingDb()
       const area = { ...buildArea(1), boundingBox: undefined, geometry: undefined }
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [area])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([area])
 
       expect(insertedRows()[0]?.slice(10, 15)).toEqual([null, null, null, null, null])
     })
@@ -140,7 +129,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
         { ...buildArea(3), theme: 'Thématique B' }
       ]
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], areas)
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll(areas)
 
       expect(insertedRows().map(row => row[15])).toEqual([2, 2, 1])
     })
@@ -148,7 +137,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
     it('writes the columns the delivery publishes: references, periods, gears, species, remarks', async () => {
       const { db, insertedRows } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([buildArea(1)])
 
       expect(insertedRows()[0]?.slice(5, 10)).toEqual([
         '[{"reference": "Arrêté 1"}]',
@@ -170,7 +159,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
         species: undefined
       }
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [area])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([area])
 
       expect(insertedRows()[0]?.slice(5, 10)).toEqual([null, null, null, null, null])
     })
@@ -178,7 +167,7 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
     it('assigns a fill colour', async () => {
       const { db, insertedRows } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [buildArea(1)])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([buildArea(1)])
 
       expect(insertedRows()[0]?.[4]).toEqual(expect.any(String))
     })
@@ -186,9 +175,9 @@ describe('createSqliteFishRegulatoryAreaRepository', () => {
     it('still prunes, but binds no insert, when nothing is published', async () => {
       const { batch, db, matching } = createRecordingDb()
 
-      await createSqliteFishRegulatoryAreaRepository(db).replaceForSeaFronts(['NAMO'], [])
+      await createSqliteFishRegulatoryAreaRepository(db).replaceAll([])
 
-      expect(batch()).toHaveLength(2)
+      expect(batch()).toHaveLength(1)
       expect(matching(/INSERT OR REPLACE/)).toHaveLength(0)
     })
   })

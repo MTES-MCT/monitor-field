@@ -488,7 +488,7 @@ class MatomoTracker {
       headers,
       method: 'POST'
     }
-    // console.log('Matomo tracking data:', this.trackerUrl, fetchObj)
+
     if (!this.trackerUrl) {
       return Promise.reject(new Error('Tracker URL is not initialized'))
     }

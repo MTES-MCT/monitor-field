@@ -1,3 +1,4 @@
+import { logSentryError } from '@utils/sentryLogger'
 import { getBuildNumber, getSystemName, getSystemVersion, getVersion, getModel } from 'react-native-device-info'
 
 const FEEDBACK_ACCESS_TOKEN = process.env.EXPO_PUBLIC_FEEDBACK_ACCESS_TOKEN!
@@ -11,8 +12,6 @@ export type FeedbackPayload = {
   email?: string
   env?: string
 }
-
-export class FeedbackError extends Error {}
 
 export async function sendFeedback({ title, description, type, email, env }: FeedbackPayload): Promise<void> {
   const os = `${getSystemName()} ${getSystemVersion()}`
@@ -34,6 +33,7 @@ export async function sendFeedback({ title, description, type, email, env }: Fee
   })
   // repository_dispatch send 204 No Content if accepted
   if (!response.ok) {
-    throw new FeedbackError(`Envoi échoué (${response.status})`)
+    logSentryError(response, 'Error sending feedback')
+    throw new Error(`Envoi échoué (${response.status})`)
   }
 }
