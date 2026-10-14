@@ -3,23 +3,23 @@ import { ThemedText } from '@components/Elements/Text'
 import { Checkbox } from '@components/Elements/Checkbox'
 import { Spacing } from '@constants/theme'
 import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useThemedStyles } from '@hooks/use-themed-styles'
 import { useGlobalStyle } from '@globalStyle'
 import { Image } from 'expo-image'
 import { normalizeText } from '@utils/normalizeText'
 import { LoaderIcon } from '@components/LoaderIcon'
 import { useRegulatoryAreasLayer } from '@features/RegulatoryAreas/hooks/useRegulatoryAreasLayer'
-import { getEnvThemesAndSubThemes } from '@features/RegulatoryAreas/useCases/getEnvThemesAndSubThemes'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { SearchInput } from '@components/SearchInput'
 
 type ThemesSelectorProps = {
   onShowResults: () => void
   filtersCount: number
+  themesBySubThemes: Record<string, string[]>
 }
 
-export function ThemesSelector({ onShowResults, filtersCount }: ThemesSelectorProps) {
+export function ThemesSelector({ onShowResults, filtersCount, themesBySubThemes }: ThemesSelectorProps) {
   const inputRef = useRef<TextInput | null>(null)
   const styles = useThemedStyles(createStyles)
   const globalStyle = useGlobalStyle()
@@ -27,17 +27,6 @@ export function ThemesSelector({ onShowResults, filtersCount }: ThemesSelectorPr
   const { isLoading } = useRegulatoryAreasLayer()
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedThemes, setExpandedThemes] = useState<Record<string, boolean>>({})
-  const [themesBySubThemes, setThemesBySubThemes] = useState<Record<string, string[]>>({})
-
-  useEffect(() => {
-    async function fetchThemes() {
-      const themes = await getEnvThemesAndSubThemes()
-
-      setThemesBySubThemes(Object.fromEntries(themes.map(theme => [theme.name, theme.subThemes])))
-    }
-
-    fetchThemes()
-  }, [])
 
   const filteredThemeEntries = useMemo(() => {
     const normalizedQuery = normalizeText(searchQuery.trim())
