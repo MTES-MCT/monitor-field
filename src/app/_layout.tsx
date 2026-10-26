@@ -9,7 +9,7 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { useAppColorScheme } from '@hooks/use-app-color-scheme'
 import { storage } from '@storage'
 import { Appearance, StatusBar } from 'react-native'
-import { OnBoarding } from '@features/OnBoarding'
+// import { OnBoarding } from '@features/OnBoarding'
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv'
 import { CustomSplashScreen } from '@components/CustomSplashScreen'
 import { syncRegulatoryAreas } from '@features/RegulatoryAreas/useCases/syncRegulatoryAreas'
@@ -28,6 +28,8 @@ const tracker = new MatomoTracker({
 export default function TabLayout() {
   const colorScheme = useAppColorScheme()
   const [isOnBoardingFinished] = useMMKVBoolean('isOnBoardingFinished', storage)
+  // TODO: remplacer par l'état réel de la session ProConnect
+  const [isAuthenticated] = useMMKVBoolean('isAuthenticated', storage)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
   const [isAppReady, setIsAppReady] = useState(false)
 
@@ -65,20 +67,27 @@ export default function TabLayout() {
               <BottomSheetModalProvider>
                 <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                   <StatusBar barStyle="dark-content" />
-                  {!!isOnBoardingFinished ? (
-                    <Stack
-                      screenOptions={{
-                        contentStyle: { backgroundColor: '#FFFFFF' },
-                        headerShown: false
-                      }}
-                    >
+
+                  {/* TODO: réactiver OnBoarding une fois l'authentification en place */}
+                  {/* {!!isOnBoardingFinished ? ( */}
+                  <Stack
+                    screenOptions={{
+                      contentStyle: { backgroundColor: '#FFFFFF' },
+                      headerShown: false
+                    }}
+                  >
+                    <Stack.Protected guard={!!isAuthenticated}>
                       <Stack.Screen name="index" />
                       <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
                       <Stack.Screen name="search" options={{ presentation: 'modal' }} />
-                    </Stack>
-                  ) : (
+                    </Stack.Protected>
+                    <Stack.Protected guard={!isAuthenticated}>
+                      <Stack.Screen name="authentication" />
+                    </Stack.Protected>
+                  </Stack>
+                  {/* ) : (
                     <OnBoarding />
-                  )}
+                  )} */}
                 </ThemeProvider>
               </BottomSheetModalProvider>
             </CameraProvider>

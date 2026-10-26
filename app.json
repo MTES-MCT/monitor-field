@@ -15,6 +15,20 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.monitor.monitorfield",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "monitorfield.example.beta.gouv.fr",
+              "pathPrefix": "/authentication"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
