@@ -27,6 +27,8 @@ export function useProConnectAuth() {
   }
 
   async function signOut() {
+    const redirectUrl = Linking.createURL('authentication/callback')
+    await WebBrowser.openAuthSessionAsync(`${AUTH_API_URL}/api/logout`, redirectUrl)
     await SecureStore.deleteItemAsync('session_token')
     setIsAuthenticated(false)
   }

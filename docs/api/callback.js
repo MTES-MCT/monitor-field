@@ -27,20 +27,26 @@ export default async function handler(req, res) {
       throw new Error('token_exchange_failed')
     }
 
-    const { payload: idToken } = await jwtVerify(
-      tokens.id_token,
-      createRemoteJWKSet(new URL(config.jwks_uri)),
-      { audience: process.env.PROCONNECT_CLIENT_ID, issuer: config.issuer }
-    )
+    const jwks = createRemoteJWKSet(new URL(config.jwks_uri))
+    const { payload: idToken } = await jwtVerify(tokens.id_token, jwks, {
+      audience: process.env.PROCONNECT_CLIENT_ID,
+      issuer: config.issuer
+    })
     if (idToken.nonce !== statePayload.nonce) {
       throw new Error('nonce_mismatch')
     }
 
-    const info = await (
-      await fetch(config.userinfo_endpoint, {
-        headers: { Authorization: `Bearer ${tokens.access_token}` }
-      })
-    ).json()
+    const userInfoRes = await fetch(config.userinfo_endpoint, {
+      headers: { Authorization: `Bearer ${tokens.access_token}` }
+    })
+    if (!userInfoRes.ok) {
+      throw new Error(`userinfo_failed: HTTP ${userInfoRes.status}`)
+    }
+    const userInfoBody = await userInfoRes.text()
+    // ProConnect renvoie userinfo en JWT signé
+    const info = userInfoBody.trimStart().startsWith('{')
+      ? JSON.parse(userInfoBody)
+      : (await jwtVerify(userInfoBody, jwks, { issuer: config.issuer })).payload
 
     const session = await new SignJWT({ email: info.email })
       .setProtectedHeader({ alg: 'HS256' })
