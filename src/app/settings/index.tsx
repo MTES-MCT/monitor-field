@@ -22,7 +22,7 @@ import useMatomo from '@matomo/useMatomo'
 import { logToSentry } from '@utils/sentryLogger'
 import { getModel, getSystemVersion, getVersion } from 'react-native-device-info'
 import { useBackHandler } from '@hooks/useBackHandler'
-import { useProConnectAuth } from '@features/Authentication/useProConnectAuth'
+import { useProConnectAuth } from '@features/Authentication/hooks/useProConnectAuth'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 const VERSION = getVersion()

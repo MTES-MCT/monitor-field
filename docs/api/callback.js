@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify, createRemoteJWKSet } from 'jose'
 
+import { findUser } from './_authorize.js'
+
 const key = () => new TextEncoder().encode(process.env.SESSION_SECRET)
 
 export default async function handler(req, res) {
@@ -48,7 +50,12 @@ export default async function handler(req, res) {
       ? JSON.parse(userInfoBody)
       : (await jwtVerify(userInfoBody, jwks, { issuer: config.issuer })).payload
 
-    const session = await new SignJWT({ email: info.email })
+    const user = findUser(info.email)
+    if (!user) {
+      return res.redirect(302, 'monitorfield://authentication/callback?error=unauthorized')
+    }
+
+    const session = await new SignJWT({ isSuperUser: user.isSuperUser === true })
       .setProtectedHeader({ alg: 'HS256' })
       .setSubject(idToken.sub)
       .setExpirationTime('12h')

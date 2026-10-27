@@ -1,0 +1,10 @@
+[
+  {
+    "emailHash": "7f09f24d7f80cef93c8b737e180176aa55c54eac4a3254e00380d90f180488d6",
+    "isSuperUser": true
+  },
+  {
+    "emailHash": "4332390275b0c8e96d8a661340a6d4d355b66d38a31d425cef9fc22760e415cf",
+    "isSuperUser": false
+  }
+]
