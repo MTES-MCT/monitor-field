@@ -1,8 +1,13 @@
-import { usePathname } from 'expo-router'
-import { Text } from 'react-native'
+import { Button, View } from 'react-native'
+
+import { useProConnectAuth } from '@features/Authentication/useProConnectAuth'
 
 export default function Authentication() {
-  const pathname = usePathname()
+  const { isReady, signIn } = useProConnectAuth()
 
-  return <Text>{pathname}</Text>
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
+      <Button disabled={!isReady} onPress={signIn} title="Se connecter avec ProConnect" />
+    </View>
+  )
 }
