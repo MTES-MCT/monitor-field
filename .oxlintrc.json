@@ -37,7 +37,8 @@
     "node_modules",
     "ios",
     "/.claude",
-    "/.expo"
+    "/.expo",
+    "/docs"
   ],
   "rules": {
     "eslint/sort-keys": [
