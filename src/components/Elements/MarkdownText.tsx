@@ -3,11 +3,20 @@ import { useTheme } from '@hooks/use-theme'
 import { useMemo } from 'react'
 import { type StyleProp, View, type ViewStyle } from 'react-native'
 import { type MarkedStyles, useMarkdown } from 'react-native-marked'
+import { HighlightRenderer } from './HighlightRenderer'
 
 const LINK_COLOR = '#295EDB'
 
 // `<Markdown>` renders a FlatList, which cannot be nested in a ScrollView.
-export function MarkdownText({ style, value }: { style?: StyleProp<ViewStyle>; value: string }) {
+export function MarkdownText({
+  searchQuery,
+  style,
+  value
+}: {
+  searchQuery?: string
+  style?: StyleProp<ViewStyle>
+  value: string
+}) {
   const theme = useTheme()
 
   const options = useMemo(() => {
@@ -20,12 +29,14 @@ export function MarkdownText({ style, value }: { style?: StyleProp<ViewStyle>; v
       strong: { ...text, fontFamily: Fonts.sansBold, fontWeight: 'normal' },
       text
     }
+    const trimmedQuery = searchQuery?.trim()
 
     return {
+      renderer: trimmedQuery ? new HighlightRenderer(trimmedQuery, theme.goldenPoppyBorder) : undefined,
       styles,
       theme: { colors: { border: theme.lightGray, code: theme.cultured, link: LINK_COLOR, text: theme.text } }
     }
-  }, [theme])
+  }, [searchQuery, theme])
 
   const elements = useMarkdown(value, options)
 

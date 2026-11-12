@@ -1,12 +1,14 @@
 import { MarkdownText } from '@components/Elements/MarkdownText'
-import { ThemedText } from '@components/Elements/Text'
+import { HighlightedText } from '@components/Elements/HighlightedText'
 import type { FishingPeriod } from '@domain/entities/regulatoryAreas/FishRegulation'
 import { fishingPeriodToString } from '../../utils/fishRegulation/fishingPeriodToString'
 import { styles } from '../style'
 import { Section } from './Section'
 import { SectionTitle } from './SectionTitle'
+import { useFishSearchQuery } from './useFishSearchQuery'
 
 export function FishingPeriodSection({ fishingPeriod }: { fishingPeriod: FishingPeriod | undefined }) {
+  const searchQuery = useFishSearchQuery()
   const text = fishingPeriodToString(fishingPeriod)
 
   if (!fishingPeriod || (!text && !fishingPeriod.otherInfo)) {
@@ -19,11 +21,13 @@ export function FishingPeriodSection({ fishingPeriod }: { fishingPeriod: Fishing
         {`Période de pêche ${fishingPeriod.authorized ? 'autorisée' : 'interdite'}`}
       </SectionTitle>
       {!!text && (
-        <ThemedText type="default" style={styles.horizontalPadding}>
+        <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQuery}>
           {text}
-        </ThemedText>
+        </HighlightedText>
       )}
-      {!!fishingPeriod.otherInfo && <MarkdownText style={styles.horizontalPadding} value={fishingPeriod.otherInfo} />}
+      {!!fishingPeriod.otherInfo && (
+        <MarkdownText style={styles.horizontalPadding} value={fishingPeriod.otherInfo} searchQuery={searchQuery} />
+      )}
     </Section>
   )
 }

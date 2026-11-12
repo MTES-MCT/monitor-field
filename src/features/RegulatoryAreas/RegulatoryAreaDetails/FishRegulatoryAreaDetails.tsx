@@ -1,5 +1,6 @@
 import type { FishRegulatoryAreaSummary } from '@domain/entities/regulatoryAreas/RegulatoryAreaSummary'
 import { memo } from 'react'
+import { useFishSearchQuery } from './FishRegulation/useFishSearchQuery'
 import { View } from 'react-native'
 import { getRegulatoryAreaLabel } from '../utils/getRegulatoryAreaLabel'
 import { ContactFooter } from './ContactFooter'
@@ -24,12 +25,14 @@ function FishRegulatoryAreaDetailsComponent({
   onDismiss: () => void
 }) {
   const { regulation } = regulatoryArea
+  const searchQuery = useFishSearchQuery()
 
   return (
     <>
       <DetailsHeader
         color={color}
         onDismiss={onDismiss}
+        searchQuery={searchQuery}
         subtitle={regulatoryArea.theme}
         title={getRegulatoryAreaLabel(regulatoryArea, 'MONITORFISH')}
       />
