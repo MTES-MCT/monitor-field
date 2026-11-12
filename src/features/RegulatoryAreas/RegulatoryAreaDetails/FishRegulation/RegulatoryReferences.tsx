@@ -1,3 +1,4 @@
+import { HighlightedText } from '@components/Elements/HighlightedText'
 import { ThemedText } from '@components/Elements/Text'
 import type { RegulatoryReference } from '@domain/entities/regulatoryAreas/FishRegulation'
 import { useGlobalStyle } from '@globalStyle'
@@ -7,6 +8,7 @@ import { toPublicLegipecheUrl } from '../../utils/fishRegulation/legipecheUrl'
 import { getRegulatoryTextTypeLabel } from '../../utils/fishRegulation/regulationLabels'
 import { styles } from '../style'
 import { SectionTitle } from './SectionTitle'
+import { useFishSearchQuery } from './useFishSearchQuery'
 
 const LEGIPECHE_TRACKING_EVENT: TrackingEvent = {
   action: "Consultation d'un lien Légipêche",
@@ -38,23 +40,31 @@ function ReferenceRow({
 }) {
   const globalStyle = useGlobalStyle()
   const openLegipeche = useOpenExternalLink(LEGIPECHE_TRACKING_EVENT, 'RegulatoryReferences')
+  const searchQuery = useFishSearchQuery()
   const textTypeLabel = getRegulatoryTextTypeLabel(textType)
 
   return (
     <View style={[styles.horizontalPadding, styles.referenceRow]}>
       <ThemedText type="default">→</ThemedText>
       <View style={{ flex: 1 }}>
-        {!!textTypeLabel && <ThemedText type="default">{textTypeLabel}</ThemedText>}
+        {!!textTypeLabel && (
+          <HighlightedText type="default" searchQuery={searchQuery}>
+            {textTypeLabel}
+          </HighlightedText>
+        )}
         {url ? (
-          <ThemedText
+          <HighlightedText
             type="link"
             style={globalStyle.textUnderline}
             onPress={() => openLegipeche(toPublicLegipecheUrl(url))}
+            searchQuery={searchQuery}
           >
             {reference}
-          </ThemedText>
+          </HighlightedText>
         ) : (
-          <ThemedText type="default">{reference}</ThemedText>
+          <HighlightedText type="default" searchQuery={searchQuery}>
+            {reference}
+          </HighlightedText>
         )}
       </View>
     </View>

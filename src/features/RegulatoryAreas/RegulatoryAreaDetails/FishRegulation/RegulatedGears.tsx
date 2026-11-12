@@ -1,4 +1,5 @@
 import { MarkdownText } from '@components/Elements/MarkdownText'
+import { HighlightedText } from '@components/Elements/HighlightedText'
 import { ThemedText } from '@components/Elements/Text'
 import type {
   Gear,
@@ -18,6 +19,7 @@ import {
 import { formatCodeAndName, getMeshLabel } from '../../utils/fishRegulation/regulationLabels'
 import { styles } from '../style'
 import { type RegulationStatus, SectionTitle } from './SectionTitle'
+import { useFishSearchQuery } from './useFishSearchQuery'
 
 export function RegulatedGears({
   regulatedGears,
@@ -57,20 +59,30 @@ export function RegulatedGears({
 }
 
 function GearGroupRow({ info, label }: { info: string; label: string }) {
+  const searchQuery = useFishSearchQuery()
+
   return (
     <View style={styles.horizontalPadding}>
-      <ThemedText type="default">{label}</ThemedText>
-      <ThemedText type="small" themeColor="slateGray">
+      <HighlightedText type="default" searchQuery={searchQuery}>
+        {label}
+      </HighlightedText>
+      <HighlightedText type="small" themeColor="slateGray" searchQuery={searchQuery}>
         {info}
-      </ThemedText>
+      </HighlightedText>
     </View>
   )
 }
 
 function GearCategoryBlock({ row: { category, gears, name } }: { row: GearCategoryRow }) {
+  const searchQuery = useFishSearchQuery()
+
   return (
     <View style={styles.horizontalPadding}>
-      {name !== UNCATEGORIZED && <ThemedText type="defaultBold">{name}</ThemedText>}
+      {name !== UNCATEGORIZED && (
+        <HighlightedText type="defaultBold" searchQuery={searchQuery}>
+          {name}
+        </HighlightedText>
+      )}
       {category ? (
         <GearFields label={CATEGORY_LABEL[name]} gearOrCategory={category} />
       ) : (
@@ -87,17 +99,24 @@ function GearCategoryBlock({ row: { category, gears, name } }: { row: GearCatego
 }
 
 function GearFields({ gearOrCategory, label }: { gearOrCategory: Gear | GearCategory; label: string | undefined }) {
+  const searchQuery = useFishSearchQuery()
   const meshLabel = getMeshLabel(gearOrCategory)
 
   return (
     <>
-      {!!label && <ThemedText type="default">{label}</ThemedText>}
-      {!!meshLabel && (
-        <ThemedText type="default" style={styles.indented}>
-          {meshLabel}
-        </ThemedText>
+      {!!label && (
+        <HighlightedText type="default" searchQuery={searchQuery}>
+          {label}
+        </HighlightedText>
       )}
-      {!!gearOrCategory.remarks && <MarkdownText style={styles.indented} value={gearOrCategory.remarks} />}
+      {!!meshLabel && (
+        <HighlightedText type="default" style={styles.indented} searchQuery={searchQuery}>
+          {meshLabel}
+        </HighlightedText>
+      )}
+      {!!gearOrCategory.remarks && (
+        <MarkdownText style={styles.indented} value={gearOrCategory.remarks} searchQuery={searchQuery} />
+      )}
     </>
   )
 }

@@ -1,3 +1,4 @@
+import { HighlightedText } from '@components/Elements/HighlightedText'
 import { ThemedText } from '@components/Elements/Text'
 import { View } from 'react-native'
 import { styles } from './style'
@@ -11,6 +12,7 @@ import { useGlobalStyle } from '@globalStyle'
 import { useOpenExternalLink, type TrackingEvent } from '@hooks/useOpenExternalLink'
 import { ContactFooter } from './ContactFooter'
 import { DetailsHeader } from './DetailsHeader'
+import { useRegulatoryAreasContext } from '@contexts/RegulatoryAreasContext'
 
 const CACEM_TEL_NUMBER = process.env.EXPO_PUBLIC_CACEM_NUMBER
 
@@ -31,6 +33,10 @@ function EnvRegulatoryAreaDetailsComponent({
 }) {
   const theme = useTheme()
   const globalStyle = useGlobalStyle()
+
+  const {
+    filters: { searchQueryEnv }
+  } = useRegulatoryAreasContext()
 
   const goToLegicem = useOpenExternalLink(LEGICEM_TRACKING_EVENT, 'EnvRegulatoryAreaDetails')
   const parsedThemes = regulatoryArea.themes ? Object.entries(JSON.parse(regulatoryArea.themes)) : []
@@ -55,6 +61,7 @@ function EnvRegulatoryAreaDetailsComponent({
         color={color}
         numberOfLines={!regulatoryArea.polyName ? 1 : undefined}
         onDismiss={onDismiss}
+        searchQuery={searchQueryEnv}
         subtitle={groupTitle}
         title={getRegulatoryAreaLabel(regulatoryArea, 'MONITORENV')}
       />
@@ -68,23 +75,23 @@ function EnvRegulatoryAreaDetailsComponent({
         <ThemedText type="small" style={styles.labelStyle}>
           Résumé
         </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
+        <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
           {regulatoryArea.resume}
-        </ThemedText>
+        </HighlightedText>
         <ThemedText type="small" style={styles.labelStyle}>
           Ensemble reg.
         </ThemedText>
-        <ThemedText type="default" style={styles.horizontalPadding}>
+        <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
           {regulatoryArea.type}
-        </ThemedText>
+        </HighlightedText>
         {themes && (
           <>
             <ThemedText type="small" style={styles.labelStyle}>
               Thématiques
             </ThemedText>
-            <ThemedText type="default" style={styles.horizontalPadding}>
+            <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
               {themes}
-            </ThemedText>
+            </HighlightedText>
           </>
         )}
         {subThemes && (
@@ -92,9 +99,9 @@ function EnvRegulatoryAreaDetailsComponent({
             <ThemedText type="small" style={styles.labelStyle}>
               Sous-thématiques
             </ThemedText>
-            <ThemedText type="default" style={styles.horizontalPadding}>
+            <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
               {subThemes}
-            </ThemedText>
+            </HighlightedText>
           </>
         )}
         {regulatoryArea.authorizationPeriods && (
@@ -106,9 +113,9 @@ function EnvRegulatoryAreaDetailsComponent({
                 Période d&apos;autorisation
               </ThemedText>
             </View>
-            <ThemedText type="default" style={styles.horizontalPadding}>
+            <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
               {regulatoryArea.authorizationPeriods}
-            </ThemedText>
+            </HighlightedText>
           </>
         )}
 
@@ -121,9 +128,9 @@ function EnvRegulatoryAreaDetailsComponent({
                 Période d&apos;interdiction
               </ThemedText>
             </View>
-            <ThemedText type="default" style={styles.horizontalPadding}>
+            <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
               {regulatoryArea.prohibitionPeriods}
-            </ThemedText>
+            </HighlightedText>
           </>
         )}
         <View style={globalStyle.separator} />
@@ -131,12 +138,17 @@ function EnvRegulatoryAreaDetailsComponent({
           <ThemedText type="small" style={{ ...styles.labelStyle, marginTop: Spacing.two }}>
             Résumé réglementaire sur Légicem
           </ThemedText>
-          <ThemedText type="default" style={styles.horizontalPadding}>
+          <HighlightedText type="default" style={styles.horizontalPadding} searchQuery={searchQueryEnv}>
             {regulatoryArea.refReg}
-          </ThemedText>
-          <ThemedText type="link" style={styles.horizontalPadding} onPress={() => goToLegicem(regulatoryArea.url)}>
+          </HighlightedText>
+          <HighlightedText
+            type="link"
+            style={styles.horizontalPadding}
+            onPress={() => goToLegicem(regulatoryArea.url)}
+            searchQuery={searchQueryEnv}
+          >
             {regulatoryArea.url}
-          </ThemedText>
+          </HighlightedText>
         </View>
         <ContactFooter phoneNumber={CACEM_TEL_NUMBER} serviceName="CACEM" />
       </View>
