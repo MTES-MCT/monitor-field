@@ -24,14 +24,31 @@ export function hasActiveRegulatoryAreaFilters(filters: RegulatoryAreaFilters, m
   return !!filters.searchQueryEnv?.trim() || filters.recentlyAddedOrModified || filters.themes.length > 0
 }
 
-function matchesSearchQuery(searchableFields: (string | null | undefined)[], searchQuery: string | undefined): boolean {
-  const normalizedQuery = searchQuery?.trim() ? normalizeText(searchQuery) : ''
+export function matchesSearchQuery(
+  searchableFields: (string | null | undefined)[],
+  searchQuery: string | undefined
+): boolean {
+  const words = toSearchWords(searchQuery)
 
-  if (!normalizedQuery) {
+  if (words.length === 0) {
     return true
   }
 
-  return searchableFields.some(field => !!field && normalizeText(field).includes(normalizedQuery))
+  const searchableText = toSearchWords(searchableFields.filter(Boolean).join(' ')).join(' ')
+
+  return words.every(word => searchableText.includes(word))
+}
+
+// Normalizes case/accents and replaces special characters by spaces, then splits into words
+function toSearchWords(value: string | undefined): string[] {
+  if (!value) {
+    return []
+  }
+
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
 }
 
 function matchesThemesAndSubThemes(area: EnvRegulatoryAreaSummary, themesFilter: ThemesFilters[]): boolean {
@@ -61,7 +78,19 @@ export function matchesFishRegulatoryAreaFilters(
   area: FishRegulatoryAreaSummary,
   filters: RegulatoryAreaFilters
 ): boolean {
-  return matchesSearchQuery([area.zone, area.theme, area.type], filters.searchQueryFish)
+  return matchesSearchQuery(
+    [
+      area.zone,
+      area.theme,
+      area.type,
+      String(area.regulation.fishingPeriod),
+      String(area.regulation.gearRegulation),
+      String(area.regulation.generalRemarks),
+      String(area.regulation.regulatoryReferences),
+      String(area.regulation.speciesRegulation)
+    ],
+    filters.searchQueryFish
+  )
 }
 
 export function matchesEnvRegulatoryAreaFilters(

@@ -1,4 +1,4 @@
-import { BackHandler, Pressable, StyleSheet, View, type NativeSyntheticEvent } from 'react-native'
+import { BackHandler, Pressable, StyleSheet, ToastAndroid, View, type NativeSyntheticEvent } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { MaxContentWidth, Spacing } from '@constants/theme'
@@ -25,7 +25,7 @@ import {
   type PressEventWithFeatures,
   type StyleSpecification
 } from '@maplibre/maplibre-react-native'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { FilteredRegulatoryAreas } from '@features/RegulatoryAreas/FilteredRegulatoryAreas'
 import { RegulatoryAreaDetails } from '@features/RegulatoryAreas/RegulatoryAreaDetails'
 import {
@@ -50,6 +50,8 @@ import { useRegulatoryAreaByIdLayer } from '@features/RegulatoryAreas/hooks/useR
 import useMatomo from '@matomo/useMatomo'
 import { getAndroidId, getModel, getSystemName, getSystemVersion, getVersion } from 'react-native-device-info'
 import { useBackHandler } from '@hooks/useBackHandler'
+import { UserCoordinatesTooltip } from '@components/UserCoordinatesTooltip'
+import * as Location from 'expo-location'
 
 const ENV = process.env.EXPO_PUBLIC_SENTRY_ENV
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN
@@ -122,6 +124,8 @@ function App() {
 
   const regulatoryAreaLayer = useRegulatoryAreasLayer()
   const regulatoryAreaByIdLayer = useRegulatoryAreaByIdLayer()
+
+  const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number }>()
 
   useBackHandler(() => BackHandler.exitApp(), currentRouteInfo?.pathname === '/' && !activeModal)
 
@@ -275,6 +279,20 @@ function App() {
     setPreviousZoomAndBbox(undefined)
   }
 
+  const showUserCoordinates = useCallback(async () => {
+    if (userCoordinates) {
+      setUserCoordinates(undefined)
+      return
+    }
+
+    try {
+      const position = (await Location.getLastKnownPositionAsync({})) ?? (await Location.getCurrentPositionAsync({}))
+      setUserCoordinates({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+    } catch (_) {
+      ToastAndroid.show('Impossible de récupérer votre localisation', ToastAndroid.SHORT)
+    }
+  }, [userCoordinates])
+
   useEffect(() => {
     async function initMatomo() {
       const os = `${getSystemName()} ${getSystemVersion()}`
@@ -380,7 +398,7 @@ function App() {
           }}
         />
       </VectorSource>
-      {isLocationEnabled && <UserLocation accuracy />}
+      {isLocationEnabled && <UserLocation accuracy onPress={showUserCoordinates} />}
       <Camera
         ref={cameraRef}
         initialViewState={{
@@ -389,26 +407,29 @@ function App() {
         }}
         maxBounds={[-180, -90, 180, 90]}
       />
-      <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
-        <View style={styles.boutonsWrapper}>
-          <SwitchContextButton onSwitch={onSwitchContext} />
-          <View>
-            <Link href="/settings" asChild onPress={() => setActiveModal(undefined)}>
-              <Pressable
-                accessibilityRole="link"
-                accessibilityState={{ disabled: false }}
-                style={StyleSheet.flatten([globalStyle.squareButton, { backgroundColor: 'white' }])}
-              >
-                {isRefreshingSettingsData && (
-                  <View style={[globalStyle.dot, { justifyContent: 'center' }]}>
-                    <LoaderIcon tintColor="white" size="SMALL" />
-                  </View>
-                )}
-                <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
-              </Pressable>
-            </Link>
 
-            <UserFeedback />
+      <SafeAreaView style={styles.safeArea} pointerEvents="box-none">
+        <View>
+          <View style={styles.boutonsWrapper}>
+            <SwitchContextButton onSwitch={onSwitchContext} />
+            <View>
+              <Link href="/settings" asChild onPress={() => setActiveModal(undefined)}>
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityState={{ disabled: false }}
+                  style={StyleSheet.flatten([globalStyle.squareButton, { backgroundColor: 'white' }])}
+                >
+                  {isRefreshingSettingsData && (
+                    <View style={[globalStyle.dot, { justifyContent: 'center' }]}>
+                      <LoaderIcon tintColor="white" size="SMALL" />
+                    </View>
+                  )}
+                  <Image source={require('@assets/icons/settings.svg')} style={globalStyle.iconNormal} />
+                </Pressable>
+              </Link>
+
+              <UserFeedback />
+            </View>
           </View>
         </View>
         {withOverlay && <View style={[globalStyle.overlay]} />}
@@ -421,6 +442,9 @@ function App() {
         <FilteredRegulatoryAreas openRegulatoryAreaDetails={openRegulatoryAreaDetails} />
         <RegulatoryAreaDetails onClose={closeRegulatoryAreaDetails} />
       </SafeAreaView>
+      {isLocationEnabled && userCoordinates && (
+        <UserCoordinatesTooltip coordinates={userCoordinates} closeMarker={() => setUserCoordinates(undefined)} />
+      )}
     </MapLibreMap>
   )
 }
@@ -435,8 +459,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
-
   safeArea: {
+    elevation: 1,
     flex: 1,
     gap: Spacing.three,
     justifyContent: 'space-between',

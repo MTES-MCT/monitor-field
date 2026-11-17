@@ -126,11 +126,13 @@ export function ThemesSelector({ onShowResults, filtersCount, themesBySubThemes 
                 <Checkbox
                   label={themeName}
                   isChecked={isThemeChecked(themeName)}
+                  numberOfLines={3}
                   onToggle={() => toggleTheme(themeName, subThemes)}
                   style={{
-                    marginHorizontal: Spacing.four
+                    height: 'auto',
+                    marginHorizontal: Spacing.four,
+                    minHeight: 48
                   }}
-                  numberOfLines={1}
                 />
                 <Pressable onPress={() => toggleExpandedTheme(themeName)} hitSlop={28}>
                   <Image

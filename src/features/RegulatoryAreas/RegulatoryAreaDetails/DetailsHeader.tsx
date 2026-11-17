@@ -1,5 +1,5 @@
 import { CloseButton } from '@components/Buttons/CloseButton'
-import { ThemedText } from '@components/Elements/Text'
+import { HighlightedText } from '@components/Elements/HighlightedText'
 import { useTheme } from '@hooks/use-theme'
 import { View } from 'react-native'
 import { styles } from './style'
@@ -8,12 +8,14 @@ export function DetailsHeader({
   color,
   numberOfLines,
   onDismiss,
+  searchQuery,
   subtitle,
   title
 }: {
   color: string
   numberOfLines?: number
   onDismiss: () => void
+  searchQuery?: string
   subtitle: string
   title: string
 }) {
@@ -22,14 +24,19 @@ export function DetailsHeader({
   return (
     <View style={styles.titleWrapper}>
       <View style={{ flex: 1 }}>
-        <ThemedText type="small" style={styles.titleText}>
+        <HighlightedText type="small" style={styles.titleText} searchQuery={searchQuery}>
           {subtitle}
-        </ThemedText>
+        </HighlightedText>
         <View style={styles.title}>
           <View style={[styles.square, { backgroundColor: color, borderColor: theme.lightGray }]} />
-          <ThemedText type="default" style={styles.titleText} numberOfLines={numberOfLines}>
+          <HighlightedText
+            type="default"
+            style={styles.titleText}
+            numberOfLines={numberOfLines}
+            searchQuery={searchQuery}
+          >
             {title}
-          </ThemedText>
+          </HighlightedText>
         </View>
       </View>
       <CloseButton onClose={onDismiss} />

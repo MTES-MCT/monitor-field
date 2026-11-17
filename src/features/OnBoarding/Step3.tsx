@@ -7,6 +7,7 @@ import { Image } from 'expo-image'
 import { Spacing } from '@constants/theme'
 import { SeaFrontsSelector } from '@components/SeaFrontsSelector'
 import useMatomo from '@matomo/useMatomo'
+import { ScrollView } from 'react-native-gesture-handler'
 
 export function Step3({ onNext }: { onNext: (seaFronts: string[]) => void }) {
   const theme = useTheme()
@@ -30,34 +31,36 @@ export function Step3({ onNext }: { onNext: (seaFronts: string[]) => void }) {
   }
 
   return (
-    <View style={styles.wrapper}>
-      <ThemedText themeColor="white" type="title" style={styles.title}>
-        Choix du secteur
-      </ThemedText>
-      <ThemedText themeColor="white" type="default">
-        Veuillez sélectionner votre façade habituelle de mission. Vous pouvez en sélectionner plusieurs si vous
-        intervenez sur plusieurs façades.
-      </ThemedText>
-      <ThemedText themeColor="white" type="defaultItalic">
-        Vous pourrez changer ces informations plus tard dans les paramètres de l’application.
-      </ThemedText>
-      <SeaFrontsSelector accent="SECONDARY" selectedSeaFronts={selectedSeaFronts} onToggle={toggleSeaFront} />
-
-      <Pressable
-        disabled={isButtonDisabled}
-        onPress={handleNextStep}
-        accessibilityRole="button"
-        accessibilityState={{
-          disabled: isButtonDisabled
-        }}
-        style={[styles.button, { backgroundColor: isButtonDisabled ? theme.lightGray : theme.blueGray }]}
-      >
-        <ThemedText type="default" themeColor="white">
-          Suivant
+    <ScrollView>
+      <View style={styles.wrapper}>
+        <ThemedText themeColor="white" type="title" style={styles.title}>
+          Choix du secteur
         </ThemedText>
-        <Image source={require('@assets/icons/arrow-right.svg')} style={globalStyle.iconNormal} />
-      </Pressable>
-    </View>
+        <ThemedText themeColor="white" type="default">
+          Veuillez sélectionner votre façade habituelle de mission. Vous pouvez en sélectionner plusieurs si vous
+          intervenez sur plusieurs façades.
+        </ThemedText>
+        <ThemedText themeColor="white" type="defaultItalic">
+          Vous pourrez changer ces informations plus tard dans les paramètres de l’application.
+        </ThemedText>
+        <SeaFrontsSelector accent="SECONDARY" selectedSeaFronts={selectedSeaFronts} onToggle={toggleSeaFront} />
+
+        <Pressable
+          disabled={isButtonDisabled}
+          onPress={handleNextStep}
+          accessibilityRole="button"
+          accessibilityState={{
+            disabled: isButtonDisabled
+          }}
+          style={[styles.button, { backgroundColor: isButtonDisabled ? theme.lightGray : theme.blueGray }]}
+        >
+          <ThemedText type="default" themeColor="white">
+            Suivant
+          </ThemedText>
+          <Image source={require('@assets/icons/arrow-right.svg')} style={globalStyle.iconNormal} />
+        </Pressable>
+      </View>
+    </ScrollView>
   )
 }
 
