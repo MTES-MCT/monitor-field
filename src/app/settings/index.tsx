@@ -22,6 +22,7 @@ import useMatomo from '@matomo/useMatomo'
 import { logToSentry } from '@utils/sentryLogger'
 import { getModel, getSystemVersion, getVersion } from 'react-native-device-info'
 import { useBackHandler } from '@hooks/useBackHandler'
+import { useProConnectAuth } from '@features/Authentication/hooks/useProConnectAuth'
 
 const MONITOR_EMAIL = process.env.EXPO_PUBLIC_EMAIL
 const VERSION = getVersion()
@@ -35,6 +36,7 @@ export default function Settings() {
   const globalStyle = useGlobalStyle()
   const { isRefreshingSettingsData, setIsRefreshingSettingsData } = useAppContext()
   const { trackScreenView, trackEvent, trackDownload } = useMatomo()
+  const { signOut } = useProConnectAuth()
 
   const [isRefreshingDataLocal, setIsRefreshingDataLocal] = useState(false)
   const [selectedSeaFronts] = useMMKVString('selectedSeaFronts', storage)
@@ -186,6 +188,13 @@ export default function Settings() {
           <ThemedText type="small">{OS_VERSION}</ThemedText>
           <ThemedText type="default">Modèle du téléphone</ThemedText>
           <ThemedText type="small">{TEL_MODEL}</ThemedText>
+        </View>
+        <View style={globalStyle.separator} />
+        <View style={styles.section}>
+          <ThemedText type="small">Compte</ThemedText>
+          <ThemedText style={globalStyle.textUnderline} type="default" onPress={signOut}>
+            Se déconnecter
+          </ThemedText>
         </View>
       </ScrollView>
     </SafeAreaView>
