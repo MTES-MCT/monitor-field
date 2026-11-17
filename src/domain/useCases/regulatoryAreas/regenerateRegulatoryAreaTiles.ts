@@ -1,6 +1,7 @@
 import type { RegulatoryAreaDataset } from '@domain/entities/regulatoryAreas/RegulatoryAreaDataset'
 import type { RegulatoryAreaGeometryRepository } from '@domain/repositories/RegulatoryAreaGeometryRepository'
 import type { RegulatoryAreaTileRepository } from '@domain/repositories/RegulatoryAreaTileRepository'
+import { logSentryError } from '@utils/sentryLogger'
 
 export type RegenerateRegulatoryAreaTilesDependencies = {
   regulatoryAreaGeometryRepository: RegulatoryAreaGeometryRepository
@@ -24,8 +25,12 @@ export async function regenerateRegulatoryAreaTiles(
       continue
     }
 
-    const geometries = await regulatoryAreaGeometryRepository.findAllByDataset(dataset)
+    try {
+      const geometries = await regulatoryAreaGeometryRepository.findAllByDataset(dataset)
 
-    await regulatoryAreaTileRepository.replaceAll(dataset, geometries)
+      await regulatoryAreaTileRepository.replaceAll(dataset, geometries)
+    } catch (error) {
+      logSentryError(error, `Unable to regenerateRegulatoryAreaTiles ${dataset} regulatory areas`)
+    }
   }
 }
